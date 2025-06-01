@@ -1,14 +1,8 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "dist/server.js",
+  "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,22 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.7.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
+    "@prisma/client": "^6.8.2",
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.1",
-    "@types/node": "^22.15.18",
-    "eslint": "^9.26.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
-    "nodemon": "^3.1.10",
-    "prettier": "^3.5.3",
-    "prisma": "^6.7.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "prisma": "^6.8.2"
   }
 }
