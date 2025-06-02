@@ -1,7 +1,6 @@
 import 'reflect-metadata';
-//require('module-alias/register');
 import 'dotenv/config';
-import app from './app';
+import app from '@/app';
 import { logger } from '@/utils/logger';
 import { connectDatabase } from '@/config/database';
 
