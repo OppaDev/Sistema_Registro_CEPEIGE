@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsNotEmpty, IsISO8601 } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsDateString } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateCursoDto {
@@ -19,12 +19,12 @@ export class CreateCursoDto {
   @Type(() => Number)
   valorCurso!: number;
 
-  @IsISO8601({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
+  @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de inicio es requerida' })
   @Transform(({ value }) => value ? new Date(value) : undefined, { toClassOnly: true })
   fechaInicioCurso!: Date;
 
-  @IsISO8601({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
+  @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de fin es requerida' })
   @Transform(({ value }) => value ? new Date(value) : undefined, { toClassOnly: true })
   fechaFinCurso!: Date;

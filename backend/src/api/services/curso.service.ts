@@ -6,13 +6,6 @@ const prisma = new PrismaClient();
 export class CursoService {
   async createCurso(cursoData: CreateCursoDto) {
     try {
-      // Validar que todos los campos requeridos estén presentes
-      if (!cursoData.nombreCortoCurso || !cursoData.nombreCurso || 
-          !cursoData.descripcionCurso || !cursoData.valorCurso || 
-          !cursoData.fechaInicioCurso || !cursoData.fechaFinCurso) {
-        throw new Error('Todos los campos son requeridos');
-      }
-
       const curso = await prisma.curso.create({
         data: {
           nombreCortoCurso: cursoData.nombreCortoCurso,
@@ -28,7 +21,7 @@ export class CursoService {
       if (error instanceof Error) {
         throw new Error(`Error al crear el curso: ${error.message}`);
       }
-      throw new Error('Error desconocido al crear el curso');
+      throw new Error("Error desconocido al crear el curso");
     }
   }
 }
