@@ -13,6 +13,7 @@ if (!fs.existsSync(logDir)) {
   } catch (error) {
     console.error(`Error al crear directorio de logs ${logDir}:`, error);
   }
+}
 
 // Formato personalizado
 const customFormat = winston.format.combine(
