@@ -28,17 +28,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
-      "@/config/*": ["src/config/*"],
-      "@/models/*": ["src/models/*"],
-      "@/services/*": ["src/services/*"],
-      "@/controllers/*": ["src/api/controllers/*"],
-      "@/routes/*": ["src/api/routes/*"],
-      "@/middlewares/*": ["src/api/middlewares/*"],
-      "@/validations/*": ["src/api/validations/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/types/*": ["src/types/*"],
-      "@/constants/*": ["src/constants/*"]
+      "@/*": ["*"],
     }
   },
   "include": [
