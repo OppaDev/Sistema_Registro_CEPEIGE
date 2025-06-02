@@ -1,5 +1,5 @@
-import { IsString, IsNumber, IsNotEmpty, IsDateString } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { IsString, IsNumber, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateCursoDto {
   @IsString({ message: 'El nombre corto del curso debe ser una cadena de texto' })
@@ -21,11 +21,36 @@ export class CreateCursoDto {
 
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de inicio es requerida' })
-  @Transform(({ value }) => value ? new Date(value) : undefined, { toClassOnly: true })
-  fechaInicioCurso!: Date;
+  fechaInicioCurso!: string;
 
   @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de fin es requerida' })
-  @Transform(({ value }) => value ? new Date(value) : undefined, { toClassOnly: true })
-  fechaFinCurso!: Date;
+  fechaFinCurso!: string;
 } 
+
+export class UpdateCursoDto {
+  @IsString({ message: 'El nombre corto del curso debe ser una cadena de texto' })
+  @IsOptional()
+  nombreCortoCurso?: string;
+
+  @IsString({ message: 'El nombre del curso debe ser una cadena de texto' })
+  @IsOptional()
+  nombreCurso?: string;
+
+  @IsString({ message: 'La descripción del curso debe ser una cadena de texto' })
+  @IsOptional()
+  descripcionCurso?: string;
+
+  @IsNumber({}, { message: 'El valor del curso debe ser un número' })
+  @IsOptional()
+  @Type(() => Number)
+  valorCurso?: number;
+
+  @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
+  @IsOptional()
+  fechaInicioCurso?: string;
+
+  @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
+  @IsOptional()
+  fechaFinCurso?: string;
+}
