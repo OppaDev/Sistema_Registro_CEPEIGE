@@ -44,14 +44,6 @@ export function configureExpress(app: Application): void {
   // Body parsing
   app.use(express.json({ 
     limit: '10mb',
-    verify: (req, res, buf) => {
-      try {
-        JSON.parse(buf.toString());
-      } catch (e) {
-        res.status(400).json({ error: 'JSON inválido' });
-        return;
-      }
-    }
   }));
   
   app.use(express.urlencoded({ 

@@ -7,6 +7,7 @@ declare namespace NodeJS {
     RATE_LIMIT_WINDOW_MS: string;
     RATE_LIMIT_MAX_REQUESTS: string;
     JWT_SECRET: string;
+    JWT_EXPIRES_IN: string;
     EMAIL_HOST: string;
     EMAIL_PORT: string;
     EMAIL_USER: string;

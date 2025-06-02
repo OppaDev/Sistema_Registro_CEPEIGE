@@ -1,11 +1,18 @@
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
 
 const logLevel = process.env.LOG_LEVEL || 'info';
 const logFile = process.env.LOG_FILE || 'logs/app.log';
 
 // Crear directorio de logs si no existe
 const logDir = path.dirname(logFile);
+if (!fs.existsSync(logDir)) {
+  try {
+    fs.mkdirSync(logDir, { recursive: true });
+  } catch (error) {
+    console.error(`Error al crear directorio de logs ${logDir}:`, error);
+  }
 
 // Formato personalizado
 const customFormat = winston.format.combine(
