@@ -28,8 +28,8 @@ export function configureExpress(app: Application): void {
 
   // Rate limiting
   const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutos
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+    windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000'), // 15 minutos
+    max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100'),
     message: {
       error: 'Demasiadas solicitudes desde esta IP, intenta nuevamente más tarde.',
     },
@@ -52,7 +52,7 @@ export function configureExpress(app: Application): void {
   }));
 
   // Logging
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     app.use(morgan('dev'));
   } else {
     app.use(morgan('combined', {
@@ -65,17 +65,17 @@ export function configureExpress(app: Application): void {
   }
 
   // Health check endpoint
-  app.get('/health', (req, res) => {
+  app.get('/health', (_, res) => {
     res.status(200).json({
       status: 'OK',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env['NODE_ENV'] || 'development'
     });
   });
 
   // Root endpoint
-  app.get('/', (req, res) => {
+  app.get('/', (_, res) => {
     res.json({
       message: 'Sistema de Registro CEPEIGE API',
       version: '1.0.0',

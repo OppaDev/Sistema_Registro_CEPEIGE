@@ -1,10 +1,11 @@
-require('module-alias/register');
+import 'reflect-metadata';
+//require('module-alias/register');
 import 'dotenv/config';
 import app from './app';
 import { logger } from '@/utils/logger';
 import { connectDatabase } from '@/config/database';
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env['PORT'] || 3000;
 
 async function startServer() {
   try {
@@ -16,7 +17,7 @@ async function startServer() {
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor ejecutándose en puerto ${PORT}`);
       logger.info(`📝 Documentación API: http://localhost:${PORT}/api/docs`);
-      logger.info(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`🌍 Entorno: ${process.env['NODE_ENV'] || 'development'}`);
     });
   } catch (error) {
     logger.error('❌ Error al iniciar el servidor:', error);

@@ -36,6 +36,6 @@ export const errorHandler = (
   res.status(statusCode).json({
     status: statusCode >= 500 ? 'error' : 'fail', // 'fail' para errores de cliente (4xx)
     message: message,
-    ...(process.env.NODE_ENV === 'development' && err.stack && { stack: err.stack }),
+    ...(process.env['NODE_ENV'] === 'development' && err.stack && { stack: err.stack }),
   });
 };

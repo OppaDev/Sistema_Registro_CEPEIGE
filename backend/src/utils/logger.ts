@@ -2,8 +2,8 @@ import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
 
-const logLevel = process.env.LOG_LEVEL || 'info';
-const logFile = process.env.LOG_FILE || 'logs/app.log';
+const logLevel = process.env['LOG_LEVEL'] || 'info';
+const logFile = process.env['LOG_FILE'] || 'logs/app.log';
 
 // Crear directorio de logs si no existe
 const logDir = path.dirname(logFile);
@@ -47,7 +47,7 @@ const transports: winston.transport[] = [
 ];
 
 // Agregar archivo solo en producción o si se especifica
-if (process.env.NODE_ENV === 'production' || process.env.LOG_FILE) {
+if (process.env['NODE_ENV'] === 'production' || process.env['LOG_FILE']) {
   transports.push(
     // Archivo para todos los logs
     new winston.transports.File({
@@ -74,7 +74,7 @@ export const logger = winston.createLogger({
   transports,
   exitOnError: false,
   // No mostrar logs durante testing
-  silent: process.env.NODE_ENV === 'test'
+  silent: process.env['NODE_ENV'] === 'test'
 });
 
 // Función helper para logs de request
