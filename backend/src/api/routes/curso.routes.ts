@@ -11,5 +11,6 @@ router.put('/:id', validateDto(UpdateCursoDto), cursoController.update);
 router.get('/', cursoController.getAll);
 router.get('/disponibles', cursoController.getCursosDisponibles);
 router.get('/:id', cursoController.getById);
+router.delete('/:id', cursoController.delete);
 
 export default router; 

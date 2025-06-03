@@ -160,4 +160,43 @@ export class CursoController {
       });
     }
   }
+
+  // Eliminar un curso
+  async delete(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const cursoId = parseInt(id, 10);
+
+      if (isNaN(cursoId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'El ID del curso debe ser un número válido',
+        });
+      }
+
+      const cursoEliminado = await cursoService.deleteCurso(cursoId);
+
+      return res.status(200).json({
+        success: true,
+        data: cursoEliminado,
+        message: 'Curso eliminado exitosamente',
+      });
+    } catch (error) {
+      console.error('Error al eliminar el curso:', error);
+
+      // Manejar el caso específico de curso no encontrado
+      if (error instanceof Error && error.message.includes('No se encontró el curso')) {
+        return res.status(404).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Error al eliminar el curso',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      });
+    }
+  }
 } 
