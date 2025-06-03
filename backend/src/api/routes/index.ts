@@ -1,8 +1,6 @@
 import { Application, Router, Request, Response } from 'express';
 import cursoRoutes from './curso.routes';
-// Cuando tengas rutas específicas, impórtalas así:
-// import userRoutes from './user.routes';
-// import courseRoutes from './course.routes';
+
 
 export const configureRoutes = (app: Application): void => {
   const apiRouter = Router();
@@ -10,9 +8,6 @@ export const configureRoutes = (app: Application): void => {
   // Rutas de curso
   apiRouter.use('/cursos', cursoRoutes);
 
-  // Rutas de ejemplo o para tus entidades
-  // apiRouter.use('/users', userRoutes);
-  // apiRouter.use('/courses', courseRoutes);
 
   // Una ruta de prueba simple para verificar que el router funciona
   apiRouter.get('/ping', (_: Request, res: Response) => {

@@ -8,5 +8,8 @@ const cursoController = new CursoController();
 
 router.post('/', validateDto(CreateCursoDto), cursoController.create);
 router.put('/:id', validateDto(UpdateCursoDto), cursoController.update);
+router.get('/', cursoController.getAll);
+router.get('/disponibles', cursoController.getCursosDisponibles);
+router.get('/:id', cursoController.getById);
 
 export default router; 

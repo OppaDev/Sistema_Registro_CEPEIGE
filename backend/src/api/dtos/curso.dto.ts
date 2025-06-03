@@ -1,5 +1,6 @@
 import { IsString, IsNumber, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export class CreateCursoDto {
   @IsString({ message: 'El nombre corto del curso debe ser una cadena de texto' })
@@ -16,8 +17,8 @@ export class CreateCursoDto {
 
   @IsNumber({}, { message: 'El valor del curso debe ser un número' })
   @IsNotEmpty({ message: 'El valor del curso es requerido' })
-  @Type(() => Number)
-  valorCurso!: number;
+  @Type(() => Decimal)
+  valorCurso!: Decimal;
 
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de inicio es requerida' })
@@ -43,8 +44,8 @@ export class UpdateCursoDto {
 
   @IsNumber({}, { message: 'El valor del curso debe ser un número' })
   @IsOptional()
-  @Type(() => Number)
-  valorCurso?: number;
+  @Type(() => Decimal)
+  valorCurso?: Decimal;
 
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsOptional()
@@ -53,4 +54,22 @@ export class UpdateCursoDto {
   @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsOptional()
   fechaFinCurso?: string;
+}
+
+export class CursoResponseDto {
+  idCurso!: number;
+  nombreCortoCurso!: string;
+  nombreCurso!: string;
+  descripcionCurso!: string;
+  valorCurso!: Decimal;
+  fechaInicioCurso!: Date;
+  fechaFinCurso!: Date;
+}
+
+export class CursosDisponiblesDto {
+  idCurso!: number;
+  nombreCurso!: string;
+  valorCurso!: Decimal;
+  fechaInicioCurso!: Date;
+  fechaFinCurso!: Date;
 }
