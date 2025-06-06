@@ -42,3 +42,18 @@ export class CreateDatosPersonalesDto {
     institucion!: string;
 }
 
+// DTO de respuesta para exponer solo los campos deseados
+export class DatosPersonalesResponseDto {
+    idDatosPersonales!: number;
+    ciPasaporte!: string;
+    nombres!: string;
+    apellidos!: string;
+    numTelefono!: string;
+    correo!: string;
+    pais!: string;
+    provinciaEstado!: string;
+    ciudad!: string;
+    profesion!: string;
+    institucion!: string;
+}
+

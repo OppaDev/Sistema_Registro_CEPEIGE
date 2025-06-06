@@ -16,6 +16,19 @@ interface GetAllCursosOptions {
 }
 
 export class CursoService {
+  // Función privada para mapear el modelo de Prisma al DTO de respuesta
+  private toCursoResponseDto(curso: any): CursoResponseDto {
+    return {
+      idCurso: curso.idCurso,
+      nombreCortoCurso: curso.nombreCortoCurso,
+      nombreCurso: curso.nombreCurso,
+      descripcionCurso: curso.descripcionCurso,
+      valorCurso: curso.valorCurso,
+      fechaInicioCurso: curso.fechaInicioCurso,
+      fechaFinCurso: curso.fechaFinCurso,
+    };
+  }
+
   // Crear un nuevo curso
   async createCurso(cursoData: CreateCursoDto) {
     try {
@@ -29,7 +42,7 @@ export class CursoService {
           fechaFinCurso: new Date(cursoData.fechaFinCurso),
         },
       });
-      return curso;
+      return this.toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al crear el curso: ${error.message}`);
@@ -67,7 +80,7 @@ export class CursoService {
         where: { idCurso: id },
         data: datosActualizados,
       });
-      return curso;
+      return this.toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al actualizar el curso: ${error.message}`);
@@ -93,7 +106,7 @@ export class CursoService {
         prisma.curso.count(),
       ]);
 
-      return { cursos, total };
+      return { cursos: cursos.map((curso) => this.toCursoResponseDto(curso)), total };
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al obtener los cursos: ${error.message}`);
@@ -113,7 +126,7 @@ export class CursoService {
         throw new Error(`No se encontró el curso con ID ${id}`);
       }
 
-      return curso;
+      return this.toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al obtener el curso: ${error.message}`);
@@ -173,7 +186,7 @@ export class CursoService {
         where: { idCurso: id },
       });
 
-      return cursoEliminado;
+      return this.toCursoResponseDto(cursoEliminado);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al eliminar el curso: ${error.message}`);
