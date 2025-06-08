@@ -44,7 +44,6 @@ export class CreateDatosPersonalesDto {
 
 // DTO de respuesta para exponer solo los campos deseados
 export class DatosPersonalesResponseDto {
-    idDatosPersonales!: number;
     ciPasaporte!: string;
     nombres!: string;
     apellidos!: string;
@@ -55,5 +54,44 @@ export class DatosPersonalesResponseDto {
     ciudad!: string;
     profesion!: string;
     institucion!: string;
+}
+
+//dto para actualizar datos personales
+export class UpdateDatosPersonalesDto {
+    @IsString()
+    @IsOptional()
+    nombres?: string;
+
+    @IsString()
+    @IsOptional()
+    apellidos?: string;
+
+    @IsString()
+    @IsOptional()
+    numTelefono?: string;
+
+    @IsString()
+    @IsOptional()
+    correo?: string;
+
+    @IsString()
+    @IsOptional()
+    pais?: string;
+
+    @IsString()
+    @IsOptional()
+    provinciaEstado?: string;
+
+    @IsString()
+    @IsOptional()
+    ciudad?: string;
+
+    @IsString()
+    @IsOptional()
+    profesion?: string;
+
+    @IsString()
+    @IsOptional()
+    institucion?: string;
 }
 

@@ -1,5 +1,6 @@
 import { Application, Router, Request, Response } from 'express';
 import cursoRoutes from './curso.routes';
+import datosPersonalesRoutes from './datosPersonales.routes';
 
 
 export const configureRoutes = (app: Application): void => {
@@ -7,6 +8,8 @@ export const configureRoutes = (app: Application): void => {
 
   // Rutas de curso
   apiRouter.use('/cursos', cursoRoutes);
+  // Rutas de datos personales
+  apiRouter.use('/datos-personales', datosPersonalesRoutes);
 
 
   // Una ruta de prueba simple para verificar que el router funciona

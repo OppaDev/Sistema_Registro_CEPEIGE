@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/curso.dto';
 import { CursoService } from '@/api/services/curso.service';
 
@@ -6,7 +6,7 @@ const cursoService = new CursoService();
 
 export class CursoController {
   // Crear un nuevo curso
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response, next: NextFunction) {
     try {
       const cursoData: CreateCursoDto = req.body;
       const curso = await cursoService.createCurso(cursoData);
@@ -17,17 +17,12 @@ export class CursoController {
         message: 'Curso creado exitosamente',
       });
     } catch (error) {
-      console.error('Error al crear el curso:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Error al crear el curso',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
 
   // Actualizar un curso existente
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const cursoId = parseInt(id, 10);
@@ -48,26 +43,12 @@ export class CursoController {
         message: 'Curso actualizado exitosamente',
       });
     } catch (error) {
-      console.error('Error al actualizar el curso:', error);
-      
-      // Manejar el caso específico de curso no encontrado
-      if (error instanceof Error && error.message.includes('No se encontró el curso')) {
-        return res.status(404).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Error al actualizar el curso',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
  
   // Mostrar todos los cursos
-  async getAll(req: Request, res: Response) {
+  async getAll(req: Request, res: Response, next: NextFunction) {
     try {
       const page = parseInt(req.query['page'] as string) || 1;
       const limit = parseInt(req.query['limit'] as string) || 10;
@@ -93,17 +74,12 @@ export class CursoController {
         message: 'Cursos obtenidos exitosamente',
       });
     } catch (error) {
-      console.error('Error al obtener todos los cursos:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Error al obtener todos los cursos',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
 
   // Mostrar un curso por id
-  async getById(req: Request, res: Response) {
+  async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const cursoId = parseInt(id, 10);
@@ -123,26 +99,12 @@ export class CursoController {
         message: 'Curso obtenido exitosamente',
       });
     } catch (error) {
-      console.error('Error al obtener el curso por ID:', error);
-      
-      // Manejar el caso específico de curso no encontrado
-      if (error instanceof Error && error.message.includes('No se encontró el curso')) {
-        return res.status(404).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Error al obtener el curso por ID',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
 
   // Obtener cursos disponibles
-  async getCursosDisponibles(_req: Request, res: Response) {
+  async getCursosDisponibles(_req: Request, res: Response, next: NextFunction) {
     try {
       const cursos = await cursoService.getCursosDisponibles();
 
@@ -152,17 +114,12 @@ export class CursoController {
         message: 'Cursos disponibles obtenidos exitosamente',
       });
     } catch (error) {
-      console.error('Error al obtener los cursos disponibles:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Error al obtener los cursos disponibles',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
 
   // Eliminar un curso
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const cursoId = parseInt(id, 10);
@@ -182,21 +139,7 @@ export class CursoController {
         message: 'Curso eliminado exitosamente',
       });
     } catch (error) {
-      console.error('Error al eliminar el curso:', error);
-
-      // Manejar el caso específico de curso no encontrado
-      if (error instanceof Error && error.message.includes('No se encontró el curso')) {
-        return res.status(404).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Error al eliminar el curso',
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      });
+      return next(error);
     }
   }
 } 

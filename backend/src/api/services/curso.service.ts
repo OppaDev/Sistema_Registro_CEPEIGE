@@ -5,6 +5,7 @@ import {
   CursoResponseDto,
   CursosDisponiblesDto,
 } from "@/api/dtos/curso.dto";
+import { NotFoundError } from "@/utils/errorTypes";
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,7 @@ export class CursoService {
       });
 
       if (!cursoExistente) {
-        throw new Error(`No se encontró el curso con ID ${id}`);
+        throw new NotFoundError('Curso');
       }
 
       // Preparar los datos para la actualización
@@ -123,7 +124,7 @@ export class CursoService {
       });
 
       if (!curso) {
-        throw new Error(`No se encontró el curso con ID ${id}`);
+        throw new NotFoundError('Curso');
       }
 
       return this.toCursoResponseDto(curso);
@@ -170,7 +171,7 @@ export class CursoService {
   }
   
   //Eliminar un curso
-  async deleteCurso(id: number): Promise<CursoResponseDto> {
+  async deleteCurso(id: number) {
     try {
       // Verificar si el curso existe
       const cursoExistente = await prisma.curso.findUnique({
@@ -178,7 +179,7 @@ export class CursoService {
       });
 
       if (!cursoExistente) {
-        throw new Error(`No se encontró el curso con ID ${id} para eliminar`);
+        throw new NotFoundError('Curso');
       }
 
       // Eliminar el curso
