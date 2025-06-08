@@ -11,7 +11,6 @@ const prisma = new PrismaClient();
 interface GetAllDatosPersonalesOptions {
   page: number;
   limit: number;
-  orderBy: string;
   order: "asc" | "desc";
 }
 
@@ -19,6 +18,7 @@ export class DatosPersonalesService {
   // Función privada para mapear el modelo de Prisma al DTO de respuesta
   private toDatosPersonalesResponseDto(datos: any): DatosPersonalesResponseDto {
     return {
+      idPersona: datos.idPersona,
       ciPasaporte: datos.ciPasaporte,
       nombres: datos.nombres,
       apellidos: datos.apellidos,
@@ -173,6 +173,25 @@ export class DatosPersonalesService {
         throw new Error(`Error al eliminar los datos personales: ${error.message}`);
       }
       throw new Error("Error desconocido al eliminar los datos personales");
+    }
+  }
+
+  //Buscar datos personales por ci o pasaporte
+  async getByCiPasaporte(ciPasaporte: string): Promise<DatosPersonalesResponseDto | null> {
+    try {
+      const datosPersonales = await prisma.datosPersonales.findUnique({
+        where: { ciPasaporte: ciPasaporte },
+      });
+      if (!datosPersonales) {
+        throw new NotFoundError(`Datos personales con CI/Pasaporte '${ciPasaporte}'`);
+      }
+      return this.toDatosPersonalesResponseDto(datosPersonales);
+
+    } catch(error) {
+      if (error instanceof Error) {
+        throw new Error(`Error al buscar los datos personales: ${error.message}`);
+      }
+      throw new Error("Error desconocido al buscar los datos personales");
     }
   }
 }

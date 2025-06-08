@@ -29,7 +29,6 @@ export class DatosPersonalesController {
     try {
       const page = parseInt(req.query["page"] as string) || 1;
       const limit = parseInt(req.query["limit"] as string) || 10;
-      const orderBy = (req.query["orderBy"] as string) || "fechaInicioCurso";
       const order =
         (req.query["order"] as string)?.toUpperCase() === "DESC"
           ? "desc"
@@ -39,7 +38,6 @@ export class DatosPersonalesController {
         await datosPersonalesService.getAllDatosPersonales({
           page,
           limit,
-          orderBy,
           order,
         });
 
@@ -139,4 +137,26 @@ export class DatosPersonalesController {
       return next(error);
     }
   }
+
+  //Buscar datos personales por ci o pasaporte
+  async getByCiPasaporte(req: Request, res: Response, next: NextFunction) {
+    try {
+      const ciPasaporte = req.query['ciPasaporte'] as string;
+      if (!ciPasaporte || typeof ciPasaporte !== 'string' || ciPasaporte.trim() === '') {
+        return res.status(400).json({
+          success: false,
+          message: "El ci o pasaporte es requerido",
+        });
+      }
+      const datosPersonales = await datosPersonalesService.getByCiPasaporte(ciPasaporte);
+      return res.status(200).json({
+        success: true,
+        data: datosPersonales,
+        message: "Datos personales obtenidos exitosamente",
+      });
+    } catch(error) {
+      return next(error);
+    }
+  }
+
 }

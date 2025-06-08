@@ -25,7 +25,7 @@ model Curso {
 
 model DatosPersonales {
   idPersona         Int           @id @default(autoincrement()) @map("id_persona")
-  ciPasaporte       String        @map("ci_pasaporte") @db.VarChar(20)
+  ciPasaporte       String        @map("ci_pasaporte") @db.VarChar(20) @unique
   nombres           String        @map("nombres") @db.VarChar(100)
   apellidos         String        @map("apellidos") @db.VarChar(100)
   numTelefono       String        @map("num_telefono") @db.VarChar(15)
