@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, DatosPersonales as PrismaDatosPersonales } from "@prisma/client";
 import {
   CreateDatosPersonalesDto,
   DatosPersonalesResponseDto,
   UpdateDatosPersonalesDto,
 } from "@/api/dtos/datosPersonales.dto";
-import { NotFoundError } from "@/utils/errorTypes";
+import { NotFoundError, ConflictError } from "@/utils/errorTypes";
 
 const prisma = new PrismaClient();
 
@@ -12,11 +12,12 @@ interface GetAllDatosPersonalesOptions {
   page: number;
   limit: number;
   order: "asc" | "desc";
+  orderBy?: string;
 }
 
 export class DatosPersonalesService {
   // Función privada para mapear el modelo de Prisma al DTO de respuesta
-  private toDatosPersonalesResponseDto(datos: any): DatosPersonalesResponseDto {
+  private toDatosPersonalesResponseDto(datos: PrismaDatosPersonales): DatosPersonalesResponseDto {
     return {
       idPersona: datos.idPersona,
       ciPasaporte: datos.ciPasaporte,
@@ -52,7 +53,10 @@ export class DatosPersonalesService {
         },
       });
       return this.toDatosPersonalesResponseDto(datosPersonales);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictError('El CI o Pasaporte ya está registrado');
+      }
       if (error instanceof Error) {
         throw new Error(
           `Error al crear los datos personales: ${error.message}`
@@ -63,19 +67,19 @@ export class DatosPersonalesService {
   }
 
   //mostrar todos los datos personales
-  async getAllDatosPersonales(options: GetAllDatosPersonalesOptions) {
+  async getAllDatosPersonales(options: GetAllDatosPersonalesOptions): Promise<{ datosPersonales: DatosPersonalesResponseDto[]; total: number }> {
     try {
-      const { page, limit } = options;
+      const { page, limit, order, orderBy } = options;
       const skip = (page - 1) * limit;
-
+      const orderByField = orderBy || 'apellidos';
       const [datosPersonales, total] = await Promise.all([
         prisma.datosPersonales.findMany({
           skip,
           take: limit,
+          orderBy: { [orderByField]: order },
         }),
         prisma.datosPersonales.count(),
       ]);
-
       return {
         datosPersonales: datosPersonales.map((datos) =>
           this.toDatosPersonalesResponseDto(datos)
@@ -120,7 +124,7 @@ export class DatosPersonalesService {
   async updateDatosPersonales(
     id: number,
     datosPersonalesData: UpdateDatosPersonalesDto
-  ) {
+  ): Promise<DatosPersonalesResponseDto> {
     try {
       //verificar si los datos existen
       const datosPersonalesExistentes = await prisma.datosPersonales.findUnique(
@@ -153,7 +157,7 @@ export class DatosPersonalesService {
   }
 
   //Eliminar datos Personales
-  async deleteDatosPersonales(id: number) {
+  async deleteDatosPersonales(id: number): Promise<DatosPersonalesResponseDto> {
     try {
       //verificar si los datos existen
       const datosPersonalesExistentes = await prisma.datosPersonales.findUnique({
@@ -177,7 +181,7 @@ export class DatosPersonalesService {
   }
 
   //Buscar datos personales por ci o pasaporte
-  async getByCiPasaporte(ciPasaporte: string): Promise<DatosPersonalesResponseDto | null> {
+  async getByCiPasaporte(ciPasaporte: string): Promise<DatosPersonalesResponseDto> {
     try {
       const datosPersonales = await prisma.datosPersonales.findUnique({
         where: { ciPasaporte: ciPasaporte },

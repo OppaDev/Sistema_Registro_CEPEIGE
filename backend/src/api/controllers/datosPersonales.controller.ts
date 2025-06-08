@@ -29,6 +29,7 @@ export class DatosPersonalesController {
     try {
       const page = parseInt(req.query["page"] as string) || 1;
       const limit = parseInt(req.query["limit"] as string) || 10;
+      const orderBy = (req.query["orderBy"] as string) || "apellidos";
       const order =
         (req.query["order"] as string)?.toUpperCase() === "DESC"
           ? "desc"
@@ -39,6 +40,7 @@ export class DatosPersonalesController {
           page,
           limit,
           order,
+          orderBy,
         });
 
       return res.status(200).json({
@@ -123,16 +125,16 @@ export class DatosPersonalesController {
           success: false,
           message: "El ID de los datos personales debe ser un número válido",
         });
-
-        const datosPersonalesEliminados =
-          await datosPersonalesService.deleteDatosPersonales(datosPersonalesId);
-
-        return res.status(200).json({
-          success: true,
-          data: datosPersonalesEliminados,
-          message: "Datos personales eliminados exitosamente",
-        });
       }
+
+      const datosPersonalesEliminados =
+        await datosPersonalesService.deleteDatosPersonales(datosPersonalesId);
+
+      return res.status(200).json({
+        success: true,
+        data: datosPersonalesEliminados,
+        message: "Datos personales eliminados exitosamente",
+      });
     } catch (error) {
       return next(error);
     }
