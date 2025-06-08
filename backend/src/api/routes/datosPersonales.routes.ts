@@ -9,8 +9,9 @@ const datosPersonalesController = new DatosPersonalesController();
 router.post('/', validateDto(CreateDatosPersonalesDto), datosPersonalesController.create);
 
 router.get('/', datosPersonalesController.getAll);
-router.get('/:id', datosPersonalesController.getById);
 router.get('/search', datosPersonalesController.getByCiPasaporte);
+router.get('/:id', datosPersonalesController.getById);
+
 
 router.put('/:id', validateDto(UpdateDatosPersonalesDto), datosPersonalesController.update);
 

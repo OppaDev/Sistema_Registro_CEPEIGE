@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Curso as PrismaCurso } from "@prisma/client";
 import {
   CreateCursoDto,
   UpdateCursoDto,
@@ -18,7 +18,7 @@ interface GetAllCursosOptions {
 
 export class CursoService {
   // Función privada para mapear el modelo de Prisma al DTO de respuesta
-  private toCursoResponseDto(curso: any): CursoResponseDto {
+  private toCursoResponseDto(curso: PrismaCurso): CursoResponseDto {
     return {
       idCurso: curso.idCurso,
       nombreCortoCurso: curso.nombreCortoCurso,
@@ -31,7 +31,7 @@ export class CursoService {
   }
 
   // Crear un nuevo curso
-  async createCurso(cursoData: CreateCursoDto) {
+  async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
     try {
       const curso = await prisma.curso.create({
         data: {
@@ -53,7 +53,7 @@ export class CursoService {
   }
 
   // Actualizar un curso existente
-  async updateCurso(id: number, cursoData: UpdateCursoDto) {
+  async updateCurso(id: number, cursoData: UpdateCursoDto): Promise<CursoResponseDto> {
     try {
       // Verificar si el curso existe
       const cursoExistente = await prisma.curso.findUnique({
@@ -91,7 +91,7 @@ export class CursoService {
   }
 
   // Mostrar todos los cursos
-  async getAllCursos(options: GetAllCursosOptions) {
+  async getAllCursos(options: GetAllCursosOptions): Promise<{ cursos: CursoResponseDto[]; total: number }> {
     try {
       const { page, limit, orderBy, order } = options;
       const skip = (page - 1) * limit;
@@ -171,7 +171,7 @@ export class CursoService {
   }
   
   //Eliminar un curso
-  async deleteCurso(id: number) {
+  async deleteCurso(id: number): Promise<CursoResponseDto> {
     try {
       // Verificar si el curso existe
       const cursoExistente = await prisma.curso.findUnique({
