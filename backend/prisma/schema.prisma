@@ -93,6 +93,7 @@ model Factura {
   idFactura         Int               @id @default(autoincrement()) @map("id_factura")
   idInscripcion     Int               @map("id_inscripcion")
   idFacturacion     Int               @map("id_facturacion")
+  idComprobante     Int               @map("id_comprobante") @unique
   valorPagado       Decimal           @map("valor_pagado") @db.Decimal(10, 2)
   verificacionPago  Boolean           @map("verificacion_pago")
   numeroIngreso     String            @map("numero_ingreso") @db.VarChar(100)
@@ -101,21 +102,20 @@ model Factura {
   // Relaciones
   inscripcion       Inscripcion       @relation(fields: [idInscripcion], references: [idInscripcion], onDelete: Restrict, onUpdate: Restrict)
   datosFacturacion  DatosFacturacion  @relation(fields: [idFacturacion], references: [idFacturacion], onDelete: Restrict, onUpdate: Restrict)
-  comprobantes      Comprobante[]
+  comprobantes      Comprobante       @relation(fields: [idComprobante], references: [idComprobante], onDelete: Restrict, onUpdate: Restrict)
 
   @@map("factura")
 }
 
 model Comprobante {
   idComprobante     Int               @id @default(autoincrement()) @map("id_comprobante")
-  idFactura         Int               @map("id_factura")
   fechaSubida       DateTime          @default(now()) @map("fecha_subida") @db.Timestamp(6)
   rutaComprobante   String            @map("ruta_comprobante") @db.VarChar(250)
   tipoArchivo       String            @map("tipo_archivo") @db.VarChar(50)
   nombreArchivo     String            @map("nombre_archivo") @db.VarChar(100)
   
   // Relaciones
-  factura           Factura           @relation(fields: [idFactura], references: [idFactura], onDelete: Restrict, onUpdate: Restrict)
+  factura           Factura?
 
   @@map("comprobante")
 }

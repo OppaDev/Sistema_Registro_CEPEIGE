@@ -42,6 +42,12 @@ export class ConflictError extends AppError {
   }
 }
 
+export class BadRequestError extends AppError {
+  constructor(message: string) {
+    super(message, 400);
+  }
+}
+
 export class DatabaseError extends AppError {
   constructor(message: string) {
     super(`Error de base de datos: ${message}`, 500);
