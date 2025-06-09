@@ -1,5 +1,6 @@
-// controllers/ParticipantController.ts
+// controllers/ParticipantController.ts (actualizado)
 import { Participant, FormMessage, FieldErrors } from '@/models/participant';
+import { CourseSelection } from '@/models/course';
 import { participantSchema } from '@/models/validation';
 import { participantService } from '@/services/participantService';
 
@@ -23,6 +24,9 @@ export class ParticipantController {
 
   validateField(name: string, value: string): void {
     try {
+      // Evitar validar el campo de curso seleccionado aquí
+      if (name === 'selectedCourse') return;
+      
       participantSchema.shape[name as keyof typeof participantSchema.shape].parse(value);
       this.setFieldErrors((prev: FieldErrors) => ({ ...prev, [name]: '' }));
     } catch (error: any) {
@@ -38,12 +42,26 @@ export class ParticipantController {
     this.setFieldErrors((prev: FieldErrors) => ({ ...prev, [name]: '' }));
   }
 
+  // NUEVA FUNCIÓN: Manejar selección de curso
+  handleCourseSelect(course: CourseSelection): void {
+    this.setFormData((prev: Participant) => ({ 
+      ...prev, 
+      selectedCourse: course 
+    }));
+    this.setFieldErrors((prev: FieldErrors) => ({ 
+      ...prev, 
+      selectedCourse: '' 
+    }));
+    // Limpiar mensaje cuando se selecciona un curso
+    this.setMessage(null);
+  }
+
   async submitForm(formData: Participant): Promise<void> {
     this.setIsSubmitting(true);
     this.setMessage(null);
 
     try {
-      // Validar todos los campos
+      // Validar todos los campos incluyendo el curso seleccionado
       participantSchema.parse(formData);
       
       // Enviar datos
@@ -60,10 +78,19 @@ export class ParticipantController {
     } catch (error: any) {
       if (error.errors) {
         // Errores de validación
+        const firstError = error.errors[0];
         this.setMessage({
-          text: error.errors[0]?.message || 'Datos inválidos',
+          text: firstError?.message || 'Datos inválidos',
           type: 'error'
         });
+        
+        // Marcar errores específicos
+        if (firstError?.path?.includes('selectedCourse')) {
+          this.setFieldErrors((prev: FieldErrors) => ({ 
+            ...prev, 
+            selectedCourse: 'Debe seleccionar un curso' 
+          }));
+        }
       } else {
         // Errores de API
         this.setMessage({
@@ -78,6 +105,7 @@ export class ParticipantController {
 
   private resetForm(): void {
     this.setFormData({
+      selectedCourse: undefined, // NUEVO: Resetear curso seleccionado
       ciOrPassport: '',
       fullName: '',
       lastName: '',
@@ -88,5 +116,39 @@ export class ParticipantController {
       profession: '',
       institution: ''
     });
+    
+    // Limpiar también los errores
+    this.setFieldErrors({});
+  }
+
+  // NUEVA FUNCIÓN: Validar si el formulario está completo
+  isFormValid(formData: Participant): boolean {
+    try {
+      participantSchema.parse(formData);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // NUEVA FUNCIÓN: Obtener errores de validación sin enviar
+  getValidationErrors(formData: Participant): FieldErrors {
+    try {
+      participantSchema.parse(formData);
+      return {};
+    } catch (error: any) {
+      const errors: FieldErrors = {};
+      
+      if (error.errors) {
+        error.errors.forEach((err: any) => {
+          const fieldName = err.path?.[0];
+          if (fieldName) {
+            errors[fieldName] = err.message;
+          }
+        });
+      }
+      
+      return errors;
+    }
   }
 }
