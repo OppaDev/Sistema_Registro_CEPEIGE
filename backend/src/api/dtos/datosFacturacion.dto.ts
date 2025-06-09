@@ -28,10 +28,6 @@ export class CreateDatosFacturacionDto {
   correoFactura!: string;
 
   @IsString()
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, {
-    message:
-      "La dirección solo puede contener letras, números, espacios y algunos caracteres especiales permitidos (- . &)",
-  })
   @IsNotEmpty({ message: "La dirección es requerida" })
   direccion!: string;
 }
@@ -55,18 +51,10 @@ export class UpdateDatosFacturacionDto {
 
   @IsEmail({}, { message: "El formato del correo electrónico no es válido" })
   @IsOptional()
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, {
-    message:
-      "La razón social solo puede contener letras, números, espacios y algunos caracteres especiales permitidos (- . &)",
-  })
   correoFactura?: string;
 
   @IsString()
   @IsOptional()
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, {
-    message:
-      "La dirección solo puede contener letras, números, espacios y algunos caracteres especiales permitidos (- . &)",
-  })
   direccion?: string;
 }
 

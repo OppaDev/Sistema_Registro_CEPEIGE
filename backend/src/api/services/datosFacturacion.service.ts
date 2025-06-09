@@ -4,7 +4,7 @@ import {
   UpdateDatosFacturacionDto,
   DatosFacturacionResponseDto,
 } from "@/api/dtos/datosFacturacion.dto";
-import { NotFoundError, ConflictError } from "@/utils/errorTypes";
+import { NotFoundError} from "@/utils/errorTypes";
 
 const prisma = new PrismaClient();
 
@@ -44,9 +44,6 @@ export class DatosFacturacionService {
       });
       return this.toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new ConflictError('La identificación tributaria o correo ya está registrada');
-      }
       if (error instanceof Error) {
         throw new Error(`Error al crear los datos de facturación: ${error.message}`);
       }
@@ -117,9 +114,6 @@ export class DatosFacturacionService {
       });
       return this.toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new ConflictError('La identificación tributaria o correo ya está registrada');
-      }
       if (error instanceof Error) {
         throw new Error(`Error al actualizar los datos de facturación: ${error.message}`);
       }
