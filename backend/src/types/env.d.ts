@@ -12,7 +12,7 @@ declare namespace NodeJS {
     EMAIL_PORT: string;
     EMAIL_USER: string;
     EMAIL_PASS: string;
-    MAX_FILE_SIZE: string;
+    MAX_FILE_SIZE_BYTES: string;
     UPLOAD_PATH: string;
     LOG_LEVEL: string;
     LOG_FILE: string;

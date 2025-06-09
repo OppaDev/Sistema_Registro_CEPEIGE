@@ -4,5 +4,5 @@ export class ComprobanteResponseDto {
     fechaSubida!: Date;
     rutaComprobante!: string;
     tipoArchivo!: string;
-  nombreArchivo!: string;
+    nombreArchivo!: string;
 }

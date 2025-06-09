@@ -22,7 +22,5 @@ router.get('/:id', comprobanteController.getById);
 // Eliminar un comprobante
 router.delete('/:id', comprobanteController.delete);
 
-// La ruta para obtener comprobantes por factura ya no tiene sentido aquí,
-// se haría a través de la entidad Factura (GET /facturas/:idFactura y hacer include del comprobante)
 
 export default router;
