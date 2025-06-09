@@ -1,0 +1,121 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Curso {
+  idCurso           Int           @id @default(autoincrement()) @map("id_curso")
+  nombreCortoCurso  String        @map("nombre_corto_curso") @db.VarChar(100)
+  nombreCurso       String        @map("nombre_curso") @db.VarChar(100)
+  descripcionCurso  String        @map("descripcion_curso") @db.Text
+  valorCurso        Decimal       @map("valor_curso") @db.Decimal(10, 2)
+  fechaInicioCurso  DateTime      @map("fecha_inicio_curso") @db.Date
+  fechaFinCurso     DateTime      @map("fecha_fin_curso") @db.Date
+  
+  // Relaciones
+  inscripciones     Inscripcion[]
+
+  @@map("curso")
+}
+
+model DatosPersonales {
+  idPersona         Int           @id @default(autoincrement()) @map("id_persona")
+  ciPasaporte       String        @map("ci_pasaporte") @db.VarChar(20) @unique
+  nombres           String        @map("nombres") @db.VarChar(100)
+  apellidos         String        @map("apellidos") @db.VarChar(100)
+  numTelefono       String        @map("num_telefono") @db.VarChar(15)
+  correo            String        @map("correo") @db.VarChar(100)
+  pais              String        @map("pais") @db.VarChar(30)
+  provinciaEstado   String        @map("provincia_estado") @db.VarChar(50)
+  ciudad            String        @map("ciudad") @db.VarChar(100)
+  profesion         String        @map("profesion") @db.VarChar(100)
+  institucion       String        @map("institucion") @db.VarChar(100)
+  
+  // Relaciones
+  inscripciones     Inscripcion[]
+
+  @@map("datos_personales")
+}
+
+model Descuento {
+  idDescuento         Int           @id @default(autoincrement()) @map("id_descuento")
+  tipoDescuento       String        @map("tipo_descuento") @db.VarChar(100)
+  valorDescuento      Decimal       @map("valor_descuento") @db.Decimal(5, 2)
+  porcentajeDescuento Decimal       @map("porcentaje_descuento") @db.Decimal(5, 2)
+  descripcionDescuento String       @map("descripcion_descuento") @db.Text
+  
+  // Relaciones
+  inscripciones       Inscripcion[]
+
+  @@map("descuento")
+}
+
+model DatosFacturacion {
+  idFacturacion         Int           @id @default(autoincrement()) @map("id_facturacion")
+  razonSocial           String        @map("razon_social") @db.VarChar(100)
+  identificacionTributaria String     @map("identificacion_tributaria") @db.VarChar(50)
+  telefono              String        @map("telefono") @db.VarChar(20)
+  correoFactura         String        @map("correo_factura") @db.VarChar(100)
+  direccion             String        @map("direccion") @db.VarChar(250)
+  
+  // Relaciones
+  inscripciones         Inscripcion[]
+  facturas              Factura[]
+
+  @@map("datos_facturacion")
+}
+
+model Inscripcion {
+  idInscripcion     Int               @id @default(autoincrement()) @map("id_inscripcion")
+  idCurso           Int               @map("id_curso")
+  idPersona         Int               @map("id_persona")
+  idDescuento       Int?              @map("id_descuento")
+  idFacturacion     Int               @map("id_facturacion")
+  matricula         Boolean           @default(false) @map("matricula")
+  fechaInscripcion  DateTime          @default(now()) @map("fecha_inscripcion") @db.Timestamp(6)
+  
+  // Relaciones
+  curso             Curso             @relation(fields: [idCurso], references: [idCurso], onDelete: Restrict, onUpdate: Restrict)
+  persona           DatosPersonales   @relation(fields: [idPersona], references: [idPersona], onDelete: Restrict, onUpdate: Restrict)
+  descuento         Descuento?        @relation(fields: [idDescuento], references: [idDescuento], onDelete: SetNull, onUpdate: Restrict)
+  datosFacturacion  DatosFacturacion  @relation(fields: [idFacturacion], references: [idFacturacion], onDelete: Restrict, onUpdate: Restrict)
+  facturas          Factura[]
+
+  @@map("inscripcion")
+}
+
+model Factura {
+  idFactura         Int               @id @default(autoincrement()) @map("id_factura")
+  idInscripcion     Int               @map("id_inscripcion")
+  idFacturacion     Int               @map("id_facturacion")
+  idComprobante     Int               @map("id_comprobante") @unique
+  valorPagado       Decimal           @map("valor_pagado") @db.Decimal(10, 2)
+  verificacionPago  Boolean           @map("verificacion_pago")
+  numeroIngreso     String            @map("numero_ingreso") @db.VarChar(100)
+  numeroFactura     String            @map("numero_factura") @db.VarChar(100)
+  
+  // Relaciones
+  inscripcion       Inscripcion       @relation(fields: [idInscripcion], references: [idInscripcion], onDelete: Restrict, onUpdate: Restrict)
+  datosFacturacion  DatosFacturacion  @relation(fields: [idFacturacion], references: [idFacturacion], onDelete: Restrict, onUpdate: Restrict)
+  comprobante      Comprobante       @relation(fields: [idComprobante], references: [idComprobante], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("factura")
+}
+
+model Comprobante {
+  idComprobante     Int               @id @default(autoincrement()) @map("id_comprobante")
+  fechaSubida       DateTime          @default(now()) @map("fecha_subida") @db.Timestamp(6)
+  rutaComprobante   String            @map("ruta_comprobante") @db.VarChar(250)
+  tipoArchivo       String            @map("tipo_archivo") @db.VarChar(50)
+  nombreArchivo     String            @map("nombre_archivo") @db.VarChar(100)
+  
+  // Relaciones
+  factura           Factura?
+
+  @@map("comprobante")
+}
