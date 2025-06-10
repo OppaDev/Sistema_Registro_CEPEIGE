@@ -95,91 +95,103 @@ export default function ParticipantRegistrationView() {
             </CardHeader>
             
             <CardContent className="p-6 bg-blue-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormInput
-                  label="Cédula o Pasaporte *"
-                  name="ciOrPassport"
-                  value={formData.ciOrPassport}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.ciOrPassport}
-                />
-                
-                <FormInput
-                  label="Nombres *"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.fullName}
-                />
+             
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+  <FormInput
+    label="Cédula o Pasaporte *"
+    name="ciPasaporte"          // ✅ Cambio
+    value={formData.ciPasaporte}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.ciPasaporte}
+  />
+  
+  <FormInput
+    label="Nombres *"
+    name="nombres"              // ✅ Cambio
+    value={formData.nombres}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.nombres}
+  />
 
-                <FormInput
-                  label="Apellidos *"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.lastName}
-                />
+  <FormInput
+    label="Apellidos *"
+    name="apellidos"            // ✅ Cambio
+    value={formData.apellidos}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.apellidos}
+  />
 
-                <FormInput
-                  label="Teléfono *"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.phoneNumber}
-                />
+  <FormInput
+    label="Teléfono *"
+    name="numTelefono"          // ✅ Cambio
+    value={formData.numTelefono}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.numTelefono}
+  />
 
-                <FormInput
-                  label="Email *"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.email}
-                />
+  <FormInput
+    label="Email *"
+    name="correo"               // ✅ Cambio
+    type="email"
+    value={formData.correo}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.correo}
+  />
 
-                <FormInput
-                  label="País *"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.country}
-                />
+  <FormInput
+    label="País *"
+    name="pais"                 // ✅ Cambio
+    value={formData.pais}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.pais}
+  />
 
-                <FormInput
-                  label="Ciudad/Provincia *"
-                  name="cityOrProvince"
-                  value={formData.cityOrProvince}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.cityOrProvince}
-                />
+  <FormInput
+    label="Provincia/Estado *"
+    name="provinciaEstado"      // ✅ Cambio
+    value={formData.provinciaEstado}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.provinciaEstado}
+  />
 
-                <FormInput
-                  label="Profesión *"
-                  name="profession"
-                  value={formData.profession}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.profession}
-                />
+  {/* ✅ NUEVO CAMPO */}
+  <FormInput
+    label="Ciudad *"
+    name="ciudad"
+    value={formData.ciudad}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.ciudad}
+  />
 
-                <div className="md:col-span-2">
-                  <FormInput
-                    label="Institución *"
-                    name="institution"
-                    value={formData.institution}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={fieldErrors.institution}
-                  />
-                </div>
-              </div>
+  <FormInput
+    label="Profesión *"
+    name="profesion"            // ✅ Igual
+    value={formData.profesion}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    error={fieldErrors.profesion}
+  />
+
+  <div className="md:col-span-2">
+    <FormInput
+      label="Institución *"
+      name="institucion"        // ✅ Igual
+      value={formData.institucion}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      error={fieldErrors.institucion}
+    />
+  </div>
+</div>
+
             </CardContent>
           </Card>
         </div>
@@ -205,12 +217,17 @@ export default function ParticipantRegistrationView() {
                       <h3 className="font-bold text-xl text-gray-800">
                         {formData.selectedCourse.courseName}
                       </h3>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Participante:</span> {formData.fullName} {formData.lastName}
-                      </p>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Email:</span> {formData.email}
-                      </p>
+                     
+<p className="text-gray-600">
+  <span className="font-medium">Participante:</span> {formData.nombres} {formData.apellidos}
+</p>
+<p className="text-gray-600">
+  <span className="font-medium">Email:</span> {formData.correo}
+</p>
+<p className="text-gray-600">
+  <span className="font-medium">Ciudad:</span> {formData.ciudad}, {formData.provinciaEstado}
+</p>
+
                     </div>
                     <div className="text-right">
                       <p className="text-3xl font-bold text-green-600">

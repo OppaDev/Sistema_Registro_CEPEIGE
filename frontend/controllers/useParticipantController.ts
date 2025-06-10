@@ -7,15 +7,16 @@ import { participantService } from '@/services/participantService';
 
 const initialFormData: Participant = {
   selectedCourse: undefined,
-  ciOrPassport: '',
-  fullName: '',
-  lastName: '',
-  phoneNumber: '',
-  email: '',
-  country: '',
-  cityOrProvince: '',
-  profession: '',
-  institution: ''
+  ciPasaporte: '',      // ✅ Cambio
+  nombres: '',          // ✅ Cambio
+  apellidos: '',        // ✅ Cambio
+  numTelefono: '',      // ✅ Cambio
+  correo: '',           // ✅ Cambio
+  pais: '',             // ✅ Cambio
+  provinciaEstado: '',  // ✅ Cambio
+  ciudad: '',           // ✅ NUEVO
+  profesion: '',        // ✅ Igual
+  institucion: ''       // ✅ Igual
 };
 
 export function useParticipantController() {
@@ -43,17 +44,31 @@ export function useParticipantController() {
     setFieldErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleCourseSelect = (course: Course): void => {
-    const courseSelection = {
-      courseId: course.idCurso,
-      courseName: course.nombreCurso,
-      coursePrice: course.valorCurso
-    };
-    
-    setFormData(prev => ({ ...prev, selectedCourse: courseSelection }));
-    setFieldErrors(prev => ({ ...prev, selectedCourse: '' }));
-    setMessage(null);
-  };
+// controllers/useParticipantController.ts - ACTUALIZAR MÉTODO
+const handleCourseSelect = (course: Course) => {
+  console.log('🎯 Curso seleccionado:', course);
+  
+  setFormData(prev => ({
+    ...prev,
+    selectedCourse: {
+      courseId: course.idCurso,        // ✅ Usar idCurso del backend
+      courseName: course.nombreCurso,  // ✅ Usar nombreCurso del backend
+      coursePrice: course.valorCurso   // ✅ Usar valorCurso del backend
+    }
+  }));
+  
+  // Limpiar error de selección de curso
+  setFieldErrors(prev => ({
+    ...prev,
+    selectedCourse: ''
+  }));
+  
+  setMessage({
+    text: `✅ Curso "${course.nombreCurso}" seleccionado correctamente`,
+    type: 'success'
+  });
+};
+
 
   const resetForm = (): void => {
     setFormData(initialFormData);

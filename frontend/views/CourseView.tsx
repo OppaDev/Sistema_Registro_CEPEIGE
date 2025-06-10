@@ -139,7 +139,10 @@ export function CourseView({
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-bold text-orange-600">
-                          {formatPrice(course.valorCurso)}
+                          {new Intl.NumberFormat('es-EC', {
+  style: 'currency',
+  currency: 'USD'
+}).format(Number(course.valorCurso))}
                         </span>
                       </div>
                     </div>
