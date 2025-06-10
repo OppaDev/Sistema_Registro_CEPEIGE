@@ -1,4 +1,4 @@
-// frontend/models/course.ts
+// models/course.ts
 export interface Course {
   idCurso: number;
   nombreCurso: string;
@@ -12,13 +12,4 @@ export interface CourseSelection {
   courseId: number;
   courseName: string;
   coursePrice: number;
-}
-
-export interface ApiCourse {
-  idCurso: number;
-  nombreCurso: string;
-  descripcionCurso?: string;
-  valorCurso: string | number; // Puede venir como string del backend
-  fechaInicioCurso: string | Date;
-  fechaFinCurso: string | Date;
 }
