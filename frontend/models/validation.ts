@@ -43,6 +43,36 @@ export const participantSchema = z.object({
     .max(100, 'Institución muy larga')
 });
 
+export const billingSchema = z.object({
+  razonSocial: z.string()
+    .min(1, 'La razón social es requerida')
+    .max(100, 'Razón social muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, 
+      'Solo letras, números, espacios y caracteres especiales permitidos (- . &)'),
+  identificacionTributaria: z.string()
+    .min(1, 'La identificación tributaria es requerida')
+    .max(50, 'Identificación tributaria muy larga'),
+  telefono: z.string()
+    .min(1, 'El teléfono es requerido')
+    .max(20, 'Teléfono muy largo'),
+  correoFactura: z.string()
+    .email('Formato de correo inválido')
+    .min(1, 'El correo de facturación es requerido')
+    .max(100, 'Correo muy largo'),
+  direccion: z.string()
+    .min(1, 'La dirección es requerida')
+    .max(250, 'Dirección muy larga')
+});
+
+export interface BillingFormMessage {
+  text: string;
+  type: 'success' | 'error' | 'info';
+}
+
+export interface BillingFieldErrors {
+  [key: string]: string;
+}
+
 export const FIELD_PLACEHOLDERS: Record<string, string> = {
   ciOrPassport: "1004228621 o 2AB123456",
   fullName: "Juan Carlos",
@@ -54,3 +84,12 @@ export const FIELD_PLACEHOLDERS: Record<string, string> = {
   profession: "Ingeniero",
   institution: "Universidad Central"
 };
+// models/validation.ts - AGREGAR AL FINAL
+export const BILLING_FIELD_PLACEHOLDERS: Record<string, string> = {
+  razonSocial: "Mi Empresa S.A. o Juan Pérez",
+  identificacionTributaria: "1791234567001 o 1004228621",
+  telefono: "+593 99 999 9999",
+  correoFactura: "facturacion@empresa.com",
+  direccion: "Av. Principal 123 y Secundaria, Quito, Ecuador"
+};
+
