@@ -1,54 +1,56 @@
-// models/validation.ts (actualizado)
-import { z } from 'zod';
+// models/validation.ts
+import { z } from "zod";
 
 export const participantSchema = z.object({
-  // Validación del curso
   selectedCourse: z.object({
-    courseId: z.number().min(1, 'Debe seleccionar un curso'),
-    courseName: z.string().min(1, 'Nombre del curso requerido'),
-    coursePrice: z.number().min(0, 'Precio del curso inválido')
-  }).optional().refine((val) => val !== undefined, {
-    message: 'Debe seleccionar un curso'
-  }),
-  
-  // Validaciones existentes
-  ciOrPassport: z.string()
-    .min(8, 'Mínimo 8 caracteres')
-    .max(20, 'Máximo 20 caracteres'),
-  fullName: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  lastName: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  phoneNumber: z.string()
-    .min(10, 'Mínimo 10 dígitos')
-    .max(15, 'Máximo 15 dígitos'),
-  email: z.string()
-    .email('Email inválido')
-    .max(100, 'Máximo 100 caracteres'),
-  country: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  cityOrProvince: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  profession: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(100, 'Máximo 100 caracteres'),
-  institution: z.string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(100, 'Máximo 100 caracteres')
+    courseId: z.number(),
+    courseName: z.string(),
+    coursePrice: z.number()
+  }).optional(),
+  ciPasaporte: z.string()
+    .min(1, 'CI o Pasaporte es requerido')
+    .max(20, 'CI o Pasaporte muy largo'),
+  nombres: z.string()
+    .min(1, 'Los nombres son requeridos')
+    .max(100, 'Nombres muy largos')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
+  apellidos: z.string()
+    .min(1, 'Los apellidos son requeridos')
+    .max(100, 'Apellidos muy largos')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
+  numTelefono: z.string()
+    .min(1, 'El número de teléfono es requerido')
+    .max(15, 'Número muy largo'),
+  correo: z.string()
+    .email('Formato de correo inválido')
+    .min(1, 'El correo es requerido')
+    .max(100, 'Correo muy largo'),
+  pais: z.string()
+    .min(1, 'El país es requerido')
+    .max(30, 'País muy largo'),
+  provinciaEstado: z.string()
+    .min(1, 'La provincia/estado es requerida')
+    .max(50, 'Provincia/estado muy largo'),
+  ciudad: z.string()
+    .min(1, 'La ciudad es requerida')
+    .max(100, 'Ciudad muy larga'),
+  profesion: z.string()
+    .min(1, 'La profesión es requerida')
+    .max(100, 'Profesión muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
+  institucion: z.string()
+    .min(1, 'La institución es requerida')
+    .max(100, 'Institución muy larga')
 });
 
 export const FIELD_PLACEHOLDERS: Record<string, string> = {
-  ciOrPassport: 'Ej: 1234567890',
-  fullName: 'Ej: Juan Carlos',
-  lastName: 'Ej: Pérez García',
-  phoneNumber: 'Ej: +593987654321',
-  email: 'Ej: juan.perez@email.com',
-  country: 'Ej: Ecuador',
-  cityOrProvince: 'Ej: Quito',
-  profession: 'Ej: Ingeniero de Sistemas',
-  institution: 'Ej: Universidad Central'
+  ciOrPassport: "1004228621 o 2AB123456",
+  fullName: "Juan Carlos",
+  lastName: "Pérez López",
+  phoneNumber: "0991234567",
+  email: "juan@email.com",
+  country: "Ecuador",
+  cityOrProvince: "Quito",
+  profession: "Ingeniero",
+  institution: "Universidad Central"
 };
