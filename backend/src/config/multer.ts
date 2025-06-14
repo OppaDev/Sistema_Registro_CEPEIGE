@@ -24,7 +24,7 @@ const storage: StorageEngine = multer.diskStorage({
     cb(null, UPLOAD_DIR_COMPROBANTES);
   },
   filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + crypto.getRandomValues(new Uint32Array(1))[0];
     const extension = path.extname(file.originalname);
     const originalNameWithoutExt = path.basename(file.originalname, extension);
     const safeOriginalName = originalNameWithoutExt.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 50);
