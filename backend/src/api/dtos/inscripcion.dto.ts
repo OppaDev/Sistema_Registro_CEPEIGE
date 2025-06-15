@@ -13,6 +13,9 @@ export class CreateInscripcionDto {
 
     @IsNumber({}, { message: "El ID de la facturación debe ser un número" })
     idFacturacion!: number;
+
+    @IsNumber({}, { message: "El ID del comprobante debe ser un número" })
+    idComprobante!: number;
 }
 
 export class InscripcionResponseDto {

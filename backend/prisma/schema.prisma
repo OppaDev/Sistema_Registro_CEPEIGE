@@ -76,6 +76,7 @@ model Inscripcion {
   idPersona         Int               @map("id_persona")
   idDescuento       Int?              @map("id_descuento")
   idFacturacion     Int               @map("id_facturacion")
+  idComprobante     Int?              @map("id_comprobante") @unique  // Foreign key a comprobante
   matricula         Boolean           @default(false) @map("matricula")
   fechaInscripcion  DateTime          @default(now()) @map("fecha_inscripcion") @db.Timestamp(6)
   
@@ -84,6 +85,7 @@ model Inscripcion {
   persona           DatosPersonales   @relation(fields: [idPersona], references: [idPersona], onDelete: Restrict, onUpdate: Restrict)
   descuento         Descuento?        @relation(fields: [idDescuento], references: [idDescuento], onDelete: SetNull, onUpdate: Restrict)
   datosFacturacion  DatosFacturacion  @relation(fields: [idFacturacion], references: [idFacturacion], onDelete: Restrict, onUpdate: Restrict)
+  comprobante       Comprobante?      @relation(fields: [idComprobante], references: [idComprobante], onDelete: SetNull, onUpdate: Restrict)
   facturas          Factura[]
 
   @@map("inscripcion")
@@ -93,7 +95,6 @@ model Factura {
   idFactura         Int               @id @default(autoincrement()) @map("id_factura")
   idInscripcion     Int               @map("id_inscripcion")
   idFacturacion     Int               @map("id_facturacion")
-  idComprobante     Int               @map("id_comprobante") @unique
   valorPagado       Decimal           @map("valor_pagado") @db.Decimal(10, 2)
   verificacionPago  Boolean           @map("verificacion_pago")
   numeroIngreso     String            @map("numero_ingreso") @db.VarChar(100)
@@ -102,7 +103,6 @@ model Factura {
   // Relaciones
   inscripcion       Inscripcion       @relation(fields: [idInscripcion], references: [idInscripcion], onDelete: Restrict, onUpdate: Restrict)
   datosFacturacion  DatosFacturacion  @relation(fields: [idFacturacion], references: [idFacturacion], onDelete: Restrict, onUpdate: Restrict)
-  comprobante      Comprobante       @relation(fields: [idComprobante], references: [idComprobante], onDelete: Restrict, onUpdate: Restrict)
 
   @@map("factura")
 }
@@ -115,7 +115,7 @@ model Comprobante {
   nombreArchivo     String            @map("nombre_archivo") @db.VarChar(100)
   
   // Relaciones
-  factura           Factura?
+  inscripcion       Inscripcion?      // Relación inversa opcional
 
   @@map("comprobante")
 }
