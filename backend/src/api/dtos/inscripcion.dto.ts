@@ -15,19 +15,16 @@ export class CreateInscripcionDto {
     idFacturacion!: number;
 
     @IsNumber({}, { message: "El ID del comprobante debe ser un número" })
-    idComprobante!: number;
+    idComprobante?: number;
 }
 
-export class InscripcionResponseDto {
-    estadoInscripcion!: string; 
-}
+
 
 export class UpdateInscripcionDto {
     @IsOptional()
     @IsNumber({}, { message: "El ID del descuento debe ser un número" })
     idDescuento?: number;
 
-    
     @IsOptional()
     @IsBoolean({ message: "El estado de matrícula debe ser un booleano" })
     matricula?: boolean;

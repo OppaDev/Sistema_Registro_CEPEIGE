@@ -64,16 +64,16 @@ export class ComprobanteService {
   async deleteComprobante(idComprobante: number): Promise<void> {
     const comprobante = await prisma.comprobante.findUnique({
       where: { idComprobante },
-      include: { factura: true },
+      include: { inscripcion: true },
     });
 
     if (!comprobante) {
       throw new NotFoundError(`Comprobante con ID ${idComprobante}`);
     }
 
-    if (comprobante.factura) {
+    if (comprobante.inscripcion) {
       throw new ConflictError(
-        `El comprobante con ID ${idComprobante} no puede ser eliminado porque está asociado a la factura con ID ${comprobante.factura.idFactura}.`
+        `El comprobante con ID ${idComprobante} no puede ser eliminado porque está asociado a la inscripción con ID ${comprobante.inscripcion.idInscripcion}.`
       );
     }
 
