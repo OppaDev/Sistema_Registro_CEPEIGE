@@ -69,9 +69,9 @@ model Inscripcion {
   idFacturacion    Int              @map("id_facturacion")
   matricula        Boolean          @default(false) @map("matricula")
   fechaInscripcion DateTime         @default(now()) @map("fecha_inscripcion") @db.Timestamp(6)
-  idComprobante    Int?             @unique @map("id_comprobante")
+  idComprobante    Int             @unique @map("id_comprobante")
   facturas         Factura[]
-  comprobante      Comprobante?     @relation(fields: [idComprobante], references: [idComprobante], onUpdate: Restrict)
+  comprobante      Comprobante     @relation(fields: [idComprobante], references: [idComprobante], onUpdate: Restrict)
   curso            Curso            @relation(fields: [idCurso], references: [idCurso], onUpdate: Restrict)
   descuento        Descuento?       @relation(fields: [idDescuento], references: [idDescuento], onUpdate: Restrict)
   datosFacturacion DatosFacturacion @relation(fields: [idFacturacion], references: [idFacturacion], onUpdate: Restrict)

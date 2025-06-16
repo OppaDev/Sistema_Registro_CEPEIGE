@@ -12,6 +12,7 @@ interface ComprobanteFileDataForCreation { // Interfaz para datos del archivo
 }
 
 export class ComprobanteService {
+  
   private toComprobanteResponseDto(comprobante: PrismaComprobante): ComprobanteResponseDto {
     return {
       idComprobante: comprobante.idComprobante,
