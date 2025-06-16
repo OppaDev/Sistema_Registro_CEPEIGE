@@ -3,11 +3,11 @@ import cursoRoutes from './curso.routes';
 import datosPersonalesRoutes from './datosPersonales.routes';
 import datosFacturacionRoutes from './datosFacturacion.routes';
 import comprobanteRoutes from './comprobante.routes';
+import inscripcionRoutes from './inscripcion.routes';
 
 
 export const configureRoutes = (app: Application): void => {
   const apiRouter = Router();
-
   // Rutas de curso
   apiRouter.use('/cursos', cursoRoutes);
   // Rutas de datos personales
@@ -16,6 +16,8 @@ export const configureRoutes = (app: Application): void => {
   apiRouter.use('/datos-facturacion', datosFacturacionRoutes);
   // Rutas de comprobantes
   apiRouter.use('/comprobantes', comprobanteRoutes);
+  // Rutas de inscripciones
+  apiRouter.use('/inscripciones', inscripcionRoutes);
 
   // Una ruta de prueba simple para verificar que el router funciona
   apiRouter.get('/ping', (_: Request, res: Response) => {
