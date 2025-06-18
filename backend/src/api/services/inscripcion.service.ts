@@ -3,11 +3,24 @@ import {
   CreateInscripcionDto,
   UpdateInscripcionDto,
   InscripcionResponseDto,
+  InscripcionAdminResponseDto,
 } from "@/api/dtos/inscripcion.dto";
 import { NotFoundError, ConflictError, AppError } from "@/utils/errorTypes";
-import { toInscripcionResponseDto, type PrismaInscripcionConRelaciones } from "@/api/services/mappers/inscripcion.mapper";
+import { 
+  toInscripcionResponseDto, 
+  toInscripcionAdminResponseDto,
+  type PrismaInscripcionConRelaciones,
+  type PrismaInscripcionAdminConRelaciones 
+} from "@/api/services/mappers/inscripcion.mapper";
 
 const prisma = new PrismaClient();
+
+interface GetAllInscripcionesOptions {
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+}
 
 export class InscripcionService {
   // Crear una nueva inscripción
@@ -75,7 +88,7 @@ export class InscripcionService {
   }
 
   // Actualizar una inscripción
-  async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionResponseDto> {
+  async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionAdminResponseDto> {
     // Verificar que la inscripción exista
     const inscripcionExistente = await prisma.inscripcion.findUnique({
       where: { idInscripcion }
@@ -109,7 +122,7 @@ export class InscripcionService {
           descuento: true,
         }
       });
-      return toInscripcionResponseDto(inscripcionActualizada as PrismaInscripcionConRelaciones);
+      return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error instanceof Error) {
@@ -117,5 +130,97 @@ export class InscripcionService {
       }
       throw new AppError("Error desconocido al actualizar la inscripción", 500);
     }
-  }  
+  }
+  
+  // Obtener todas las inscripciones con información completa para administradores
+  async getAllInscripciones(options: GetAllInscripcionesOptions): Promise<{ inscripciones: InscripcionAdminResponseDto[]; total: number }> {
+    try {
+      const { page, limit, orderBy, order } = options;
+      const skip = (page - 1) * limit;
+
+      const [inscripciones, total] = await Promise.all([
+        prisma.inscripcion.findMany({
+          skip,
+          take: limit,
+          orderBy: {
+            [orderBy]: order,
+          },
+          include: {
+            curso: true,
+            persona: true,
+            datosFacturacion: true,
+            comprobante: true,
+            descuento: true,
+          },
+        }),
+        prisma.inscripcion.count(),
+      ]);
+
+      return {
+        inscripciones: inscripciones.map((inscripcion) => 
+          toInscripcionAdminResponseDto(inscripcion as PrismaInscripcionAdminConRelaciones)
+        ),
+        total,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new AppError(`Error al obtener las inscripciones: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al obtener las inscripciones", 500);
+    }
+  }
+
+  // Obtener una inscripción por ID con información completa para administradores
+  async getInscripcionById(idInscripcion: number): Promise<InscripcionAdminResponseDto> {
+    try {
+      const inscripcion = await prisma.inscripcion.findUnique({
+        where: { idInscripcion },
+        include: {
+          curso: true,
+          persona: true,
+          datosFacturacion: true,
+          comprobante: true,
+          descuento: true,
+        },
+      });
+
+      if (!inscripcion) {
+        throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+      }
+
+      return toInscripcionAdminResponseDto(inscripcion as PrismaInscripcionAdminConRelaciones);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      if (error instanceof Error) {
+        throw new AppError(`Error al obtener la inscripción: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al obtener la inscripción", 500);
+    }
+  }
+
+  // Eliminar una inscripción
+  async deleteInscripcion(idInscripcion: number): Promise<boolean> {
+    try {
+      // Verificar que la inscripción exista
+      const inscripcionExistente = await prisma.inscripcion.findUnique({
+        where: { idInscripcion }
+      });
+      if (!inscripcionExistente) {
+        throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+      }
+
+      await prisma.inscripcion.delete({
+        where: { idInscripcion }
+      });
+
+      return true;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      if (error instanceof Error) {
+        throw new AppError(`Error al eliminar la inscripción: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al eliminar la inscripción", 500);
+    }
+  }
+    
 }
