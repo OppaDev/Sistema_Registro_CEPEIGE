@@ -1,4 +1,4 @@
-import { PrismaClient, Curso as PrismaCurso } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   CreateCursoDto,
   UpdateCursoDto,
@@ -6,6 +6,7 @@ import {
   CursosDisponiblesDto,
 } from "@/api/dtos/curso.dto";
 import { NotFoundError } from "@/utils/errorTypes";
+import { toCursoResponseDto } from "@/api/services/mappers/curso.mapper";
 
 const prisma = new PrismaClient();
 
@@ -17,19 +18,6 @@ interface GetAllCursosOptions {
 }
 
 export class CursoService {
-  // Función privada para mapear el modelo de Prisma al DTO de respuesta
-  private toCursoResponseDto(curso: PrismaCurso): CursoResponseDto {
-    return {
-      idCurso: curso.idCurso,
-      nombreCortoCurso: curso.nombreCortoCurso,
-      nombreCurso: curso.nombreCurso,
-      descripcionCurso: curso.descripcionCurso,
-      valorCurso: curso.valorCurso,
-      fechaInicioCurso: curso.fechaInicioCurso,
-      fechaFinCurso: curso.fechaFinCurso,
-    };
-  }
-
   // Crear un nuevo curso
   async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
     try {
@@ -40,10 +28,9 @@ export class CursoService {
           descripcionCurso: cursoData.descripcionCurso,
           valorCurso: cursoData.valorCurso,
           fechaInicioCurso: new Date(cursoData.fechaInicioCurso),
-          fechaFinCurso: new Date(cursoData.fechaFinCurso),
-        },
+          fechaFinCurso: new Date(cursoData.fechaFinCurso),        },
       });
-      return this.toCursoResponseDto(curso);
+      return toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al crear el curso: ${error.message}`);
@@ -78,10 +65,9 @@ export class CursoService {
       }
 
       const curso = await prisma.curso.update({
-        where: { idCurso: id },
-        data: datosActualizados,
+        where: { idCurso: id },        data: datosActualizados,
       });
-      return this.toCursoResponseDto(curso);
+      return toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al actualizar el curso: ${error.message}`);
@@ -107,7 +93,7 @@ export class CursoService {
         prisma.curso.count(),
       ]);
 
-      return { cursos: cursos.map((curso) => this.toCursoResponseDto(curso)), total };
+      return { cursos: cursos.map((curso) => toCursoResponseDto(curso)), total };
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al obtener los cursos: ${error.message}`);
@@ -124,10 +110,9 @@ export class CursoService {
       });
 
       if (!curso) {
-        throw new NotFoundError('Curso');
-      }
+        throw new NotFoundError('Curso');      }
 
-      return this.toCursoResponseDto(curso);
+      return toCursoResponseDto(curso);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al obtener el curso: ${error.message}`);
@@ -184,10 +169,9 @@ export class CursoService {
 
       // Eliminar el curso
       const cursoEliminado = await prisma.curso.delete({
-        where: { idCurso: id },
-      });
+        where: { idCurso: id },      });
 
-      return this.toCursoResponseDto(cursoEliminado);
+      return toCursoResponseDto(cursoEliminado);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al eliminar el curso: ${error.message}`);

@@ -1,73 +1,15 @@
-import {
-  PrismaClient,
-  Inscripcion as PrismaInscripcion,
-  Curso as PrismaCurso,
-  DatosPersonales as PrismaDatosPersonales,
-  DatosFacturacion as PrismaDatosFacturacion,
-  Comprobante as PrismaComprobante,// Si decides incluir el objeto descuento
-} from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   CreateInscripcionDto,
   UpdateInscripcionDto,
   InscripcionResponseDto,
 } from "@/api/dtos/inscripcion.dto";
 import { NotFoundError, ConflictError, AppError } from "@/utils/errorTypes";
+import { toInscripcionResponseDto, type PrismaInscripcionConRelaciones } from "@/api/services/mappers/inscripcion.mapper";
 
 const prisma = new PrismaClient();
 
-type PrismaInscripcionConRelaciones = PrismaInscripcion & {
-  curso: PrismaCurso;
-  persona: PrismaDatosPersonales;
-  datosFacturacion: PrismaDatosFacturacion;
-  comprobante: PrismaComprobante;
-};
-
 export class InscripcionService {
-  // mapear CreateInscripcionDto a PrismaInscripcion
-  private toInscripcionResponseDto(inscripcion: PrismaInscripcionConRelaciones): InscripcionResponseDto {
-    return {
-      idInscripcion: inscripcion.idInscripcion,
-      fechaInscripcion: inscripcion.fechaInscripcion,
-      curso: { 
-        idCurso: inscripcion.curso.idCurso,
-        nombreCurso: inscripcion.curso.nombreCurso,
-        nombreCortoCurso: inscripcion.curso.nombreCortoCurso,
-        descripcionCurso: inscripcion.curso.descripcionCurso,
-        valorCurso: inscripcion.curso.valorCurso,
-        fechaInicioCurso: inscripcion.curso.fechaInicioCurso,
-        fechaFinCurso: inscripcion.curso.fechaFinCurso,
-      },
-      datosPersonales: { 
-        idPersona: inscripcion.persona.idPersona,
-        ciPasaporte: inscripcion.persona.ciPasaporte,
-        nombres: inscripcion.persona.nombres,
-        apellidos: inscripcion.persona.apellidos,
-        correo: inscripcion.persona.correo,
-        numTelefono: inscripcion.persona.numTelefono,
-        pais: inscripcion.persona.pais,
-        provinciaEstado: inscripcion.persona.provinciaEstado,
-        ciudad: inscripcion.persona.ciudad,
-        profesion: inscripcion.persona.profesion,
-        institucion: inscripcion.persona.institucion,
-      },
-      datosFacturacion: { 
-        idFacturacion: inscripcion.datosFacturacion.idFacturacion,
-        razonSocial: inscripcion.datosFacturacion.razonSocial,
-        identificacionTributaria: inscripcion.datosFacturacion.identificacionTributaria,
-        telefono: inscripcion.datosFacturacion.telefono,
-        correoFactura: inscripcion.datosFacturacion.correoFactura,
-        direccion: inscripcion.datosFacturacion.direccion,
-      },
-      comprobante: { 
-        idComprobante: inscripcion.comprobante.idComprobante,
-        fechaSubida: inscripcion.comprobante.fechaSubida,
-        nombreArchivo: inscripcion.comprobante.nombreArchivo,
-        rutaComprobante: inscripcion.comprobante.rutaComprobante,
-        tipoArchivo: inscripcion.comprobante.tipoArchivo,
-      },
-    };
-  }
-
   // Crear una nueva inscripción
   async createInscripcion(data: CreateInscripcionDto): Promise<InscripcionResponseDto> {
     // 1. Validar existencia de IDs referenciados (Curso, Persona, DatosFacturacion, Comprobante)
@@ -119,7 +61,7 @@ export class InscripcionService {
           comprobante: true,
         }
       });
-      return this.toInscripcionResponseDto(nuevaInscripcion as PrismaInscripcionConRelaciones);
+      return toInscripcionResponseDto(nuevaInscripcion as PrismaInscripcionConRelaciones);
     } catch (error: any) {
       if (error.code === 'P2002' && error.meta?.target?.includes('idComprobante')) {
         throw new ConflictError(`El comprobante con ID ${data.idComprobante} ya está en uso por otra inscripción.`);
@@ -167,7 +109,7 @@ export class InscripcionService {
           descuento: true,
         }
       });
-      return this.toInscripcionResponseDto(inscripcionActualizada as PrismaInscripcionConRelaciones);
+      return toInscripcionResponseDto(inscripcionActualizada as PrismaInscripcionConRelaciones);
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error instanceof Error) {

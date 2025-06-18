@@ -1,7 +1,8 @@
-import { PrismaClient, Comprobante as PrismaComprobante } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { ComprobanteResponseDto } from "@/api/dtos/comprobante.dto";
 import { NotFoundError, AppError, ConflictError } from "@/utils/errorTypes";
 import { deleteFile } from "@/config/multer"; // Importar helper para borrar archivo
+import { toComprobanteResponseDto } from "@/api/services/mappers/comprobante.mapper";
 
 const prisma = new PrismaClient();
 
@@ -13,16 +14,6 @@ interface ComprobanteFileDataForCreation { // Interfaz para datos del archivo
 
 export class ComprobanteService {
   
-  private toComprobanteResponseDto(comprobante: PrismaComprobante): ComprobanteResponseDto {
-    return {
-      idComprobante: comprobante.idComprobante,
-      fechaSubida: comprobante.fechaSubida,
-      rutaComprobante: comprobante.rutaComprobante,
-      tipoArchivo: comprobante.tipoArchivo,
-      nombreArchivo: comprobante.nombreArchivo,
-    };
-  }
-
   // Crear un comprobante
   async createComprobante(data: ComprobanteFileDataForCreation): Promise<ComprobanteResponseDto> {
     try {
@@ -33,7 +24,7 @@ export class ComprobanteService {
           nombreArchivo: data.nombreArchivo,
         },
       });
-      return this.toComprobanteResponseDto(nuevoComprobante);
+      return toComprobanteResponseDto(nuevoComprobante);
     } catch (error) {
       if (error instanceof Error) {
         throw new AppError(`Error al crear el comprobante en la base de datos: ${error.message}`, 500);
@@ -52,7 +43,7 @@ export class ComprobanteService {
       if (!comprobante) {
         return null;
       }
-      return this.toComprobanteResponseDto(comprobante);
+      return toComprobanteResponseDto(comprobante);
     } catch (error) {
       if (error instanceof Error) {
         throw new AppError(`Error al obtener el comprobante: ${error.message}`, 500);
@@ -113,9 +104,8 @@ export class ComprobanteService {
             }),
             prisma.comprobante.count()
         ]);
-        
-        return {
-            comprobantes: comprobantesData.map(this.toComprobanteResponseDto),
+          return {
+            comprobantes: comprobantesData.map(toComprobanteResponseDto),
             total
         };
     } catch (error) {
