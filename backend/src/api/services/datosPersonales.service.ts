@@ -6,6 +6,7 @@ import {
 } from "@/api/dtos/datosPersonales.dto";
 import { NotFoundError, ConflictError } from "@/utils/errorTypes";
 import { toDatosPersonalesResponseDto } from "@/api/services/mappers/datosPersonales.mapper";
+import { CedulaEcuatorianaValidator } from "@/utils/cedulaValidator";
 
 const prisma = new PrismaClient();
 
@@ -16,15 +17,21 @@ interface GetAllDatosPersonalesOptions {
   orderBy?: string;
 }
 
-export class DatosPersonalesService {
-  //crear nuevos datos personales
+export class DatosPersonalesService {  //crear nuevos datos personales
   async createDatosPersonales(
     datosPersonalesData: CreateDatosPersonalesDto
   ): Promise<DatosPersonalesResponseDto> {
     try {
+      // Limpiar y formatear la cédula (el validador ya verificó que es válida)
+      const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(datosPersonalesData.ciPasaporte);
+      
+      if (!cedulaFormateada) {
+        throw new Error("La cédula proporcionada no es válida");
+      }
+
       const datosPersonales = await prisma.datosPersonales.create({
         data: {
-          ciPasaporte: datosPersonalesData.ciPasaporte,
+          ciPasaporte: cedulaFormateada, // Usar la cédula formateada
           nombres: datosPersonalesData.nombres,
           apellidos: datosPersonalesData.apellidos,
           numTelefono: datosPersonalesData.numTelefono,
@@ -158,12 +165,18 @@ export class DatosPersonalesService {
       throw new Error("Error desconocido al eliminar los datos personales");
     }
   }
-
   //Buscar datos personales por ci o pasaporte
   async getByCiPasaporte(ciPasaporte: string): Promise<DatosPersonalesResponseDto> {
     try {
+      // Limpiar y formatear la cédula para la búsqueda
+      const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(ciPasaporte);
+      
+      if (!cedulaFormateada) {
+        throw new Error("La cédula proporcionada no es válida");
+      }
+
       const datosPersonales = await prisma.datosPersonales.findUnique({
-        where: { ciPasaporte: ciPasaporte },
+        where: { ciPasaporte: cedulaFormateada }, // Buscar con la cédula formateada
       });
       if (!datosPersonales) {
         throw new NotFoundError(`Datos personales con CI/Pasaporte '${ciPasaporte}'`);      }
