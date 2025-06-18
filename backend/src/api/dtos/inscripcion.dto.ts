@@ -8,6 +8,7 @@ import { CursoResponseDto } from "@/api/dtos/curso.dto";
 import { DatosPersonalesResponseDto } from "@/api/dtos/datosPersonales.dto";
 import { DatosFacturacionResponseDto } from "@/api/dtos/datosFacturacion.dto";
 import { ComprobanteResponseDto } from "@/api/dtos/comprobante.dto";
+import { DescuentoResponseDto } from "@/api/dtos/descuento.dto";
 
 export class CreateInscripcionDto {
     @IsNotEmpty({ message: "El ID del curso es obligatorio" })
@@ -45,5 +46,16 @@ export class InscripcionResponseDto {
     datosPersonales!: DatosPersonalesResponseDto;
     datosFacturacion!: DatosFacturacionResponseDto;
     comprobante!: ComprobanteResponseDto;
+    fechaInscripcion!: Date;
+}
+
+export class InscripcionAdminResponseDto {
+    idInscripcion!: number;
+    curso!: CursoResponseDto;
+    datosPersonales!: DatosPersonalesResponseDto;
+    datosFacturacion!: DatosFacturacionResponseDto;
+    descuento?: DescuentoResponseDto;
+    comprobante!: ComprobanteResponseDto;
+    matricula!: boolean;
     fechaInscripcion!: Date;
 }
