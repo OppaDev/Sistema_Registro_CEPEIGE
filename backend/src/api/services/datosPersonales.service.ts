@@ -1,10 +1,11 @@
-import { PrismaClient, DatosPersonales as PrismaDatosPersonales } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   CreateDatosPersonalesDto,
   DatosPersonalesResponseDto,
   UpdateDatosPersonalesDto,
 } from "@/api/dtos/datosPersonales.dto";
 import { NotFoundError, ConflictError } from "@/utils/errorTypes";
+import { toDatosPersonalesResponseDto } from "@/api/services/mappers/datosPersonales.mapper";
 
 const prisma = new PrismaClient();
 
@@ -16,23 +17,6 @@ interface GetAllDatosPersonalesOptions {
 }
 
 export class DatosPersonalesService {
-  // Función privada para mapear el modelo de Prisma al DTO de respuesta
-  private toDatosPersonalesResponseDto(datos: PrismaDatosPersonales): DatosPersonalesResponseDto {
-    return {
-      idPersona: datos.idPersona,
-      ciPasaporte: datos.ciPasaporte,
-      nombres: datos.nombres,
-      apellidos: datos.apellidos,
-      numTelefono: datos.numTelefono,
-      correo: datos.correo,
-      pais: datos.pais,
-      provinciaEstado: datos.provinciaEstado,
-      ciudad: datos.ciudad,
-      profesion: datos.profesion,
-      institucion: datos.institucion,
-    };
-  }
-
   //crear nuevos datos personales
   async createDatosPersonales(
     datosPersonalesData: CreateDatosPersonalesDto
@@ -49,10 +33,9 @@ export class DatosPersonalesService {
           provinciaEstado: datosPersonalesData.provinciaEstado,
           ciudad: datosPersonalesData.ciudad,
           profesion: datosPersonalesData.profesion,
-          institucion: datosPersonalesData.institucion,
-        },
+          institucion: datosPersonalesData.institucion,        },
       });
-      return this.toDatosPersonalesResponseDto(datosPersonales);
+      return toDatosPersonalesResponseDto(datosPersonales);
     } catch (error: any) {
       if (error.code === 'P2002') {
         throw new ConflictError('El CI o Pasaporte ya está registrado');
@@ -79,10 +62,9 @@ export class DatosPersonalesService {
           orderBy: { [orderByField]: order },
         }),
         prisma.datosPersonales.count(),
-      ]);
-      return {
+      ]);      return {
         datosPersonales: datosPersonales.map((datos) =>
-          this.toDatosPersonalesResponseDto(datos)
+          toDatosPersonalesResponseDto(datos)
         ),
         total,
       };
@@ -106,10 +88,9 @@ export class DatosPersonalesService {
       });
 
       if (!datosPersonales) {
-        throw new NotFoundError("Datos personales");
-      }
+        throw new NotFoundError("Datos personales");      }
 
-      return this.toDatosPersonalesResponseDto(datosPersonales);
+      return toDatosPersonalesResponseDto(datosPersonales);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(
@@ -142,10 +123,9 @@ export class DatosPersonalesService {
 
       //actualizar los datos
       const datosPersonales = await prisma.datosPersonales.update({
-        where: { idPersona: id },
-        data: datosActualizados,
+        where: { idPersona: id },        data: datosActualizados,
       });
-      return this.toDatosPersonalesResponseDto(datosPersonales);
+      return toDatosPersonalesResponseDto(datosPersonales);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(
@@ -168,10 +148,9 @@ export class DatosPersonalesService {
         throw new NotFoundError("Datos personales");
       }
       //eliminar los datos
-      const datosPersonalesEliminados = await prisma.datosPersonales.delete({
-        where: { idPersona: id },
+      const datosPersonalesEliminados = await prisma.datosPersonales.delete({        where: { idPersona: id },
       });
-      return this.toDatosPersonalesResponseDto(datosPersonalesEliminados);
+      return toDatosPersonalesResponseDto(datosPersonalesEliminados);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al eliminar los datos personales: ${error.message}`);
@@ -187,9 +166,8 @@ export class DatosPersonalesService {
         where: { ciPasaporte: ciPasaporte },
       });
       if (!datosPersonales) {
-        throw new NotFoundError(`Datos personales con CI/Pasaporte '${ciPasaporte}'`);
-      }
-      return this.toDatosPersonalesResponseDto(datosPersonales);
+        throw new NotFoundError(`Datos personales con CI/Pasaporte '${ciPasaporte}'`);      }
+      return toDatosPersonalesResponseDto(datosPersonales);
 
     } catch(error) {
       if (error instanceof Error) {

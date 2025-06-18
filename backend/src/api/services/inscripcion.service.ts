@@ -1,73 +1,28 @@
-import {
-  PrismaClient,
-  Inscripcion as PrismaInscripcion,
-  Curso as PrismaCurso,
-  DatosPersonales as PrismaDatosPersonales,
-  DatosFacturacion as PrismaDatosFacturacion,
-  Comprobante as PrismaComprobante,// Si decides incluir el objeto descuento
-} from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   CreateInscripcionDto,
   UpdateInscripcionDto,
   InscripcionResponseDto,
+  InscripcionAdminResponseDto,
 } from "@/api/dtos/inscripcion.dto";
 import { NotFoundError, ConflictError, AppError } from "@/utils/errorTypes";
+import { 
+  toInscripcionResponseDto, 
+  toInscripcionAdminResponseDto,
+  type PrismaInscripcionConRelaciones,
+  type PrismaInscripcionAdminConRelaciones 
+} from "@/api/services/mappers/inscripcion.mapper";
 
 const prisma = new PrismaClient();
 
-type PrismaInscripcionConRelaciones = PrismaInscripcion & {
-  curso: PrismaCurso;
-  persona: PrismaDatosPersonales;
-  datosFacturacion: PrismaDatosFacturacion;
-  comprobante: PrismaComprobante;
-};
+interface GetAllInscripcionesOptions {
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+}
 
 export class InscripcionService {
-  // mapear CreateInscripcionDto a PrismaInscripcion
-  private toInscripcionResponseDto(inscripcion: PrismaInscripcionConRelaciones): InscripcionResponseDto {
-    return {
-      idInscripcion: inscripcion.idInscripcion,
-      fechaInscripcion: inscripcion.fechaInscripcion,
-      curso: { 
-        idCurso: inscripcion.curso.idCurso,
-        nombreCurso: inscripcion.curso.nombreCurso,
-        nombreCortoCurso: inscripcion.curso.nombreCortoCurso,
-        descripcionCurso: inscripcion.curso.descripcionCurso,
-        valorCurso: inscripcion.curso.valorCurso,
-        fechaInicioCurso: inscripcion.curso.fechaInicioCurso,
-        fechaFinCurso: inscripcion.curso.fechaFinCurso,
-      },
-      datosPersonales: { 
-        idPersona: inscripcion.persona.idPersona,
-        ciPasaporte: inscripcion.persona.ciPasaporte,
-        nombres: inscripcion.persona.nombres,
-        apellidos: inscripcion.persona.apellidos,
-        correo: inscripcion.persona.correo,
-        numTelefono: inscripcion.persona.numTelefono,
-        pais: inscripcion.persona.pais,
-        provinciaEstado: inscripcion.persona.provinciaEstado,
-        ciudad: inscripcion.persona.ciudad,
-        profesion: inscripcion.persona.profesion,
-        institucion: inscripcion.persona.institucion,
-      },
-      datosFacturacion: { 
-        idFacturacion: inscripcion.datosFacturacion.idFacturacion,
-        razonSocial: inscripcion.datosFacturacion.razonSocial,
-        identificacionTributaria: inscripcion.datosFacturacion.identificacionTributaria,
-        telefono: inscripcion.datosFacturacion.telefono,
-        correoFactura: inscripcion.datosFacturacion.correoFactura,
-        direccion: inscripcion.datosFacturacion.direccion,
-      },
-      comprobante: { 
-        idComprobante: inscripcion.comprobante.idComprobante,
-        fechaSubida: inscripcion.comprobante.fechaSubida,
-        nombreArchivo: inscripcion.comprobante.nombreArchivo,
-        rutaComprobante: inscripcion.comprobante.rutaComprobante,
-        tipoArchivo: inscripcion.comprobante.tipoArchivo,
-      },
-    };
-  }
-
   // Crear una nueva inscripción
   async createInscripcion(data: CreateInscripcionDto): Promise<InscripcionResponseDto> {
     // 1. Validar existencia de IDs referenciados (Curso, Persona, DatosFacturacion, Comprobante)
@@ -119,7 +74,7 @@ export class InscripcionService {
           comprobante: true,
         }
       });
-      return this.toInscripcionResponseDto(nuevaInscripcion as PrismaInscripcionConRelaciones);
+      return toInscripcionResponseDto(nuevaInscripcion as PrismaInscripcionConRelaciones);
     } catch (error: any) {
       if (error.code === 'P2002' && error.meta?.target?.includes('idComprobante')) {
         throw new ConflictError(`El comprobante con ID ${data.idComprobante} ya está en uso por otra inscripción.`);
@@ -133,7 +88,7 @@ export class InscripcionService {
   }
 
   // Actualizar una inscripción
-  async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionResponseDto> {
+  async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionAdminResponseDto> {
     // Verificar que la inscripción exista
     const inscripcionExistente = await prisma.inscripcion.findUnique({
       where: { idInscripcion }
@@ -167,7 +122,7 @@ export class InscripcionService {
           descuento: true,
         }
       });
-      return this.toInscripcionResponseDto(inscripcionActualizada as PrismaInscripcionConRelaciones);
+      return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error instanceof Error) {
@@ -175,5 +130,97 @@ export class InscripcionService {
       }
       throw new AppError("Error desconocido al actualizar la inscripción", 500);
     }
-  }  
+  }
+  
+  // Obtener todas las inscripciones con información completa para administradores
+  async getAllInscripciones(options: GetAllInscripcionesOptions): Promise<{ inscripciones: InscripcionAdminResponseDto[]; total: number }> {
+    try {
+      const { page, limit, orderBy, order } = options;
+      const skip = (page - 1) * limit;
+
+      const [inscripciones, total] = await Promise.all([
+        prisma.inscripcion.findMany({
+          skip,
+          take: limit,
+          orderBy: {
+            [orderBy]: order,
+          },
+          include: {
+            curso: true,
+            persona: true,
+            datosFacturacion: true,
+            comprobante: true,
+            descuento: true,
+          },
+        }),
+        prisma.inscripcion.count(),
+      ]);
+
+      return {
+        inscripciones: inscripciones.map((inscripcion) => 
+          toInscripcionAdminResponseDto(inscripcion as PrismaInscripcionAdminConRelaciones)
+        ),
+        total,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new AppError(`Error al obtener las inscripciones: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al obtener las inscripciones", 500);
+    }
+  }
+
+  // Obtener una inscripción por ID con información completa para administradores
+  async getInscripcionById(idInscripcion: number): Promise<InscripcionAdminResponseDto> {
+    try {
+      const inscripcion = await prisma.inscripcion.findUnique({
+        where: { idInscripcion },
+        include: {
+          curso: true,
+          persona: true,
+          datosFacturacion: true,
+          comprobante: true,
+          descuento: true,
+        },
+      });
+
+      if (!inscripcion) {
+        throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+      }
+
+      return toInscripcionAdminResponseDto(inscripcion as PrismaInscripcionAdminConRelaciones);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      if (error instanceof Error) {
+        throw new AppError(`Error al obtener la inscripción: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al obtener la inscripción", 500);
+    }
+  }
+
+  // Eliminar una inscripción
+  async deleteInscripcion(idInscripcion: number): Promise<boolean> {
+    try {
+      // Verificar que la inscripción exista
+      const inscripcionExistente = await prisma.inscripcion.findUnique({
+        where: { idInscripcion }
+      });
+      if (!inscripcionExistente) {
+        throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+      }
+
+      await prisma.inscripcion.delete({
+        where: { idInscripcion }
+      });
+
+      return true;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      if (error instanceof Error) {
+        throw new AppError(`Error al eliminar la inscripción: ${error.message}`, 500);
+      }
+      throw new AppError("Error desconocido al eliminar la inscripción", 500);
+    }
+  }
+    
 }

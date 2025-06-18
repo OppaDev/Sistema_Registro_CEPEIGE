@@ -1,10 +1,11 @@
-import { PrismaClient, DatosFacturacion as PrismaDatosFacturacion } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   CreateDatosFacturacionDto,
   UpdateDatosFacturacionDto,
   DatosFacturacionResponseDto,
 } from "@/api/dtos/datosFacturacion.dto";
 import { NotFoundError} from "@/utils/errorTypes";
+import { toDatosFacturacionResponseDto } from "@/api/services/mappers/datosFacturacion.mapper";
 
 const prisma = new PrismaClient();
 
@@ -16,18 +17,6 @@ interface GetAllDatosFacturacionOptions {
 }
 
 export class DatosFacturacionService {
-  // Mapeo de modelo Prisma a DTO de respuesta
-  private toDatosFacturacionResponseDto(datos: PrismaDatosFacturacion): DatosFacturacionResponseDto {
-    return {
-      idFacturacion: datos.idFacturacion,
-      razonSocial: datos.razonSocial,
-      identificacionTributaria: datos.identificacionTributaria,
-      telefono: datos.telefono,
-      correoFactura: datos.correoFactura,
-      direccion: datos.direccion,
-    };
-  }
-
   // Crear datos de facturación
   async createDatosFacturacion(
     datosFacturacionData: CreateDatosFacturacionDto
@@ -39,10 +28,9 @@ export class DatosFacturacionService {
           identificacionTributaria: datosFacturacionData.identificacionTributaria,
           telefono: datosFacturacionData.telefono,
           correoFactura: datosFacturacionData.correoFactura,
-          direccion: datosFacturacionData.direccion,
-        },
+          direccion: datosFacturacionData.direccion,        },
       });
-      return this.toDatosFacturacionResponseDto(datosFacturacion);
+      return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
       if (error instanceof Error) {
         throw new Error(`Error al crear los datos de facturación: ${error.message}`);
@@ -64,9 +52,8 @@ export class DatosFacturacionService {
           orderBy: { [orderByField]: order },
         }),
         prisma.datosFacturacion.count(),
-      ]);
-      return {
-        datosFacturacion: datosFacturacion.map((datos) => this.toDatosFacturacionResponseDto(datos)),
+      ]);      return {
+        datosFacturacion: datosFacturacion.map((datos) => toDatosFacturacionResponseDto(datos)),
         total,
       };
     } catch (error) {
@@ -84,9 +71,8 @@ export class DatosFacturacionService {
         where: { idFacturacion: id },
       });
       if (!datosFacturacion) {
-        throw new NotFoundError('Datos de facturación');
-      }
-      return this.toDatosFacturacionResponseDto(datosFacturacion);
+        throw new NotFoundError('Datos de facturación');      }
+      return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al obtener los datos de facturación: ${error.message}`);
@@ -109,10 +95,9 @@ export class DatosFacturacionService {
       }
       const datosActualizados: any = { ...datosFacturacionData };
       const datosFacturacion = await prisma.datosFacturacion.update({
-        where: { idFacturacion: id },
-        data: datosActualizados,
+        where: { idFacturacion: id },        data: datosActualizados,
       });
-      return this.toDatosFacturacionResponseDto(datosFacturacion);
+      return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
       if (error instanceof Error) {
         throw new Error(`Error al actualizar los datos de facturación: ${error.message}`);
@@ -130,10 +115,9 @@ export class DatosFacturacionService {
       if (!datosFacturacionExistente) {
         throw new NotFoundError('Datos de facturación');
       }
-      const datosFacturacionEliminado = await prisma.datosFacturacion.delete({
-        where: { idFacturacion: id },
+      const datosFacturacionEliminado = await prisma.datosFacturacion.delete({        where: { idFacturacion: id },
       });
-      return this.toDatosFacturacionResponseDto(datosFacturacionEliminado);
+      return toDatosFacturacionResponseDto(datosFacturacionEliminado);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Error al eliminar los datos de facturación: ${error.message}`);
