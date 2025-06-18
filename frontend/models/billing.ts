@@ -32,6 +32,7 @@ export const billingSchema = z.object({
   direccion: z.string()
     .min(1, 'La dirección es requerida')
     .max(250, 'Dirección muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
 });
 
 export interface BillingFormMessage {

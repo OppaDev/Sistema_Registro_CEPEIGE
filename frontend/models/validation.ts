@@ -83,7 +83,33 @@ export const billingSchema = z.object({
       'Solo letras, números, espacios y caracteres especiales permitidos (- . &)'),
   identificacionTributaria: z.string()
     .min(1, 'La identificación tributaria es requerida')
-    .max(50, 'Identificación tributaria muy larga'),
+    .max(50, 'Identificación tributaria muy larga')
+    // Validar que sea una cédula ecuatoriana válida o un RUC de 13 dígitos del ecuador
+    .refine(value => {
+      if (/^\d{10}$/.test(value)) {
+        return validarCedulaEcuatoriana(value);
+      }
+      if (/^\d{13}$/.test(value)) {
+        // Validar RUC (13 dígitos)
+        const digitos = value.split('').map(Number);
+        const provincia = parseInt(value.substring(0, 2), 10);
+        if (provincia < 1 || provincia > 24) return false;
+        const tercerDigito = digitos[2];
+        if (![6, 9].includes(tercerDigito)) return false; // RUC debe empezar con 6 o 9
+        let suma = 0;
+        for (let i = 0; i < 12; i++) {
+          let valor = digitos[i];
+          if (i % 2 === 0) {
+            valor *= 2;
+            if (valor > 9) valor -= 9;
+          }
+          suma += valor;
+        }
+        const digitoVerificador = (10 - (suma % 10)) % 10;
+        return digitoVerificador === digitos[12];
+      }
+      return false;
+    }, 'Debe ser una cédula ecuatoriana válida o un RUC de 13 dígitos'),
   telefono: z.string()
     .min(1, 'El teléfono es requerido')
     .max(20, 'Teléfono muy largo')
@@ -96,6 +122,8 @@ export const billingSchema = z.object({
   direccion: z.string()
     .min(1, 'La dirección es requerida')
     .max(250, 'Dirección muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
+  
 });
 
 export interface BillingFormMessage {
