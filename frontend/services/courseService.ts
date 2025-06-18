@@ -1,4 +1,4 @@
-// services/courseService.ts - REEMPLAZAR COMPLETO
+// services/courseService.ts 
 import { api } from './api';
 import { Course, CourseAvailable } from '@/models/course';
 

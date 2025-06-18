@@ -135,7 +135,7 @@ export const BillingForm: React.FC<BillingFormProps> = ({
           {/* Botones */}
            {/* Botones */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <Button
+           {/* <Button
               type="button"
               onClick={onBack}
               variant="outline"
@@ -143,7 +143,7 @@ export const BillingForm: React.FC<BillingFormProps> = ({
               disabled={isSubmitting}
             >
               ← Volver a Datos Personales
-            </Button>
+            </Button>*/}
             
             <Button
               type="submit"

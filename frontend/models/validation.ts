@@ -1,5 +1,24 @@
 // models/validation.ts
 import { z } from "zod";
+// models/validation.ts
+
+function validarCedulaEcuatoriana(cedula: string): boolean {
+  if (!/^\d{10}$/.test(cedula)) return false;
+  const digitos = cedula.split('').map(Number);
+  const provincia = parseInt(cedula.substring(0, 2), 10);
+  if (provincia < 1 || provincia > 24) return false;
+  let suma = 0;
+  for (let i = 0; i < 9; i++) {
+    let valor = digitos[i];
+    if (i % 2 === 0) {
+      valor *= 2;
+      if (valor > 9) valor -= 9;
+    }
+    suma += valor;
+  }
+  const digitoVerificador = (10 - (suma % 10)) % 10;
+  return digitoVerificador === digitos[9];
+}
 
 export const participantSchema = z.object({
   selectedCourse: z.object({
@@ -7,9 +26,16 @@ export const participantSchema = z.object({
     courseName: z.string(),
     coursePrice: z.number()
   }).optional(),
-  ciPasaporte: z.string()
-    .min(1, 'CI o Pasaporte es requerido')
-    .max(20, 'CI o Pasaporte muy largo'),
+ ciPasaporte: z.string()
+  .min(1, 'CI o Pasaporte es requerido')
+  .max(20, 'CI o Pasaporte muy largo')
+  .refine(
+    value =>
+      (/^[A-Z]{2}\d{6,8}$/i.test(value)) || validarCedulaEcuatoriana(value),
+    {
+      message: "Debe ser una cédula ecuatoriana válida o un pasaporte (2 letras seguidas de 6 a 8 dígitos)",
+    }
+  ),
   nombres: z.string()
     .min(1, 'Los nombres son requeridos')
     .max(100, 'Nombres muy largos')
@@ -20,7 +46,10 @@ export const participantSchema = z.object({
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
   numTelefono: z.string()
     .min(1, 'El número de teléfono es requerido')
-    .max(15, 'Número muy largo'),
+    .max(15, 'Número muy largo')
+    // validar que solo sea numerico y que numero valido
+    .regex(/^\+?\d{7,15}$/, 'Número de teléfono inválido. Debe tener entre 7 y 15 dígitos, con o sin el prefijo +'),
+  
   correo: z.string()
     .email('Formato de correo inválido')
     .min(1, 'El correo es requerido')
@@ -54,7 +83,9 @@ export const billingSchema = z.object({
     .max(50, 'Identificación tributaria muy larga'),
   telefono: z.string()
     .min(1, 'El teléfono es requerido')
-    .max(20, 'Teléfono muy largo'),
+    .max(20, 'Teléfono muy largo')
+    //validar que solo sea numerico y que numero valido
+    .regex(/^\+?\d{7,15}$/, 'Número de teléfono inválido. Debe tener entre 7 y 15 dígitos, con o sin el prefijo +'),
   correoFactura: z.string()
     .email('Formato de correo inválido')
     .min(1, 'El correo de facturación es requerido')
@@ -77,12 +108,12 @@ export const FIELD_PLACEHOLDERS: Record<string, string> = {
   ciOrPassport: "1004228621 o 2AB123456",
   fullName: "Juan Carlos",
   lastName: "Pérez López",
-  phoneNumber: "0991234567",
+  phoneNumber: "+593 991234567",
   email: "juan@email.com",
   country: "Ecuador",
   cityOrProvince: "Quito",
   profession: "Ingeniero",
-  institution: "Universidad Central"
+  institution: "Universidad de las Fuerzas Armadas"
 };
 // models/validation.ts - AGREGAR AL FINAL
 export const BILLING_FIELD_PLACEHOLDERS: Record<string, string> = {

@@ -21,7 +21,10 @@ export const billingSchema = z.object({
     .max(50, 'Identificación tributaria muy larga'),
   telefono: z.string()
     .min(1, 'El teléfono es requerido')
-    .max(20, 'Teléfono muy largo'),
+    .max(20, 'Teléfono muy largo')
+  //validar que solo sea numerico y que numero valido
+    .regex(/^\+?\d{7,15}$/, 'Número de teléfono inválido. Debe tener entre 7 y 15 dígitos, con o sin el prefijo +'),
+  
   correoFactura: z.string()
     .email('Formato de correo inválido')
     .min(1, 'El correo de facturación es requerido')

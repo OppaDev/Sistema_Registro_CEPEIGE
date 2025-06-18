@@ -168,10 +168,16 @@ export function CourseView({
                         <span className="mr-1">⏱️</span>
                         <span>Duración: {duration} días</span>
                       </div>
-                      <div className="flex items-center">
-                        <span className="mr-1">🎯</span>
-                        <span>Modalidad: Presencial</span>
-                      </div>
+                       <div className="flex items-center">
+    <span className="mr-1">🎯</span>
+    <span>
+      Modalidad: {/** Aquí el cambio */}
+      {/** idx es el índice del curso en el array */}
+      {courses.findIndex(c => c.idCurso === course.idCurso) === 0
+        ? "Semipresencial"
+        : "Presencial"}
+    </span>
+  </div>
                     </div>
                     
                     {/* Indicador de selección */}

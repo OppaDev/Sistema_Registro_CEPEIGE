@@ -300,7 +300,7 @@ export default function ParticipantRegistrationView() {
 
                   {/* Botones */}
                   <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                    <Button
+                   {/* <Button
                       type="button"
                       onClick={() => goToStep('course')}
                       variant="outline"
@@ -308,7 +308,7 @@ export default function ParticipantRegistrationView() {
                       disabled={isSubmitting}
                     >
                       ← Volver a Selección de Curso
-                    </Button>
+                    </Button>*/}
                     
                     <Button
                       type="submit"
@@ -492,29 +492,33 @@ export default function ParticipantRegistrationView() {
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">3.</span>
-                      <span>Te enviaremos la factura oficial y el material del curso</span>
+                      <span>Te enviaremos las credenciales de acceso y el enlace el grupo del curso Asignado - Telegram</span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">4.</span>
-                      <span>Nos contactaremos contigo antes del inicio del curso</span>
+                      <span>Te enviaremos la factura oficial </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">5.</span>
-                      <span>Si tienes dudas, contáctanos al correo: info@cepeige.edu.ec</span>
+                      <span>Nos contactaremos contigo antes del inicio del curso</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">6.</span>
+                      <span>Si tienes dudas, contáctanos al correo: info@cepeige.org</span>
                     </li>
                   </ul>
                 </div>
 
                 {/* Botones finales */}
-                /** 
+                
                 <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <Button
+                  {/*<Button
                     onClick={() => goToStep('payment')}
                     variant="outline"
                     className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     ← Modificar Comprobante
-                  </Button>*/
+                  </Button>*/}
                   
                   <Button
                     onClick={resetForm}

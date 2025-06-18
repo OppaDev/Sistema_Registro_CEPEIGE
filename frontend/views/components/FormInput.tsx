@@ -29,7 +29,7 @@ export function FormInput({
     ciPasaporte: "1004228621 o 2AB123456",
     nombres: "Juan Carlos",
     apellidos: "Pérez López",
-    numTelefono: "0991234567",
+    numTelefono: " +593 991234567",
     correo: "juan@email.com",
     pais: "Ecuador",
     provinciaEstado: "Pichincha",

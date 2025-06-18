@@ -212,15 +212,17 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
 
           {/* Botones */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <Button
-              //type="button"
-              //onClick={onBack}
-              //variant="outline"
-             // className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-             // disabled={isSubmitting}
-            >
-              ← Volver a Facturación
-            </Button>
+             {/*
+  <Button
+    type="button"
+    onClick={onBack}
+    variant="outline"
+    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+    disabled={isSubmitting}
+  >
+    ← Volver a Facturación
+  </Button>
+  */}
             
             <Button
               type="submit"
