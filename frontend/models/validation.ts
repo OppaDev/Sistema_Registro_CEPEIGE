@@ -56,13 +56,16 @@ export const participantSchema = z.object({
     .max(100, 'Correo muy largo'),
   pais: z.string()
     .min(1, 'El país es requerido')
-    .max(30, 'País muy largo'),
+    .max(30, 'País muy largo')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
   provinciaEstado: z.string()
     .min(1, 'La provincia/estado es requerida')
-    .max(50, 'Provincia/estado muy largo'),
+    .max(50, 'Provincia/estado muy largo')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
   ciudad: z.string()
     .min(1, 'La ciudad es requerida')
-    .max(100, 'Ciudad muy larga'),
+    .max(100, 'Ciudad muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
   profesion: z.string()
     .min(1, 'La profesión es requerida')
     .max(100, 'Profesión muy larga')
