@@ -1,71 +1,64 @@
-/**
- * Pruebas y ejemplos de la validación de cédula ecuatoriana
- * Ejecutar con: node -r ts-node/register cedulaTest.ts
- */
+// backend/src/utils/cedulaValidator.test.ts
+import { CedulaEcuatorianaValidator } from './cedulaValidator'; // Asegúrate de la ruta correcta
 
-import { CedulaEcuatorianaValidator } from './cedulaValidator';
+describe('CedulaEcuatorianaValidator', () => {
+  describe('isValid', () => {
+    // Casos de prueba para cédulas válidas
+    const validCedulas = [
+      { cedula: '1712345678', description: 'Cédula válida de Pichincha' },
+      { cedula: '0912345678', description: 'Cédula válida de Guayas' },
+      { cedula: '0102345678', description: 'Cédula válida de Azuay' },
+    ];
 
-console.log('=== PRUEBAS DE VALIDACIÓN DE CÉDULA ECUATORIANA ===\n');
+    validCedulas.forEach(testCase => {
+      it(`should return true for ${testCase.description} (${testCase.cedula})`, () => {
+        expect(CedulaEcuatorianaValidator.isValid(testCase.cedula)).toBe(true);
+      });
+    });
 
-// Casos de prueba
-const testCases = [
-  // Cédulas válidas
-  { cedula: '1712345678', expected: true, description: 'Cédula válida de Pichincha' },
-  { cedula: '0912345678', expected: true, description: 'Cédula válida de Guayas' },
-  { cedula: '0102345678', expected: true, description: 'Cédula válida de Azuay' },
-  
-  // Cédulas inválidas
-  { cedula: '1712345679', expected: false, description: 'Cédula con dígito verificador incorrecto' },
-  { cedula: '2512345678', expected: false, description: 'Cédula con código de provincia inválido (25)' },
-  { cedula: '1762345678', expected: false, description: 'Cédula con tercer dígito mayor a 5' },
-  { cedula: '171234567', expected: false, description: 'Cédula con menos de 10 dígitos' },
-  { cedula: '17123456789', expected: false, description: 'Cédula con más de 10 dígitos' },
-  { cedula: '171234567a', expected: false, description: 'Cédula con caracteres no numéricos' },
-  { cedula: '', expected: false, description: 'Cédula vacía' },
-  { cedula: '0012345678', expected: false, description: 'Cédula con código de provincia 00' },
-];
+    // Casos de prueba para cédulas inválidas
+    const invalidCedulas = [
+      { cedula: '1712345679', description: 'Cédula con dígito verificador incorrecto' },
+      { cedula: '2512345678', description: 'Cédula con código de provincia inválido (25)' },
+      { cedula: '1762345678', description: 'Cédula con tercer dígito mayor a 5' },
+      { cedula: '171234567', description: 'Cédula con menos de 10 dígitos' },
+      { cedula: '17123456789', description: 'Cédula con más de 10 dígitos' },
+      { cedula: '171234567a', description: 'Cédula con caracteres no numéricos' },
+      { cedula: '', description: 'Cédula vacía' },
+      { cedula: '0012345678', description: 'Cédula con código de provincia 00' },
+    ];
 
-// Ejecutar pruebas
-testCases.forEach((testCase, index) => {
-  const result = CedulaEcuatorianaValidator.isValid(testCase.cedula);
-  const status = result === testCase.expected ? '✅ PASS' : '❌ FAIL';
-  
-  console.log(`${index + 1}. ${status} - ${testCase.description}`);
-  console.log(`   Cédula: ${testCase.cedula || '(vacía)'}`);
-  console.log(`   Esperado: ${testCase.expected}, Obtenido: ${result}`);
-  
-  if (result && testCase.expected) {
-    const provinciaInfo = CedulaEcuatorianaValidator.getProvinciaInfo(testCase.cedula);
-    if (provinciaInfo) {
-      console.log(`   Provincia: ${provinciaInfo.nombre} (${provinciaInfo.codigo})`);
-    }
-  }
-  console.log('');
+    invalidCedulas.forEach(testCase => {
+      it(`should return false for ${testCase.description} (${testCase.cedula})`, () => {
+        expect(CedulaEcuatorianaValidator.isValid(testCase.cedula)).toBe(false);
+      });
+    });
+  });
+
+  describe('validateAndFormat', () => {
+    it('should return formatted cedula for valid input with extra chars', () => {
+      expect(CedulaEcuatorianaValidator.validateAndFormat('171-234-5678')).toBe('1712345678');
+      expect(CedulaEcuatorianaValidator.validateAndFormat('091 234 5678')).toBe('0912345678');
+    });
+
+    it('should return formatted cedula for valid numeric string input', () => {
+      expect(CedulaEcuatorianaValidator.validateAndFormat('0102345678')).toBe('0102345678');
+    });
+
+    it('should return null for invalid cedula', () => {
+      expect(CedulaEcuatorianaValidator.validateAndFormat('1712345679')).toBeNull(); // Dígito verificador incorrecto
+      expect(CedulaEcuatorianaValidator.validateAndFormat('123')).toBeNull(); // Muy corta
+    });
+  });
+
+  describe('getProvinciaInfo', () => {
+    it('should return provincia info for a valid cedula', () => {
+      const info = CedulaEcuatorianaValidator.getProvinciaInfo('1712345678');
+      expect(info).toEqual({ codigo: 17, nombre: 'Pichincha' });
+    });
+
+    it('should return null for an invalid cedula', () => {
+      expect(CedulaEcuatorianaValidator.getProvinciaInfo('1712345679')).toBeNull();
+    });
+  });
 });
-
-// Prueba de formateo
-console.log('=== PRUEBAS DE FORMATEO ===\n');
-
-const formatTests = [
-  '1712345678',
-  '171-234-5678',
-  '171 234 5678',
-  '1712345679', // Inválida
-];
-
-formatTests.forEach((cedula, index) => {
-  const formatted = CedulaEcuatorianaValidator.validateAndFormat(cedula);
-  console.log(`${index + 1}. Entrada: "${cedula}"`);
-  console.log(`   Formateada: ${formatted || 'INVÁLIDA'}`);
-  console.log('');
-});
-
-console.log('=== ALGORITMO DE VALIDACIÓN ===');
-console.log('1. Verificar que tenga exactamente 10 dígitos');
-console.log('2. Verificar que los primeros 2 dígitos sean un código de provincia válido (01-24)');
-console.log('3. Verificar que el tercer dígito sea menor a 6 (personas naturales)');
-console.log('4. Aplicar algoritmo del dígito verificador:');
-console.log('   - Multiplicar por 2 los dígitos en posiciones pares (0,2,4,6,8)');
-console.log('   - Si el resultado es > 9, restar 9');
-console.log('   - Sumar todos los dígitos procesados');
-console.log('   - El dígito verificador debe ser: (10 - (suma % 10)) % 10');
