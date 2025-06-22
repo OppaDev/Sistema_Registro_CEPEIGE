@@ -3,7 +3,7 @@
  * Ejecutar con: node -r ts-node/register cedulaTest.ts
  */
 
-import { CedulaEcuatorianaValidator } from '../cedulaValidator';
+import { CedulaEcuatorianaValidator } from './cedulaValidator';
 
 console.log('=== PRUEBAS DE VALIDACIÓN DE CÉDULA ECUATORIANA ===\n');
 
