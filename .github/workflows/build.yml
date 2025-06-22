@@ -48,7 +48,7 @@ jobs:
         run: npm test -- --coverage # El --coverage es para que Jest genere los reportes
 
       - name: SonarQube Scan for Backend
-        uses: SonarSource/sonarqube-scan-action@v3.0.0
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -100,7 +100,7 @@ jobs:
       #   run: npm test -- --coverage 
 
       - name: SonarQube Scan for Frontend
-        uses: SonarSource/sonarqube-scan-action@v3.0.0
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
