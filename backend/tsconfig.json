@@ -30,17 +30,15 @@
     "paths": {
       "@/*": ["src/*"]
     }
-  },
-  "include": [
+  },  "include": [
     "src/**/*",
     "prisma/seed.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "dist"
   ],
+  "types": ["jest", "node"],
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   }
