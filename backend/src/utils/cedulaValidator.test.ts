@@ -5,9 +5,7 @@ describe('CedulaEcuatorianaValidator', () => {
   describe('isValid', () => {
     // Casos de prueba para cédulas válidas
     const validCedulas = [
-      { cedula: '1712345678', description: 'Cédula válida de Pichincha' },
-      { cedula: '0912345678', description: 'Cédula válida de Guayas' },
-      { cedula: '0102345678', description: 'Cédula válida de Azuay' },
+      { cedula: '0402084040', description: 'Cédula válida de Carchi' }
     ];
 
     validCedulas.forEach(testCase => {
