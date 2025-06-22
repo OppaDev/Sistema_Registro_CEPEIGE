@@ -6,17 +6,16 @@ import {
 } from './cedulaValidator';
 
 describe('CedulaEcuatorianaValidator', () => {
-  describe('isValid', () => {
-    // Casos de cédulas válidas (incluyendo las que proporcionaste)
+  describe('isValid', () => {    // Casos de cédulas válidas (incluyendo las que proporcionaste)
     describe('cédulas válidas', () => {
       const cedulasValidas = [
         '0402084040', // Carchi
         '0450041645', // Carchi
         '0450041629', // Carchi
-        '1714617890', // Pichincha
         '0926687856', // Guayas
-        '0601234567', // Chimborazo
-        '1803456789', // Tungurahua
+        '0107197790', // Azuay
+        '0613256148', // Chimborazo
+        '1717695496', // Pichincha
       ];
 
       test.each(cedulasValidas)('debería validar la cédula %s como válida', (cedula) => {
@@ -84,14 +83,12 @@ describe('CedulaEcuatorianaValidator', () => {
 
       test('debería rechazar código de provincia mayor a 24', () => {
         expect(CedulaEcuatorianaValidator.isValid('2512345678')).toBe(false);
-      });
-
-      test('debería aceptar código de provincia 01', () => {
-        expect(CedulaEcuatorianaValidator.isValid('0150867890')).toBe(true);
+      });      test('debería aceptar código de provincia 01', () => {
+        expect(CedulaEcuatorianaValidator.isValid('0107197790')).toBe(true);
       });
 
       test('debería aceptar código de provincia 24', () => {
-        expect(CedulaEcuatorianaValidator.isValid('2450867890')).toBe(true);
+        expect(CedulaEcuatorianaValidator.isValid('2450094657')).toBe(true);
       });
     });
 
@@ -136,14 +133,13 @@ describe('CedulaEcuatorianaValidator', () => {
         codigo: 4,
         nombre: 'Carchi'
       });
-    });
-
-    test('debería retornar información correcta para diferentes provincias', () => {
+    });    test('debería retornar información correcta para diferentes provincias', () => {
       const testCases = [
         { cedula: '0402084040', expectedCodigo: 4, expectedNombre: 'Carchi' },
-        { cedula: '1714617890', expectedCodigo: 17, expectedNombre: 'Pichincha' },
+        { cedula: '0107197790', expectedCodigo: 1, expectedNombre: 'Azuay' },
         { cedula: '0926687856', expectedCodigo: 9, expectedNombre: 'Guayas' },
-        { cedula: '0601234567', expectedCodigo: 6, expectedNombre: 'Chimborazo' },
+        { cedula: '0613256148', expectedCodigo: 6, expectedNombre: 'Chimborazo' },
+        { cedula: '1717695496', expectedCodigo: 17, expectedNombre: 'Pichincha' },
       ];
 
       testCases.forEach(({ cedula, expectedCodigo, expectedNombre }) => {
