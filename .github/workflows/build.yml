@@ -1,27 +1,117 @@
-name: Build
+# .github/workflows/build.yml
+name: CI Pipeline
 
 on:
   push:
     branches:
       - main
-
+    paths: # Optimización: solo ejecutar si cambian archivos relevantes
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/build.yml'
 
 jobs:
-  build:
-    name: Build and analyze
-    runs-on: windows-latest
-    
+  backend-ci:
+    name: Backend - Build, Test & Analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - uses: SonarSource/sonarqube-scan-action@v5
+          fetch-depth: 0 
+
+      - name: Set up Node.js for Backend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Desde tu package.json
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Run backend unit tests
+        run: npm test -- --coverage # El --coverage es para que Jest genere los reportes
+
+      - name: SonarQube Scan for Backend
+        uses: SonarSource/sonarqube-scan-action@v3.0.0
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
-      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+        with:
+          projectBaseDir: backend # Muy importante: SonarQube buscará sonar-project.properties aquí
+
+      # Opcional: Backend Quality Gate check
+      # - name: SonarQube Backend Quality Gate check
+      #   if: success() 
+      #   uses: SonarSource/sonarqube-quality-gate-action@v2.1.0
       #   timeout-minutes: 5
       #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+
+  frontend-ci:
+    name: Frontend - Build, Test & Analyze
+    runs-on: ubuntu-latest
+    # needs: backend-ci # Descomenta si quieres que el frontend espere al backend (opcional)
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js for Frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Ajusta a la versión de Node que use tu frontend
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint # O el comando de linting que tengas
+
+      - name: Build frontend
+        run: npm run build
+      
+      # Descomenta y ajusta si tienes tests para el frontend
+      # - name: Run frontend unit tests
+      #   run: npm test -- --coverage 
+
+      - name: SonarQube Scan for Frontend
+        uses: SonarSource/sonarqube-scan-action@v3.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: frontend # Muy importante
+
+      # Opcional: Frontend Quality Gate check
+      # - name: SonarQube Frontend Quality Gate check
+      #   if: success()
+      #   uses: SonarSource/sonarqube-quality-gate-action@v2.1.0
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
