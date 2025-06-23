@@ -102,8 +102,10 @@ export class CursoService {
       const curso = await prisma.curso.update({
         where: { idCurso: id },        data: datosActualizados,
       });
-      return toCursoResponseDto(curso);
-    } catch (error) {
+      return toCursoResponseDto(curso);    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al actualizar el curso: ${error.message}`);
       }
@@ -147,8 +149,10 @@ export class CursoService {
       if (!curso) {
         throw new NotFoundError('Curso');      }
 
-      return toCursoResponseDto(curso);
-    } catch (error) {
+      return toCursoResponseDto(curso);    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al obtener el curso: ${error.message}`);
       }
@@ -207,8 +211,10 @@ export class CursoService {
       const cursoEliminado = await prisma.curso.delete({
         where: { idCurso: id },      });
 
-      return toCursoResponseDto(cursoEliminado);
-    } catch (error) {
+      return toCursoResponseDto(cursoEliminado);    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al eliminar el curso: ${error.message}`);
       }

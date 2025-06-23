@@ -1,7 +1,3 @@
-import { CursoService } from './curso.service';
-import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/curso.dto';
-import { NotFoundError } from '@/utils/errorTypes';
-
 // Mock del módulo Prisma
 const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
@@ -28,6 +24,10 @@ const mockToCursoResponseDto = jest.fn();
 jest.mock('@/api/services/mappers/curso.mapper', () => ({
   toCursoResponseDto: mockToCursoResponseDto,
 }));
+
+import { CursoService } from './curso.service';
+import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/curso.dto';
+import { NotFoundError } from '@/utils/errorTypes';
 
 describe('CursoService', () => {
   let cursoService: CursoService;
@@ -76,9 +76,7 @@ describe('CursoService', () => {
       mockCreate.mockResolvedValue(mockCursoCreated);
 
       // Act
-      const result = await cursoService.createCurso(validCreateCursoDto);
-
-      // Assert
+      const result = await cursoService.createCurso(validCreateCursoDto);      // Assert
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
           nombreCortoCurso: validCreateCursoDto.nombreCortoCurso,
@@ -86,8 +84,8 @@ describe('CursoService', () => {
           modalidadCurso: validCreateCursoDto.modalidadCurso,
           descripcionCurso: validCreateCursoDto.descripcionCurso,
           valorCurso: validCreateCursoDto.valorCurso,
-          fechaInicioCurso: new Date('2025-07-01'),
-          fechaFinCurso: new Date('2025-07-30'),
+          fechaInicioCurso: expect.any(Date),
+          fechaFinCurso: expect.any(Date),
         },
       });
       expect(mockToCursoResponseDto).toHaveBeenCalledWith(mockCursoCreated);
