@@ -31,9 +31,9 @@ export const participantSchema = z.object({
   .max(20, 'CI o Pasaporte muy largo')
   .refine(
     value =>
-      (/^[A-Z]{2}\d{6,8}$/i.test(value)) || validarCedulaEcuatoriana(value),
+      (/[A-Za-z0-9]{6,15}$/i.test(value)) || validarCedulaEcuatoriana(value),
     {
-      message: "Debe ser una cédula ecuatoriana válida o un pasaporte (2 letras seguidas de 6 a 8 dígitos)",
+      message: "Debe ser una cédula ecuatoriana válida o un pasaporte válido con solo letras y números, sin símbolos (máx. 15 caracteres)",
     }
   ),
   nombres: z.string()
