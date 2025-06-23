@@ -29,7 +29,7 @@ model DatosPersonales {
   nombres         String        @map("nombres") @db.VarChar(100)
   apellidos       String        @map("apellidos") @db.VarChar(100)
   numTelefono     String        @map("num_telefono") @db.VarChar(15)
-  correo          String        @map("correo") @db.VarChar(100)
+  correo          String        @unique @map("correo") @db.VarChar(100)
   pais            String        @map("pais") @db.VarChar(30)
   provinciaEstado String        @map("provincia_estado") @db.VarChar(50)
   ciudad          String        @map("ciudad") @db.VarChar(100)
@@ -58,9 +58,9 @@ model Descuento {
 model DatosFacturacion {
   idFacturacion            Int           @id @default(autoincrement()) @map("id_facturacion")
   razonSocial              String        @map("razon_social") @db.VarChar(100)
-  identificacionTributaria String        @map("identificacion_tributaria") @db.VarChar(50)
+  identificacionTributaria String        @unique @map("identificacion_tributaria") @db.VarChar(50)
   telefono                 String        @map("telefono") @db.VarChar(20)
-  correoFactura            String        @map("correo_factura") @db.VarChar(100)
+  correoFactura            String        @unique @map("correo_factura") @db.VarChar(100)
   direccion                String        @map("direccion") @db.VarChar(250)
 
   //relaciones
@@ -76,13 +76,13 @@ model Inscripcion {
   idPersona        Int              @map("id_persona")
   idDescuento      Int?             @map("id_descuento")
   idFacturacion    Int              @map("id_facturacion")
-  idComprobante    Int             @unique @map("id_comprobante")
+  idComprobante    Int              @unique @map("id_comprobante")
   matricula        Boolean          @default(false) @map("matricula")
   fechaInscripcion DateTime         @default(now()) @map("fecha_inscripcion") @db.Timestamp(6)
   
   //relaciones
   facturas         Factura[]
-  comprobante      Comprobante     @relation(fields: [idComprobante], references: [idComprobante], onUpdate: Restrict)
+  comprobante      Comprobante      @relation(fields: [idComprobante], references: [idComprobante], onUpdate: Restrict)
   curso            Curso            @relation(fields: [idCurso], references: [idCurso], onUpdate: Restrict)
   descuento        Descuento?       @relation(fields: [idDescuento], references: [idDescuento], onUpdate: Restrict)
   datosFacturacion DatosFacturacion @relation(fields: [idFacturacion], references: [idFacturacion], onUpdate: Restrict)
@@ -97,8 +97,8 @@ model Factura {
   idFacturacion    Int              @map("id_facturacion")
   valorPagado      Decimal          @map("valor_pagado") @db.Decimal(10, 2)
   verificacionPago Boolean          @map("verificacion_pago")
-  numeroIngreso    String           @map("numero_ingreso") @db.VarChar(100)
-  numeroFactura    String           @map("numero_factura") @db.VarChar(100)
+  numeroIngreso    String           @unique @map("numero_ingreso") @db.VarChar(100)
+  numeroFactura    String           @unique @map("numero_factura") @db.VarChar(100) 
 
   //relaciones
   datosFacturacion DatosFacturacion @relation(fields: [idFacturacion], references: [idFacturacion], onUpdate: Restrict)
