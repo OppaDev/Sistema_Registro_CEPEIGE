@@ -1,6 +1,7 @@
 import { IsString, IsNumber, IsNotEmpty, IsDateString, IsOptional} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Decimal } from '@prisma/client/runtime/library';
+import { IsDateBefore, IsDateAfter } from '@/utils/validators/dateValidators';
 
 export class CreateCursoDto {
   @IsString({ message: 'El nombre corto del curso debe ser una cadena de texto' })
@@ -19,13 +20,14 @@ export class CreateCursoDto {
   @IsNotEmpty({ message: 'El valor del curso es requerido' })
   @Type(() => Decimal)
   valorCurso!: Decimal;
-
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de inicio es requerida' })
+  @IsDateBefore('fechaFinCurso', { message: 'La fecha de inicio debe ser anterior o igual a la fecha de fin' })
   fechaInicioCurso!: string;
 
   @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de fin es requerida' })
+  @IsDateAfter('fechaInicioCurso', { message: 'La fecha de fin debe ser posterior o igual a la fecha de inicio' })
   fechaFinCurso!: string;
 } 
 
@@ -46,13 +48,14 @@ export class UpdateCursoDto {
   @IsOptional()
   @Type(() => Decimal)
   valorCurso?: Decimal;
-
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsOptional()
+  @IsDateBefore('fechaFinCurso', { message: 'La fecha de inicio debe ser anterior o igual a la fecha de fin' })
   fechaInicioCurso?: string;
 
   @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsOptional()
+  @IsDateAfter('fechaInicioCurso', { message: 'La fecha de fin debe ser posterior o igual a la fecha de inicio' })
   fechaFinCurso?: string;
 }
 
