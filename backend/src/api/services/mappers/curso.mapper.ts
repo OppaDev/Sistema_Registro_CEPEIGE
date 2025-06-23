@@ -6,6 +6,7 @@ export const toCursoResponseDto = (curso: PrismaCurso): CursoResponseDto => {
     idCurso: curso.idCurso,
     nombreCortoCurso: curso.nombreCortoCurso,
     nombreCurso: curso.nombreCurso,
+    modalidadCurso: curso.modalidadCurso,
     descripcionCurso: curso.descripcionCurso,
     valorCurso: curso.valorCurso,
     fechaInicioCurso: curso.fechaInicioCurso,

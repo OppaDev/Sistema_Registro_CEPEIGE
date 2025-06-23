@@ -4,7 +4,7 @@ import {
   UpdateDatosFacturacionDto,
   DatosFacturacionResponseDto,
 } from "@/api/dtos/datosFacturacion.dto";
-import { NotFoundError} from "@/utils/errorTypes";
+import { NotFoundError, ConflictError} from "@/utils/errorTypes";
 import { toDatosFacturacionResponseDto } from "@/api/services/mappers/datosFacturacion.mapper";
 
 const prisma = new PrismaClient();
@@ -29,9 +29,18 @@ export class DatosFacturacionService {
           telefono: datosFacturacionData.telefono,
           correoFactura: datosFacturacionData.correoFactura,
           direccion: datosFacturacionData.direccion,        },
-      });
-      return toDatosFacturacionResponseDto(datosFacturacion);
+      });      return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
+      if (error.code === 'P2002') {
+        const uniqueField = error.meta?.target?.[0];
+        if (uniqueField === 'identificacion_tributaria') {
+          throw new ConflictError('La identificación tributaria ya está registrada');
+        } else if (uniqueField === 'correo_factura') {
+          throw new ConflictError('El correo de facturación ya está registrado');
+        } else {
+          throw new ConflictError('Ya existe un registro con estos datos únicos');
+        }
+      }
       if (error instanceof Error) {
         throw new Error(`Error al crear los datos de facturación: ${error.message}`);
       }
@@ -96,9 +105,18 @@ export class DatosFacturacionService {
       const datosActualizados: any = { ...datosFacturacionData };
       const datosFacturacion = await prisma.datosFacturacion.update({
         where: { idFacturacion: id },        data: datosActualizados,
-      });
-      return toDatosFacturacionResponseDto(datosFacturacion);
+      });      return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error: any) {
+      if (error.code === 'P2002') {
+        const uniqueField = error.meta?.target?.[0];
+        if (uniqueField === 'identificacion_tributaria') {
+          throw new ConflictError('La identificación tributaria ya está registrada');
+        } else if (uniqueField === 'correo_factura') {
+          throw new ConflictError('El correo de facturación ya está registrado');
+        } else {
+          throw new ConflictError('Ya existe un registro con estos datos únicos');
+        }
+      }
       if (error instanceof Error) {
         throw new Error(`Error al actualizar los datos de facturación: ${error.message}`);
       }

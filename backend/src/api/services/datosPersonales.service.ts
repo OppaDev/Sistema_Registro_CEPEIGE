@@ -42,10 +42,16 @@ export class DatosPersonalesService {  //crear nuevos datos personales
           profesion: datosPersonalesData.profesion,
           institucion: datosPersonalesData.institucion,        },
       });
-      return toDatosPersonalesResponseDto(datosPersonales);
-    } catch (error: any) {
+      return toDatosPersonalesResponseDto(datosPersonales);    } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new ConflictError('El CI o Pasaporte ya está registrado');
+        const uniqueField = error.meta?.target?.[0];
+        if (uniqueField === 'ci_pasaporte') {
+          throw new ConflictError('El CI o Pasaporte ya está registrado');
+        } else if (uniqueField === 'correo') {
+          throw new ConflictError('El correo electrónico ya está registrado');
+        } else {
+          throw new ConflictError('Ya existe un registro con estos datos únicos');
+        }
       }
       if (error instanceof Error) {
         throw new Error(
@@ -131,9 +137,18 @@ export class DatosPersonalesService {  //crear nuevos datos personales
       //actualizar los datos
       const datosPersonales = await prisma.datosPersonales.update({
         where: { idPersona: id },        data: datosActualizados,
-      });
-      return toDatosPersonalesResponseDto(datosPersonales);
-    } catch (error) {
+      });      return toDatosPersonalesResponseDto(datosPersonales);
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        const uniqueField = error.meta?.target?.[0];
+        if (uniqueField === 'ci_pasaporte') {
+          throw new ConflictError('El CI o Pasaporte ya está registrado');
+        } else if (uniqueField === 'correo') {
+          throw new ConflictError('El correo electrónico ya está registrado');
+        } else {
+          throw new ConflictError('Ya existe un registro con estos datos únicos');
+        }
+      }
       if (error instanceof Error) {
         throw new Error(
           `Error al actualizar los datos personales: ${error.message}`

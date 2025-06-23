@@ -17,18 +17,35 @@ interface GetAllCursosOptions {
   order: "asc" | "desc";
 }
 
-export class CursoService {
-  // Crear un nuevo curso
+// Crear un nuevo curso
+export class CursoService {  
   async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
-    try {
+    try {      // Validar que la fecha de inicio no sea mayor que la fecha de fin
+      const fechaInicio = new Date(cursoData.fechaInicioCurso);
+      const fechaFin = new Date(cursoData.fechaFinCurso);
+      const hoy = new Date();
+      
+      // Normalizar fecha de hoy para comparar solo día, mes y año
+      hoy.setHours(0, 0, 0, 0);
+      fechaInicio.setHours(0, 0, 0, 0);
+
+      if (fechaInicio < hoy) {
+        throw new Error('La fecha de inicio debe ser mayor o igual a la fecha actual');
+      }
+
+      if (fechaInicio > fechaFin) {
+        throw new Error('La fecha de inicio no puede ser posterior a la fecha de fin');
+      }
+
       const curso = await prisma.curso.create({
         data: {
           nombreCortoCurso: cursoData.nombreCortoCurso,
           nombreCurso: cursoData.nombreCurso,
+          modalidadCurso: cursoData.modalidadCurso,
           descripcionCurso: cursoData.descripcionCurso,
           valorCurso: cursoData.valorCurso,
-          fechaInicioCurso: new Date(cursoData.fechaInicioCurso),
-          fechaFinCurso: new Date(cursoData.fechaFinCurso),        },
+          fechaInicioCurso: fechaInicio,
+          fechaFinCurso: fechaFin,        },
       });
       return toCursoResponseDto(curso);
     } catch (error) {
@@ -49,19 +66,37 @@ export class CursoService {
 
       if (!cursoExistente) {
         throw new NotFoundError('Curso');
-      }
-
-      // Preparar los datos para la actualización
+      }      // Preparar los datos para la actualización
       const datosActualizados: any = { ...cursoData };
 
-      // Convertir fechas si están presentes
+      // Convertir fechas si están presentes y validar coherencia
+      let fechaInicio = cursoExistente.fechaInicioCurso;
+      let fechaFin = cursoExistente.fechaFinCurso;
+
       if (cursoData.fechaInicioCurso) {
-        datosActualizados.fechaInicioCurso = new Date(
-          cursoData.fechaInicioCurso
-        );
+        fechaInicio = new Date(cursoData.fechaInicioCurso);
+        datosActualizados.fechaInicioCurso = fechaInicio;
       }
       if (cursoData.fechaFinCurso) {
-        datosActualizados.fechaFinCurso = new Date(cursoData.fechaFinCurso);
+        fechaFin = new Date(cursoData.fechaFinCurso);
+        datosActualizados.fechaFinCurso = fechaFin;
+      }      // Validar fechas
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      // Validar que la fecha de inicio sea mayor o igual a hoy (solo si se está actualizando)
+      if (cursoData.fechaInicioCurso) {
+        const fechaInicioComparar = new Date(fechaInicio);
+        fechaInicioComparar.setHours(0, 0, 0, 0);
+        
+        if (fechaInicioComparar < hoy) {
+          throw new Error('La fecha de inicio debe ser mayor o igual a la fecha actual');
+        }
+      }
+
+      // Validar que la fecha de inicio no sea mayor que la fecha de fin
+      if (fechaInicio > fechaFin) {
+        throw new Error('La fecha de inicio no puede ser posterior a la fecha de fin');
       }
 
       const curso = await prisma.curso.update({
@@ -135,6 +170,7 @@ export class CursoService {
         select: {
           idCurso: true,
           nombreCurso: true,
+          modalidadCurso: true,
           valorCurso: true,
           fechaInicioCurso: true,
           fechaFinCurso: true,
