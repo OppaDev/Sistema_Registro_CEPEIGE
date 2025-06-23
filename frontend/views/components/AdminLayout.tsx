@@ -35,13 +35,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       href: '#'
     }*/},
    
-   { 
-       id: 'cursos',
-       label: 'Cursos',
-       icon: <BookOpen className="h-5 w-5" />,
-       href: '/inscripciones_admin'
-     }
+   
   ];
+   if (userType === 'admin') {
+    menuItems.push({
+      id: 'cursos',
+      label: 'Gestión de Cursos',
+      icon: <BookOpen className="h-5 w-5" />,
+      href: '/cursos_admin'
+    });
+  }
+  
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Montserrat, sans-serif' }}>

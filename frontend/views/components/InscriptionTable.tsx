@@ -85,8 +85,9 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow style={{ backgroundColor: '#02549E' }}>
-                    <TableHead className="text-white font-semibold">ID</TableHead>
+                   {/* <TableHead className="text-white font-semibold">ID</TableHead> */}
                     <TableHead className="text-white font-semibold">Participante</TableHead>
+                    <TableHead className="text-white font-semibold">Nombre/correo</TableHead>
                     <TableHead className="text-white font-semibold">CI/Pasaporte</TableHead>
                     <TableHead className="text-white font-semibold">Teléfono</TableHead>
                     <TableHead className="text-white font-semibold">País</TableHead>

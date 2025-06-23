@@ -73,6 +73,7 @@ export const participantSchema = z.object({
   institucion: z.string()
     .min(1, 'La institución es requerida')
     .max(100, 'Institución muy larga')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo letras y espacios'),
 });
 
 export const billingSchema = z.object({

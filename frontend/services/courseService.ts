@@ -1,6 +1,7 @@
 // services/courseService.ts 
 import { api } from './api';
 import { Course, CourseAvailable } from '@/models/course';
+ // Asegúrate de que este modelo esté actualizado
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -117,6 +118,41 @@ class CourseService {
       );
     }
   }
+   async createCourse(course: Partial<Course>): Promise<Course> {
+    try {
+      const response = await api.post<ApiResponse<Course>>(this.baseUrl, course);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Error al crear curso');
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Error al crear curso');
+    }
+  }
+
+  async updateCourse(id: number, course: Partial<Course>): Promise<Course> {
+    try {
+      const response = await api.put<ApiResponse<Course>>(`${this.baseUrl}/${id}`, course);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Error al actualizar curso');
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Error al actualizar curso');
+    }
+  }
+
+  async deleteCourse(id: number): Promise<void> {
+    try {
+      const response = await api.delete<ApiResponse<null>>(`${this.baseUrl}/${id}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar curso');
+      }
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Error al eliminar curso');
+    }
+  }
+
 }
 
 export const courseService = new CourseService();
