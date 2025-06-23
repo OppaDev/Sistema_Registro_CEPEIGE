@@ -534,4 +534,6 @@ export default function ParticipantRegistrationView() {
       </div>
     </div>
   );
+  
 }
+

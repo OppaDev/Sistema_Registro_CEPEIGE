@@ -47,6 +47,12 @@ export interface InscriptionData {
     tipoArchivo: string;
     nombreArchivo: string;
   };
+   //descuento?: {
+    //idDescuento: number;
+    //tipoDescuento: string;
+    //valorDescuento: number;
+    //porcentajeDescuento: number;
+  //};
 }
 
 export interface InscriptionFilters {

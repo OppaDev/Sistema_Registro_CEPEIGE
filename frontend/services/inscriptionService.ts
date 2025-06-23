@@ -1,135 +1,276 @@
 // services/inscriptionService.ts
-import { InscriptionData, InscriptionFilters } from '@/models/inscription';
+import { api } from './api';
+import { InscriptionData } from '@/models/inscription';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-export interface ApiResponse<T = any> {
+export interface InscriptionApiData {
+  idInscripcion: number;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    modalidadCurso: string;
+    valorCurso: number;
+    fechaInicioCurso: string;
+    fechaFinCurso: string;
+  };
+  datosPersonales: {
+    idPersona: number;
+    ciPasaporte: string;
+    nombres: string;
+    apellidos: string;
+    numTelefono: string;
+    correo: string;
+    pais: string;
+    provinciaEstado: string;
+    ciudad: string;
+    profesion: string;
+    institucion: string;
+  };
+  datosFacturacion: {
+    idFacturacion: number;
+    razonSocial: string;
+    identificacionTributaria: string;
+    telefono: string;
+    correoFactura: string;
+    direccion: string;
+  };
+  comprobante: {
+    idComprobante: number;
+    fechaSubida: string;
+    rutaComprobante: string;
+    tipoArchivo: string;
+    nombreArchivo: string;
+  };
+  descuento?: {
+    idDescuento: number;
+    tipoDescuento: string;
+    valorDescuento: number;
+    porcentajeDescuento: number;
+  };
+  matricula: boolean;
+  fechaInscripcion: string;
+}
+
+export interface InscriptionListResponse {
   success: boolean;
-  data?: T;
+  data: InscriptionApiData[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
   message: string;
-  total?: number;
-  page?: number;
-  limit?: number;
+}
+
+export interface InscriptionDetailResponse {
+  success: boolean;
+  data: InscriptionApiData;
+  message: string;
+}
+
+export interface CreateInscriptionData {
+  idCurso: number;
+  idPersona: number;
+  idFacturacion: number;
+  idComprobante: number;
 }
 
 class InscriptionService {
-  async getAllInscriptions(
-    page: number = 1,
-    limit: number = 10,
-    filters?: InscriptionFilters
-  ): Promise<ApiResponse<InscriptionData[]>> {
+  // Obtener todas las inscripciones con paginación
+  async getAllInscriptions(params: {
+    page?: number;
+    limit?: number;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+  } = {}): Promise<InscriptionListResponse> {
     try {
-      const params = new URLSearchParams({
+      const {
+        page = 1,
+        limit = 10,
+        orderBy = 'fechaInscripcion',
+        order = 'desc'
+      } = params;
+
+      console.log('🚀 Obteniendo inscripciones:', { page, limit, orderBy, order });
+
+      const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...filters
+        orderBy,
+        order
       });
 
-      console.log('🔍 Consultando inscripciones:', { page, limit, filters });
-
-      const response = await fetch(`${API_BASE_URL}/inscripciones?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/inscripciones?${queryParams}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       const data = await response.json();
-      console.log('📥 Respuesta del servidor:', data);
+      console.log('📥 Respuesta inscripciones:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al obtener inscripciones');
       }
 
-      return {
-        success: data.success,
-        data: data.data.map((item: any) => ({
-          idInscripcion: item.idInscripcion,
-          fechaInscripcion: new Date(item.fechaInscripcion),
-          estado: item.estado,
-          participante: {
-            idParticipante: item.participante.idParticipante,
-            ciPasaporte: item.participante.ciPasaporte,
-            nombres: item.participante.nombres,
-            apellidos: item.participante.apellidos,
-            numTelefono: item.participante.numTelefono,
-            correo: item.participante.correo,
-            pais: item.participante.pais,
-            provinciaEstado: item.participante.provinciaEstado,
-            ciudad: item.participante.ciudad,
-            profesion: item.participante.profesion,
-            institucion: item.participante.institucion
-          },
-          curso: {
-            idCurso: item.curso.idCurso,
-            nombreCurso: item.curso.nombreCurso,
-            precio: item.curso.precio,
-            fechaInicio: new Date(item.curso.fechaInicio),
-            fechaFin: new Date(item.curso.fechaFin),
-            modalidad: item.curso.modalidad
-          },
-          facturacion: {
-            idFacturacion: item.facturacion.idFacturacion,
-            razonSocial: item.facturacion.razonSocial,
-            identificacionTributaria: item.facturacion.identificacionTributaria,
-            telefono: item.facturacion.telefono,
-            correoFactura: item.facturacion.correoFactura,
-            direccion: item.facturacion.direccion
-          },
-          comprobante: item.comprobante ? {
-            idComprobante: item.comprobante.idComprobante,
-            fechaSubida: new Date(item.comprobante.fechaSubida),
-            rutaComprobante: item.comprobante.rutaComprobante,
-            tipoArchivo: item.comprobante.tipoArchivo,
-            nombreArchivo: item.comprobante.nombreArchivo
-          } : undefined
-        })),
-        message: data.message,
-        total: data.total,
-        page: data.page,
-        limit: data.limit
-      };
+      return data;
     } catch (error: any) {
-      console.error('❌ Error getting inscriptions:', error);
-      throw error;
+      console.error('❌ Error fetching inscriptions:', error);
+      throw new Error(
+        error.message || 'Error de conexión al obtener inscripciones'
+      );
     }
   }
 
-  async getInscriptionById(id: number): Promise<ApiResponse<InscriptionData>> {
+  // Obtener una inscripción por ID
+  async getInscriptionById(id: number): Promise<InscriptionDetailResponse> {
     try {
+      console.log('🚀 Obteniendo inscripción por ID:', id);
+
       const response = await fetch(`${API_BASE_URL}/inscripciones/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       const data = await response.json();
+      console.log('📥 Respuesta inscripción:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al obtener inscripción');
       }
 
-      return {
-        success: data.success,
-        data: {
-          idInscripcion: data.data.idInscripcion,
-          fechaInscripcion: new Date(data.data.fechaInscripcion),
-          estado: data.data.estado,
-          participante: data.data.participante,
-          curso: data.data.curso,
-          facturacion: data.data.facturacion,
-          comprobante: data.data.comprobante
-        },
-        message: data.message
-      };
+      return data;
     } catch (error: any) {
-      console.error('❌ Error getting inscription by ID:', error);
-      throw error;
+      console.error('❌ Error fetching inscription:', error);
+      throw new Error(
+        error.message || 'Error de conexión al obtener inscripción'
+      );
     }
   }
 
-  // Formatear fecha para mostrar
+  // Crear nueva inscripción (para el formulario)
+  async createInscription(inscriptionData: CreateInscriptionData): Promise<InscriptionDetailResponse> {
+    try {
+      console.log('🚀 Creando inscripción:', inscriptionData);
+
+      const response = await fetch(`${API_BASE_URL}/inscripciones`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inscriptionData)
+      });
+
+      const data = await response.json();
+      console.log('📥 Respuesta crear inscripción:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al crear inscripción');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error creating inscription:', error);
+      throw new Error(
+        error.message || 'Error al crear inscripción'
+      );
+    }
+  }
+
+  // Mapear datos de API a modelo del frontend
+  mapApiDataToInscriptionData(apiData: InscriptionApiData): InscriptionData {
+    return {
+      idInscripcion: apiData.idInscripcion,
+      participante: {
+        idParticipante: apiData.datosPersonales.idPersona,
+        ciPasaporte: apiData.datosPersonales.ciPasaporte,
+        nombres: apiData.datosPersonales.nombres,
+        apellidos: apiData.datosPersonales.apellidos,
+        numTelefono: apiData.datosPersonales.numTelefono,
+        correo: apiData.datosPersonales.correo,
+        pais: apiData.datosPersonales.pais,
+        provinciaEstado: apiData.datosPersonales.provinciaEstado,
+        ciudad: apiData.datosPersonales.ciudad,
+        profesion: apiData.datosPersonales.profesion,
+        institucion: apiData.datosPersonales.institucion
+      },
+      curso: {
+        idCurso: apiData.curso.idCurso,
+        nombreCurso: apiData.curso.nombreCurso,
+        modalidad: apiData.curso.modalidadCurso,
+        precio: Number(apiData.curso.valorCurso),
+        fechaInicio: new Date(apiData.curso.fechaInicioCurso),
+        fechaFin: new Date(apiData.curso.fechaFinCurso)
+      },
+      facturacion: {
+        idFacturacion: apiData.datosFacturacion.idFacturacion,
+        razonSocial: apiData.datosFacturacion.razonSocial,
+        identificacionTributaria: apiData.datosFacturacion.identificacionTributaria,
+        telefono: apiData.datosFacturacion.telefono,
+        correoFactura: apiData.datosFacturacion.correoFactura,
+        direccion: apiData.datosFacturacion.direccion
+      },
+      comprobante: {
+        idComprobante: apiData.comprobante.idComprobante,
+        fechaSubida: new Date(apiData.comprobante.fechaSubida),
+        rutaComprobante: apiData.comprobante.rutaComprobante,
+        tipoArchivo: apiData.comprobante.tipoArchivo,
+        nombreArchivo: apiData.comprobante.nombreArchivo
+      },
+      descuento: apiData.descuento ? {
+        idDescuento: apiData.descuento.idDescuento,
+        tipoDescuento: apiData.descuento.tipoDescuento,
+        valorDescuento: Number(apiData.descuento.valorDescuento),
+        porcentajeDescuento: Number(apiData.descuento.porcentajeDescuento)
+      } : undefined,
+      estado: this.getEstadoFromMatricula(apiData.matricula),
+      fechaInscripcion: new Date(apiData.fechaInscripcion)
+    };
+  }
+
+  // Determinar estado basado en matrícula y otros factores
+ private getEstadoFromMatricula(matricula: boolean): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
+  if (matricula) {
+    return "VALIDADO";
+  } else {
+    return "PENDIENTE";
+  }
+}
+  // Funciones auxiliares para la UI
+  getStatusBadge(estado: string) {
+    switch (estado) {
+      case 'pendiente':
+        return {
+          color: 'text-yellow-800',
+          bgColor: 'bg-yellow-100',
+          text: 'Pendiente'
+        };
+      case 'validada':
+        return {
+          color: 'text-green-800',
+          bgColor: 'bg-green-100',
+          text: 'Validada'
+        };
+      case 'rechazada':
+        return {
+          color: 'text-red-800',
+          bgColor: 'bg-red-100',
+          text: 'Rechazada'
+        };
+      default:
+        return {
+          color: 'text-gray-800',
+          bgColor: 'bg-gray-100',
+          text: 'Sin estado'
+        };
+    }
+  }
+
   formatDate(date: Date): string {
     return new Intl.DateTimeFormat('es-ES', {
       year: 'numeric',
@@ -140,19 +281,14 @@ class InscriptionService {
     }).format(date);
   }
 
-  // Obtener badge de estado
-  getStatusBadge(estado: string): { color: string; text: string; bgColor: string } {
-    switch (estado) {
-      case 'PENDIENTE':
-        return { color: 'text-yellow-800', text: 'Pendiente', bgColor: 'bg-yellow-100' };
-      case 'VALIDADO':
-        return { color: 'text-green-800', text: 'Validado', bgColor: 'bg-green-100' };
-      case 'RECHAZADO':
-        return { color: 'text-red-800', text: 'Rechazado', bgColor: 'bg-red-100' };
-      default:
-        return { color: 'text-gray-800', text: estado, bgColor: 'bg-gray-100' };
-    }
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-EC', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
   }
 }
 
 export const inscriptionService = new InscriptionService();
+
+// Importar el tipo InscriptionData del modelo existente

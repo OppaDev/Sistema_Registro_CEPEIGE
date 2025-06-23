@@ -1,4 +1,4 @@
-// controllers/useParticipantController.ts - AGREGAR IMPORTS Y ESTADO
+// controllers/useParticipantController.ts - VERSIÓN COMPLETA ACTUALIZADA
 import { useState } from 'react';
 import { Participant, FormMessage, FieldErrors } from '@/models/participant';
 import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/billing';
@@ -8,8 +8,8 @@ import { participantSchema } from '@/models/validation';
 import { participantService } from '@/services/participantService';
 import { billingService } from '@/services/billingService';
 import { paymentService } from '@/services/paymentService';
+import { inscriptionService } from '@/services/inscriptionService'; // 🆕 NUEVA IMPORTACIÓN
 
-// AGREGAR ESTADO PARA PASOS Y FACTURACIÓN
 export type RegistrationStep = 'course' | 'personal' | 'billing' | 'payment' | 'summary';
 
 const initialFormData: Participant = {
@@ -33,6 +33,7 @@ const initialBillingData: BillingData = {
   correoFactura: '',
   direccion: ''
 };
+
 const initialPaymentData: PaymentReceipt = {
   file: undefined
 };
@@ -47,8 +48,10 @@ export function useParticipantController() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [billingErrors, setBillingErrors] = useState<BillingFieldErrors>({});
   const [paymentErrors, setPaymentErrors] = useState<PaymentFieldErrors>({});
-  const [registeredParticipantId, setRegisteredParticipantId] = useState<number | null>(null);
-  const [registeredBillingId, setRegisteredBillingId] = useState<number | null>(null);
+  
+  // 🆕 ESTADOS ACTUALIZADOS CON NOMBRES CORRECTOS
+  const [personalDataId, setPersonalDataId] = useState<number | null>(null);
+  const [billingDataId, setBillingDataId] = useState<number | null>(null);
   const [uploadedReceiptId, setUploadedReceiptId] = useState<number | null>(null);
 
   const validateField = (name: string, value: string): void => {
@@ -127,7 +130,7 @@ export function useParticipantController() {
       const response = await participantService.register(formData);
       
       if (response.success) {
-        setRegisteredParticipantId(response.data.idPersona);
+        setPersonalDataId(response.data.idPersona); // 🆕 NOMBRE CORRECTO
         setMessage({
           text: '✅ Datos personales registrados correctamente',
           type: 'success'
@@ -157,81 +160,8 @@ export function useParticipantController() {
       setIsSubmitting(false);
     }
   };
-  const handlePaymentFileChange = (file: File | null): void => {
-    if (file) {
-      // Validar archivo
-      const validation = paymentService.validateFile(file);
-      if (!validation.isValid) {
-        setPaymentErrors({ file: validation.error || 'Archivo inválido' });
-        return;
-      }
 
-      setPaymentData({ file });
-      setPaymentErrors({ file: '' });
-      setMessage({
-        text: `✅ Archivo "${file.name}" seleccionado correctamente`,
-        type: 'success'
-      });
-    } else {
-      setPaymentData(initialPaymentData);
-      setPaymentErrors({ file: 'Debe seleccionar un archivo' });
-    }
-  };
-
-  const submitPaymentReceipt = async (): Promise<void> => {
-    setIsSubmitting(true);
-    setMessage(null);
-
-    try {
-      if (!paymentData.file) {
-        throw new Error('Debe seleccionar un comprobante de pago');
-      }
-
-      // Validar archivo
-      paymentReceiptSchema.parse({ file: paymentData.file });
-      
-      // Subir comprobante
-      const response = await paymentService.uploadReceipt(paymentData.file);
-      
-      if (response.success && response.data) {
-        setUploadedReceiptId(response.data.idComprobante || null);
-        setPaymentData(prev => ({
-          ...prev,
-          ...response.data
-        }));
-        
-        setMessage({
-          text: '✅ Comprobante de pago subido correctamente',
-          type: 'success'
-        });
-        
-        // Avanzar al resumen final
-        setTimeout(() => {
-          setCurrentStep('summary');
-        }, 1000);
-      } else {
-        throw new Error(response.message || 'Error al subir el comprobante');
-      }
-    } catch (error: any) {
-      if (error.errors) {
-        const firstError = error.errors[0];
-        setMessage({
-          text: firstError?.message || 'Por favor, revisa el archivo seleccionado',
-          type: 'error'
-        });
-        setPaymentErrors({ file: firstError?.message || 'Archivo inválido' });
-      } else {
-        setMessage({
-          text: error.message || 'Error al procesar el comprobante de pago',
-          type: 'error'
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-   const submitBillingData = async (): Promise<void> => {
+  const submitBillingData = async (): Promise<void> => {
     setIsSubmitting(true);
     setMessage(null);
 
@@ -241,7 +171,7 @@ export function useParticipantController() {
       const response = await billingService.create(billingData);
       
       if (response.success) {
-        setRegisteredBillingId(response.data.idFacturacion);
+        setBillingDataId(response.data.idFacturacion); // 🆕 NOMBRE CORRECTO
         setMessage({
           text: '✅ Datos de facturación registrados correctamente',
           type: 'success'
@@ -272,6 +202,130 @@ export function useParticipantController() {
     }
   };
 
+  const handlePaymentFileChange = (file: File | null): void => {
+    if (file) {
+      // Validar archivo
+      const validation = paymentService.validateFile(file);
+      if (!validation.isValid) {
+        setPaymentErrors({ file: validation.error || 'Archivo inválido' });
+        return;
+      }
+
+      setPaymentData({ file });
+      setPaymentErrors({ file: '' });
+      setMessage({
+        text: `✅ Archivo "${file.name}" seleccionado correctamente`,
+        type: 'success'
+      });
+    } else {
+      setPaymentData(initialPaymentData);
+      setPaymentErrors({ file: 'Debe seleccionar un archivo' });
+    }
+  };
+
+  // 🆕 FUNCIÓN PARA CREAR INSCRIPCIÓN COMPLETA
+  const createCompleteInscription = async () => {
+    try {
+      if (!formData.selectedCourse || !personalDataId || !billingDataId || !paymentData.idComprobante) {
+        throw new Error('Faltan datos para crear la inscripción');
+      }
+
+      console.log('🚀 Creando inscripción completa:', {
+        idCurso: formData.selectedCourse.courseId,
+        idPersona: personalDataId,
+        idFacturacion: billingDataId,
+        idComprobante: paymentData.idComprobante
+      });
+
+      const inscriptionData = {
+        idCurso: formData.selectedCourse.courseId,
+        idPersona: personalDataId,
+        idFacturacion: billingDataId,
+        idComprobante: paymentData.idComprobante
+      };
+
+      const response = await inscriptionService.createInscription(inscriptionData);
+
+      if (response.success) {
+        console.log('✅ Inscripción creada exitosamente:', response.data);
+        setMessage({
+          type: 'success',
+          text: '¡Inscripción completada exitosamente! Te contactaremos pronto.'
+        });
+        return response.data;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      console.error('❌ Error creando inscripción:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'Error al completar la inscripción'
+      });
+      throw error;
+    }
+  };
+
+  // 🆕 FUNCIÓN ACTUALIZADA submitPaymentReceipt
+  const submitPaymentReceipt = async (): Promise<void> => {
+    if (!paymentData.file) {
+      setPaymentErrors({ file: 'Debe seleccionar un archivo' });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setPaymentErrors({});
+      setMessage(null);
+
+      // Validar archivo
+      paymentReceiptSchema.parse({ file: paymentData.file });
+
+      // Subir comprobante
+      const uploadResponse = await paymentService.uploadReceipt(paymentData.file);
+      
+      if (uploadResponse.success && uploadResponse.data) {
+        // Actualizar datos del comprobante
+        setPaymentData(prev => ({
+          ...prev,
+          idComprobante: uploadResponse.data!.idComprobante,
+          fechaSubida: uploadResponse.data!.fechaSubida,
+          rutaComprobante: uploadResponse.data!.rutaComprobante,
+          tipoArchivo: uploadResponse.data!.tipoArchivo,
+          nombreArchivo: uploadResponse.data!.nombreArchivo
+        }));
+
+        setUploadedReceiptId(uploadResponse.data.idComprobante ?? null);
+
+        // Crear inscripción completa
+        await createCompleteInscription();
+        
+        // Ir al resumen
+        setCurrentStep('summary');
+      } else {
+        throw new Error(uploadResponse.message || 'Error al subir el comprobante');
+      }
+    } catch (error: any) {
+      console.error('❌ Error en submitPaymentReceipt:', error);
+      
+      if (error.errors) {
+        const firstError = error.errors[0];
+        setMessage({
+          text: firstError?.message || 'Por favor, revisa el archivo seleccionado',
+          type: 'error'
+        });
+        setPaymentErrors({ file: firstError?.message || 'Archivo inválido' });
+      } else {
+        setMessage({
+          text: error.message || 'Error al procesar el comprobante de pago',
+          type: 'error'
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const resetForm = (): void => {
     setFormData(initialFormData);
     setBillingData(initialBillingData);
@@ -281,8 +335,8 @@ export function useParticipantController() {
     setPaymentErrors({});
     setMessage(null);
     setCurrentStep('course');
-    setRegisteredParticipantId(null);
-    setRegisteredBillingId(null);
+    setPersonalDataId(null);
+    setBillingDataId(null);
     setUploadedReceiptId(null);
   };
 
@@ -302,8 +356,8 @@ export function useParticipantController() {
     fieldErrors,
     billingErrors,
     paymentErrors,
-    registeredParticipantId,
-    registeredBillingId,
+    personalDataId,      // 🆕 NOMBRE CORRECTO
+    billingDataId,       // 🆕 NOMBRE CORRECTO
     uploadedReceiptId,
     
     // Acciones
