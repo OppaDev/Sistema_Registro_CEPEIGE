@@ -8,8 +8,12 @@ export class CedulaEcuatorianaValidator {
    * Valida si una cédula ecuatoriana es válida
    * @param cedula - Número de cédula a validar (10 dígitos)
    * @returns true si la cédula es válida, false en caso contrario
-   */
-  static isValid(cedula: string): boolean {
+   */  static isValid(cedula: string): boolean {
+    // Verificar que cedula no sea null, undefined o vacío
+    if (!cedula || typeof cedula !== 'string') {
+      return false;
+    }
+
     // Limpiar espacios y caracteres no numéricos
     const cedulaLimpia = cedula.replace(/\D/g, '');
     

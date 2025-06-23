@@ -5,12 +5,13 @@ import {
   IsEmail,
   Matches,
 } from "class-validator";
-import { IsCedulaEcuatoriana } from "@/utils/validators/cedulaEcuatoriana.validator";
+import { IsCiPasaporte } from "@/utils/validators/ciPasaporte.validator";
 
-export class CreateDatosPersonalesDto {
-  @IsString()
+export class CreateDatosPersonalesDto {  @IsString()
   @IsNotEmpty({ message: "CI o Pasaporte es requerido" })
-  @IsCedulaEcuatoriana({ message: "Debe ingresar una cédula ecuatoriana válida de 10 dígitos" })
+  @IsCiPasaporte({ 
+    message: "Debe ingresar una cédula ecuatoriana válida (10 dígitos) o un pasaporte válido (6-9 caracteres alfanuméricos en mayúsculas)" 
+  })
   ciPasaporte!: string;
 
   @IsString()
