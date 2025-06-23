@@ -63,3 +63,29 @@ export function IsDateAfter(
     });
   };
 }
+
+export function IsDateFromToday(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: "isDateFromToday",
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions || {},      validator: {
+        validate(value: any) {
+          if (!value) {
+            return true; // Si la fecha no está presente, no validamos aquí
+          }
+
+          const inputDate = new Date(value);
+          const today = new Date();
+          
+          // Normalizar las fechas para comparar solo día, mes y año (sin horas)
+          today.setHours(0, 0, 0, 0);
+          inputDate.setHours(0, 0, 0, 0);
+
+          return inputDate >= today;
+        },
+      },
+    });
+  };
+}

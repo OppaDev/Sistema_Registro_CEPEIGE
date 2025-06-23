@@ -17,12 +17,21 @@ interface GetAllCursosOptions {
   order: "asc" | "desc";
 }
 
-export class CursoService {  // Crear un nuevo curso
+// Crear un nuevo curso
+export class CursoService {  
   async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
-    try {
-      // Validar que la fecha de inicio no sea mayor que la fecha de fin
+    try {      // Validar que la fecha de inicio no sea mayor que la fecha de fin
       const fechaInicio = new Date(cursoData.fechaInicioCurso);
       const fechaFin = new Date(cursoData.fechaFinCurso);
+      const hoy = new Date();
+      
+      // Normalizar fecha de hoy para comparar solo día, mes y año
+      hoy.setHours(0, 0, 0, 0);
+      fechaInicio.setHours(0, 0, 0, 0);
+
+      if (fechaInicio < hoy) {
+        throw new Error('La fecha de inicio debe ser mayor o igual a la fecha actual');
+      }
 
       if (fechaInicio > fechaFin) {
         throw new Error('La fecha de inicio no puede ser posterior a la fecha de fin');
@@ -32,6 +41,7 @@ export class CursoService {  // Crear un nuevo curso
         data: {
           nombreCortoCurso: cursoData.nombreCortoCurso,
           nombreCurso: cursoData.nombreCurso,
+          modalidadCurso: cursoData.modalidadCurso,
           descripcionCurso: cursoData.descripcionCurso,
           valorCurso: cursoData.valorCurso,
           fechaInicioCurso: fechaInicio,
@@ -70,6 +80,18 @@ export class CursoService {  // Crear un nuevo curso
       if (cursoData.fechaFinCurso) {
         fechaFin = new Date(cursoData.fechaFinCurso);
         datosActualizados.fechaFinCurso = fechaFin;
+      }      // Validar fechas
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      // Validar que la fecha de inicio sea mayor o igual a hoy (solo si se está actualizando)
+      if (cursoData.fechaInicioCurso) {
+        const fechaInicioComparar = new Date(fechaInicio);
+        fechaInicioComparar.setHours(0, 0, 0, 0);
+        
+        if (fechaInicioComparar < hoy) {
+          throw new Error('La fecha de inicio debe ser mayor o igual a la fecha actual');
+        }
       }
 
       // Validar que la fecha de inicio no sea mayor que la fecha de fin
@@ -148,6 +170,7 @@ export class CursoService {  // Crear un nuevo curso
         select: {
           idCurso: true,
           nombreCurso: true,
+          modalidadCurso: true,
           valorCurso: true,
           fechaInicioCurso: true,
           fechaFinCurso: true,

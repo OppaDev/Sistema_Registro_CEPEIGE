@@ -11,6 +11,7 @@ model Curso {
   idCurso          Int           @id @default(autoincrement()) @map("id_curso")
   nombreCortoCurso String        @map("nombre_corto_curso") @db.VarChar(100)
   nombreCurso      String        @map("nombre_curso") @db.VarChar(100)
+  modalidadCurso   String        @map("modalidad_curso") @db.VarChar(50)
   descripcionCurso String        @map("descripcion_curso")
   valorCurso       Decimal       @map("valor_curso") @db.Decimal(10, 2)
   fechaInicioCurso DateTime      @map("fecha_inicio_curso") @db.Date
@@ -75,10 +76,10 @@ model Inscripcion {
   idPersona        Int              @map("id_persona")
   idDescuento      Int?             @map("id_descuento")
   idFacturacion    Int              @map("id_facturacion")
+  idComprobante    Int             @unique @map("id_comprobante")
   matricula        Boolean          @default(false) @map("matricula")
   fechaInscripcion DateTime         @default(now()) @map("fecha_inscripcion") @db.Timestamp(6)
-  idComprobante    Int             @unique @map("id_comprobante")
-
+  
   //relaciones
   facturas         Factura[]
   comprobante      Comprobante     @relation(fields: [idComprobante], references: [idComprobante], onUpdate: Restrict)
