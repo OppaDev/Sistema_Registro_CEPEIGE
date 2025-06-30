@@ -7,15 +7,22 @@ export class IsCiPasaporteConstraint implements ValidatorConstraintInterface {  
       return false;
     }
 
-    // Verificar si es una cédula ecuatoriana (exactamente 10 dígitos numéricos)
-    if (/^\d{10}$/.test(value)) {
-      return CedulaEcuatorianaValidator.isValid(value);
-    }
+    // Limpiar espacios al inicio y final
+    const cleanValue = value.trim();
     
+    if (!cleanValue) {
+      return false;
+    }
+
+    // Verificar si es una cédula ecuatoriana (exactamente 10 dígitos numéricos)
+    if (/^\d{10}$/.test(cleanValue)) {
+      return CedulaEcuatorianaValidator.isValid(cleanValue);
+    }
+
     // Verificar si es un pasaporte (6-9 caracteres alfanuméricos en mayúsculas, pero NO solo números)
-    if (/^[A-Z0-9]{6,9}$/.test(value)) {
+    if (/^[A-Z0-9]{6,9}$/.test(cleanValue)) {
       // Si es solo números pero no tiene exactamente 10 dígitos, es inválido
-      if (/^\d+$/.test(value)) {
+      if (/^\d+$/.test(cleanValue)) {
         return false; // Solo números debe ser tratado como cédula inválida
       }
       return true;
