@@ -92,7 +92,20 @@ export function IsDateFromToday(validationOptions?: ValidationOptions) {
             return true; // Tratar cadenas vacías como valores ausentes
           }
 
-          const inputDate = new Date(value);
+          // Crear la fecha de entrada
+          let inputDate: Date;
+          
+          if (typeof value === 'string') {
+            // Para strings en formato YYYY-MM-DD, usar la zona horaria local
+            const dateParts = value.split('-');
+            if (dateParts.length === 3) {
+              inputDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+            } else {
+              inputDate = new Date(value);
+            }
+          } else {
+            inputDate = new Date(value);
+          }
           
           // Verificar si la fecha es válida
           if (isNaN(inputDate.getTime())) {
@@ -101,11 +114,11 @@ export function IsDateFromToday(validationOptions?: ValidationOptions) {
           
           const today = new Date();
           
-          // Normalizar las fechas para comparar solo día, mes y año (sin horas)
-          today.setHours(0, 0, 0, 0);
-          inputDate.setHours(0, 0, 0, 0);
+          // Crear copias para evitar mutar las fechas originales
+          const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const inputDateNormalized = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
 
-          return inputDate >= today;
+          return inputDateNormalized >= todayNormalized;
         },
         defaultMessage(args: ValidationArguments) {
           return `${args.property} debe ser una fecha válida mayor o igual a la fecha actual`;
