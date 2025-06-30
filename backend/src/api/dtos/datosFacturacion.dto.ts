@@ -21,6 +21,9 @@ export class CreateDatosFacturacionDto {
 
   @IsString()
   @IsNotEmpty({ message: "El teléfono es requerido" })
+  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+    message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
+  })
   telefono!: string;
 
   @IsEmail({}, { message: "El formato del correo electrónico no es válido" })
@@ -47,6 +50,9 @@ export class UpdateDatosFacturacionDto {
 
   @IsString()
   @IsOptional()
+  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+    message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
+  })
   telefono?: string;
 
   @IsEmail({}, { message: "El formato del correo electrónico no es válido" })
