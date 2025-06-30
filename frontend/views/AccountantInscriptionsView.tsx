@@ -8,9 +8,13 @@ import { InscriptionTable } from './components/InscriptionTable';
 import { InscriptionDetailModal } from './components/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Edit} from 'lucide-react';
 import { EditInscriptionModal } from './components/EditInscriptionModal';
-import { Edit } from 'lucide-react'; // Agregar import
+import { DeleteInscriptionModal } from './components/DeleteInscriptionModal';
+
+
+
+
 
 export default function AccountantInscriptionsView() {
   const {
@@ -32,7 +36,14 @@ export default function AccountantInscriptionsView() {
     isUpdating,
     openEditModal,
     closeEditModal,
-    updateInscription
+    updateInscription,
+     deleteInscription,
+    isDeleting,
+    selectedInscriptionForDelete,
+    isDeleteModalOpen,
+    openDeleteModal,
+    closeDeleteModal
+  
   } = useInscriptionController();
 
   const handleRefresh = () => {
@@ -114,7 +125,8 @@ export default function AccountantInscriptionsView() {
           loading={loading}
           onViewDetails={viewInscriptionDetails}
           onEditInscription={openEditModal} // 🆕 NUEVA PROP
-          userType="accountant" // 🆕 NUEVA PROP
+          onDeleteInscription={openDeleteModal} // 🆕 NUEVA PROP
+          userType="accountant"
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
@@ -137,6 +149,14 @@ export default function AccountantInscriptionsView() {
           onUpdate={updateInscription}
           userType="accountant"
           isUpdating={isUpdating}
+        />
+        {/* 🆕 MODAL DE ELIMINACIÓN */}
+        <DeleteInscriptionModal
+          isOpen={isDeleteModalOpen}
+          inscription={selectedInscriptionForDelete}
+          isDeleting={isDeleting}
+          onConfirm={deleteInscription}
+          onCancel={closeDeleteModal}
         />
       </div>
     </AdminLayout>

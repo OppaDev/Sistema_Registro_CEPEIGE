@@ -315,6 +315,38 @@ class InscriptionService {
       );
     }
   }
+   async deleteInscription(inscriptionId: number): Promise<InscriptionDetailResponse> {
+    try {
+      console.log('🗑️ Eliminando inscripción:', inscriptionId);
+
+      const response = await fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log('📥 Respuesta eliminación:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al eliminar la inscripción');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error deleting inscription:', error);
+      throw new Error(
+        error.message || 'Error al eliminar la inscripción'
+      );
+    }
+  }
+
+  // 🆕 VERIFICAR SI UNA INSCRIPCIÓN ES ELIMINABLE
+  isInscriptionDeletable(inscription: InscriptionData): boolean {
+    // Solo se pueden eliminar inscripciones PENDIENTES
+    return inscription.estado === 'PENDIENTE';
+  }
 
   // Obtener cursos disponibles para cambio (solo admin)
   async getAvailableCoursesForChange(): Promise<{ id: number; nombre: string; precio: number }[]> {

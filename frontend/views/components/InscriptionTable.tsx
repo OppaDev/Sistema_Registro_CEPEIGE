@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, FileText, Download, Edit } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 
 
@@ -22,6 +23,8 @@ interface InscriptionTableProps {
   // 🆕 NUEVAS PROPS PARA EDICIÓN
   onEditInscription: (inscription: InscriptionData) => void;
   userType: 'admin' | 'accountant';
+  onDeleteInscription: (inscription: InscriptionData) => void;
+  
 }
 
 export const InscriptionTable: React.FC<InscriptionTableProps> = ({
@@ -34,7 +37,8 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
   itemsPerPage,
   onPageChange,
   onEditInscription,
-  userType
+  userType,
+  onDeleteInscription // 🆕 NUEVA PROP
 }) => {
   const getStatusBadge = (estado: string) => {
     const { color, text, bgColor } = inscriptionService.getStatusBadge(estado);
@@ -247,6 +251,29 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          
+                           {/* 🆕 BOTÓN ELIMINAR */}
+                              {userType === 'admin' && (
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => onDeleteInscription(inscription)}
+        disabled={!inscriptionService.isInscriptionDeletable(inscription)}
+        className={`h-8 w-8 p-0 ${
+          inscriptionService.isInscriptionDeletable(inscription)
+            ? 'hover:bg-red-50 text-red-600'
+            : 'text-gray-400 cursor-not-allowed'
+        }`}
+        title={
+          inscriptionService.isInscriptionDeletable(inscription)
+            ? 'Eliminar inscripción'
+            : 'Solo se pueden eliminar inscripciones pendientes'
+        }
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    )}
+
                         </div>
                       </TableCell>
                     </TableRow>

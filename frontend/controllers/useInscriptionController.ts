@@ -26,6 +26,12 @@ interface UseInscriptionControllerReturn {
   openEditModal: (inscription: InscriptionData) => void;
   closeEditModal: () => void;
   updateInscription: (updateData: EditInscriptionRequest) => Promise<void>;
+  deleteInscription: (inscriptionId: number) => Promise<void>;
+  isDeleting: boolean;
+  selectedInscriptionForDelete: InscriptionData | null;
+  isDeleteModalOpen: boolean;
+  openDeleteModal: (inscription: InscriptionData) => void;
+  closeDeleteModal: () => void;
   
   selectedInscriptionForEdit: InscriptionData | null;
   isEditModalOpen: boolean;
@@ -41,7 +47,10 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
-  
+  //eliminar
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedInscriptionForDelete, setSelectedInscriptionForDelete] = useState<InscriptionData | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   
   // Estados de paginación
@@ -217,6 +226,65 @@ const updateInscription = useCallback(async (updateData: EditInscriptionRequest)
   }
 }, [closeEditModal, refreshInscriptions]);
 
+const openDeleteModal = useCallback((inscription: InscriptionData) => {
+    console.log('🗑️ Abriendo modal de eliminación para:', inscription.idInscripcion);
+    
+    // Verificar si es eliminable
+    if (!inscriptionService.isInscriptionDeletable(inscription)) {
+      setMessage({
+        type: 'error',
+        text: 'Solo se pueden eliminar inscripciones con estado PENDIENTE'
+      });
+      return;
+    }
+
+    setSelectedInscriptionForDelete(inscription);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  // 🆕 CERRAR MODAL DE ELIMINACIÓN
+  const closeDeleteModal = useCallback(() => {
+    setSelectedInscriptionForDelete(null);
+    setIsDeleteModalOpen(false);
+    setMessage(null);
+  }, []);
+
+  // 🆕 ELIMINAR INSCRIPCIÓN
+  const deleteInscription = useCallback(async (inscriptionId: number) => {
+    try {
+      setIsDeleting(true);
+      setMessage(null);
+
+      console.log('🗑️ Eliminando inscripción:', inscriptionId);
+
+      const response = await inscriptionService.deleteInscription(inscriptionId);
+
+      if (response.success) {
+        setMessage({
+          type: 'success',
+          text: '✅ Inscripción eliminada exitosamente'
+        });
+
+        // Cerrar modal
+        closeDeleteModal();
+
+        // Refrescar la lista
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await refreshInscriptions();
+
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      console.error('❌ Error eliminando inscripción:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'Error al eliminar la inscripción'
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [closeDeleteModal, refreshInscriptions]);
 
 
   // Cargar datos al montar el componente
@@ -258,7 +326,13 @@ const updateInscription = useCallback(async (updateData: EditInscriptionRequest)
     isUpdating,
     openEditModal,
     closeEditModal,
-    updateInscription
+    updateInscription,
+    deleteInscription,
+    isDeleting,
+    selectedInscriptionForDelete,
+    isDeleteModalOpen,
+    openDeleteModal,
+    closeDeleteModal,
    
   };
 };

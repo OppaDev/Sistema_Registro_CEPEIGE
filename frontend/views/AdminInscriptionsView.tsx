@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Edit } from 'lucide-react';
 import { EditInscriptionModal } from './components/EditInscriptionModal';
+import { DeleteInscriptionModal } from './components/DeleteInscriptionModal';
 
 
 export default function AdminInscriptionsView() {
@@ -32,7 +33,13 @@ export default function AdminInscriptionsView() {
     isUpdating,
     openEditModal,
     closeEditModal,
-    updateInscription
+    updateInscription,
+    deleteInscription,
+    isDeleting,
+    selectedInscriptionForDelete,
+    isDeleteModalOpen,
+    openDeleteModal,
+    closeDeleteModal,
   } = useInscriptionController();
 
    const [refreshKey, setRefreshKey] = React.useState(0);
@@ -123,6 +130,7 @@ export default function AdminInscriptionsView() {
           loading={loading}
           onViewDetails={viewInscriptionDetails}
           onEditInscription={openEditModal} // 🆕 NUEVA PROP
+          onDeleteInscription={openDeleteModal}
           userType="admin" // 🆕 NUEVA PROP
           currentPage={currentPage}
           totalPages={totalPages}
@@ -145,6 +153,14 @@ export default function AdminInscriptionsView() {
           onUpdate={updateInscription}
           userType="admin"
           isUpdating={isUpdating}
+        />
+         {/* 🆕 MODAL DE ELIMINACIÓN */}
+        <DeleteInscriptionModal
+          isOpen={isDeleteModalOpen}
+          inscription={selectedInscriptionForDelete}
+          isDeleting={isDeleting}
+          onConfirm={deleteInscription}
+          onCancel={closeDeleteModal}
         />
       </div>
     </AdminLayout>
