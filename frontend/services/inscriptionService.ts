@@ -1,6 +1,6 @@
 // services/inscriptionService.ts
 import { api } from './api';
-import { InscriptionData } from '@/models/inscription';
+import { EditInscriptionRequest, InscriptionData } from '@/models/inscription';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -222,12 +222,13 @@ class InscriptionService {
         tipoArchivo: apiData.comprobante.tipoArchivo,
         nombreArchivo: apiData.comprobante.nombreArchivo
       },
-      descuento: apiData.descuento ? {
-        idDescuento: apiData.descuento.idDescuento,
-        tipoDescuento: apiData.descuento.tipoDescuento,
-        valorDescuento: Number(apiData.descuento.valorDescuento),
-        porcentajeDescuento: Number(apiData.descuento.porcentajeDescuento)
-      } : undefined,
+      //
+      //descuento: apiData.descuento ? {
+       // idDescuento: apiData.descuento.idDescuento,
+        //tipoDescuento: apiData.descuento.tipoDescuento,
+        //valorDescuento: Number(apiData.descuento.valorDescuento),
+        //porcentajeDescuento: Number(apiData.descuento.porcentajeDescuento)
+      //} : undefined,
       estado: this.getEstadoFromMatricula(apiData.matricula),
       fechaInscripcion: new Date(apiData.fechaInscripcion)
     };
@@ -286,6 +287,85 @@ class InscriptionService {
       style: 'currency',
       currency: 'USD'
     }).format(price);
+  }
+    async updateInscription(updateData: EditInscriptionRequest): Promise<InscriptionDetailResponse> {
+    try {
+      console.log('🚀 Actualizando inscripción:', updateData);
+
+      const response = await fetch(`${API_BASE_URL}/inscripciones/${updateData.idInscripcion}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const data = await response.json();
+      console.log('📥 Respuesta actualización:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al actualizar inscripción');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error updating inscription:', error);
+      throw new Error(
+        error.message || 'Error al actualizar inscripción'
+      );
+    }
+  }
+
+  // Obtener cursos disponibles para cambio (solo admin)
+  async getAvailableCoursesForChange(): Promise<{ id: number; nombre: string; precio: number }[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/cursos/disponibles`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al obtener cursos');
+      }
+
+      return data.data || [];
+    } catch (error: any) {
+      console.error('❌ Error fetching courses for change:', error);
+      throw new Error(error.message || 'Error al obtener cursos disponibles');
+    }
+  }
+
+  // Validar si inscripción es editable
+  isInscriptionEditable(inscription: InscriptionData): boolean {
+    // Solo se pueden editar inscripciones PENDIENTES
+    return inscription.estado === 'PENDIENTE';
+  }
+
+  // Obtener campos editables según rol
+  getEditableFields(userType: 'admin' | 'accountant') {
+    const commonFields = {
+      participante: [
+        'nombres', 'apellidos', 'numTelefono', 'correo', 
+        'pais', 'provinciaEstado', 'ciudad', 'profesion', 'institucion'
+      ],
+      facturacion: [
+        'razonSocial', 'identificacionTributaria', 'telefono', 
+        'correoFactura', 'direccion'
+      ]
+    };
+
+    if (userType === 'admin') {
+      return {
+        ...commonFields,
+        curso: ['idCurso'] // Admin puede cambiar curso
+      };
+    }
+
+    return commonFields; // Contador no puede cambiar curso
   }
 }
 

@@ -265,6 +265,44 @@ export function useParticipantController() {
       throw error;
     }
   };
+  // ...en el mismo archivo
+const createCompleteInscriptionDirect = async (
+  courseId: number | undefined,
+  personaId: number | null,
+  facturacionId: number | null,
+  comprobanteId: number | undefined
+) => {
+  try {
+    if (!courseId || !personaId || !facturacionId || !comprobanteId) {
+      throw new Error('Faltan datos para crear la inscripción');
+    }
+
+    const inscriptionData = {
+      idCurso: courseId,
+      idPersona: personaId,
+      idFacturacion: facturacionId,
+      idComprobante: comprobanteId
+    };
+
+    const response = await inscriptionService.createInscription(inscriptionData);
+
+    if (response.success) {
+      setMessage({
+        type: 'success',
+        text: '¡Inscripción completada exitosamente! Te contactaremos pronto.'
+      });
+      return response.data;
+    } else {
+      throw new Error(response.message);
+    }
+  } catch (error: any) {
+    setMessage({
+      type: 'error',
+      text: error.message || 'Error al completar la inscripción'
+    });
+    throw error;
+  }
+};
 
   // 🆕 FUNCIÓN ACTUALIZADA submitPaymentReceipt
   const submitPaymentReceipt = async (): Promise<void> => {
@@ -298,7 +336,13 @@ export function useParticipantController() {
         setUploadedReceiptId(uploadResponse.data.idComprobante ?? null);
 
         // Crear inscripción completa
-        await createCompleteInscription();
+        //await createCompleteInscription();
+        await createCompleteInscriptionDirect(
+         formData.selectedCourse?.courseId,
+          personalDataId,
+          billingDataId,
+          uploadResponse.data.idComprobante
+        );
         
         // Ir al resumen
         setCurrentStep('summary');

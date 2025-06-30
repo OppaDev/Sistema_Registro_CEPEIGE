@@ -69,3 +69,40 @@ export interface InscriptionTableColumn {
   sortable?: boolean;
   width?: string;
 }
+
+export interface EditableInscriptionData {
+  // Datos del participante (editables)
+  participante: {
+    nombres: string;
+    apellidos: string;
+    numTelefono: string;
+    correo: string;
+    pais: string;
+    provinciaEstado: string;
+    ciudad: string;
+    profesion: string;
+    institucion: string;
+    // CI/Pasaporte NO editable por seguridad
+  };
+  
+  // Datos de facturación (editables)
+  facturacion: {
+    razonSocial: string;
+    identificacionTributaria: string;
+    telefono: string;
+    correoFactura: string;
+    direccion: string;
+  };
+  
+  // Curso (editable solo por admin)
+  curso?: {
+    idCurso: number;
+  };
+}
+
+export interface EditInscriptionRequest {
+  idInscripcion: number;
+  datosPersonales?: Partial<EditableInscriptionData['participante']>;
+  datosFacturacion?: Partial<EditableInscriptionData['facturacion']>;
+  nuevoCurso?: number; // Solo admin
+}

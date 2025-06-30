@@ -9,6 +9,8 @@ import { InscriptionDetailModal } from './components/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { EditInscriptionModal } from './components/EditInscriptionModal';
+import { Edit } from 'lucide-react'; // Agregar import
 
 export default function AccountantInscriptionsView() {
   const {
@@ -24,7 +26,13 @@ export default function AccountantInscriptionsView() {
     viewInscriptionDetails,
     selectedInscription,
     closeInscriptionDetails,
-    setMessage
+    setMessage,
+    selectedInscriptionForEdit,
+    isEditModalOpen,
+    isUpdating,
+    openEditModal,
+    closeEditModal,
+    updateInscription
   } = useInscriptionController();
 
   const handleRefresh = () => {
@@ -100,10 +108,12 @@ export default function AccountantInscriptionsView() {
         )}
 
         {/* Tabla de inscripciones */}
-        <InscriptionTable
+       <InscriptionTable
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}
+          onEditInscription={openEditModal} // 🆕 NUEVA PROP
+          userType="accountant" // 🆕 NUEVA PROP
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
@@ -117,6 +127,15 @@ export default function AccountantInscriptionsView() {
           isOpen={!!selectedInscription}
           onClose={closeInscriptionDetails}
           userType="accountant"
+        />
+         {/* 🆕 NUEVO MODAL DE EDICIÓN */}
+        <EditInscriptionModal
+          inscription={selectedInscriptionForEdit}
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          onUpdate={updateInscription}
+          userType="accountant"
+          isUpdating={isUpdating}
         />
       </div>
     </AdminLayout>

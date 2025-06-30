@@ -29,6 +29,8 @@ class CourseService {
       if (response.data.success) {
         return response.data.data.map(course => ({
           idCurso: course.idCurso,
+          nombreCortoCurso:'', // Los cursos disponibles no incluyen nombre corto
+          modalidadCurso: course.modalidadCurso, // Asegúrate de que este campo exista en el backend
           nombreCurso: course.nombreCurso,
           valorCurso: Number(course.valorCurso),
           fechaInicioCurso: new Date(course.fechaInicioCurso),

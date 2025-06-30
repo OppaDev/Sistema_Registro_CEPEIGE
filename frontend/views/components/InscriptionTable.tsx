@@ -6,7 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, FileText, Download } from 'lucide-react';
+import { Eye, FileText, Download, Edit } from 'lucide-react';
+
+
 
 interface InscriptionTableProps {
   inscriptions: InscriptionData[];
@@ -17,6 +19,9 @@ interface InscriptionTableProps {
   totalItems: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
+  // 🆕 NUEVAS PROPS PARA EDICIÓN
+  onEditInscription: (inscription: InscriptionData) => void;
+  userType: 'admin' | 'accountant';
 }
 
 export const InscriptionTable: React.FC<InscriptionTableProps> = ({
@@ -27,7 +32,9 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
   totalPages,
   totalItems,
   itemsPerPage,
-  onPageChange
+  onPageChange,
+  onEditInscription,
+  userType
 }) => {
   const getStatusBadge = (estado: string) => {
     const { color, text, bgColor } = inscriptionService.getStatusBadge(estado);
@@ -40,6 +47,10 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
 
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  
+  const isEditable = (inscription: InscriptionData) => {
+    return inscriptionService.isInscriptionEditable(inscription);
+  };
 
   if (loading) {
     return (
@@ -200,6 +211,41 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                             title="Ver detalles completos"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center space-x-2">
+                          {/* Botón Ver Detalles */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onViewDetails(inscription)}
+                            className="h-8 w-8 p-0 hover:bg-blue-50"
+                            style={{ color: '#0367A6' }}
+                            title="Ver detalles completos"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+
+                          {/* 🆕 BOTÓN EDITAR */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onEditInscription(inscription)}
+                            disabled={!isEditable(inscription)}
+                            className={`h-8 w-8 p-0 ${
+                              isEditable(inscription)
+                                ? 'hover:bg-orange-50 text-orange-600'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                            title={
+                              isEditable(inscription)
+                                ? 'Editar inscripción'
+                                : 'Solo se pueden editar inscripciones pendientes'
+                            }
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>

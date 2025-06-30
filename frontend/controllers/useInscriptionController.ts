@@ -1,6 +1,6 @@
 // controllers/useInscriptionController.ts
 import { useState, useEffect, useCallback } from 'react';
-import { InscriptionData } from '@/models/inscription';
+import { EditInscriptionRequest, InscriptionData } from '@/models/inscription';
 import { inscriptionService, InscriptionApiData } from '@/services/inscriptionService';
 
 interface UseInscriptionControllerReturn {
@@ -22,6 +22,14 @@ interface UseInscriptionControllerReturn {
   viewInscriptionDetails: (inscription: InscriptionData) => void;
   closeInscriptionDetails: () => void;
   setMessage: (message: { type: 'success' | 'error' | 'info'; text: string } | null) => void;
+  // 🆕 NUEVAS ACCIONES PARA EDICIÓN
+  openEditModal: (inscription: InscriptionData) => void;
+  closeEditModal: () => void;
+  updateInscription: (updateData: EditInscriptionRequest) => Promise<void>;
+  
+  selectedInscriptionForEdit: InscriptionData | null;
+  isEditModalOpen: boolean;
+  isUpdating: boolean;
 }
 
 export const useInscriptionController = (): UseInscriptionControllerReturn => {
@@ -29,7 +37,11 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
   const [inscriptions, setInscriptions] = useState<InscriptionData[]>([]);
   const [selectedInscription, setSelectedInscription] = useState<InscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedInscriptionForEdit, setSelectedInscriptionForEdit] = useState<InscriptionData | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  
   
   // Estados de paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -134,11 +146,78 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
       });
     }
   }, []);
+  
 
   // Cerrar detalles
   const closeInscriptionDetails = useCallback(() => {
     setSelectedInscription(null);
   }, []);
+   const openEditModal = useCallback((inscription: InscriptionData) => {
+    console.log('✏️ Abriendo modal de edición para:', inscription.idInscripcion);
+    
+    // Verificar si es editable
+    if (!inscriptionService.isInscriptionEditable(inscription)) {
+      setMessage({
+        type: 'error',
+        text: 'Solo se pueden editar inscripciones con estado PENDIENTE'
+      });
+      return;
+    }
+
+    setSelectedInscriptionForEdit(inscription);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // 🆕 CERRAR MODAL DE EDICIÓN
+  const closeEditModal = useCallback(() => {
+    setSelectedInscriptionForEdit(null);
+    setIsEditModalOpen(false);
+    setMessage(null);
+  }, []);
+
+  // 🆕 ACTUALIZAR INSCRIPCIÓN
+ // 🔄 REEMPLAZA este método en useInscriptionController.ts
+
+// useInscriptionController.ts - Método updateInscription MEJORADO
+
+const updateInscription = useCallback(async (updateData: EditInscriptionRequest) => {
+  try {
+    setIsUpdating(true);
+    setMessage(null);
+
+    console.log('🔄 Actualizando inscripción:', updateData);
+
+    const response = await inscriptionService.updateInscription(updateData);
+
+    if (response.success) {
+      setMessage({
+        type: 'success',
+        text: '✅ Inscripción actualizada exitosamente'
+      });
+
+      // 🆕 CERRAR MODAL PRIMERO
+      closeEditModal();
+
+      // 🆕 FORZAR ACTUALIZACIÓN COMPLETA
+      setInscriptions([]); // Limpiar temporalmente
+      await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña pausa
+      await refreshInscriptions(); // Recargar todo
+
+    } else {
+      throw new Error(response.message);
+    }
+  } catch (error: any) {
+    console.error('❌ Error actualizando inscripción:', error);
+    setMessage({
+      type: 'error',
+      text: error.message || 'Error al actualizar la inscripción'
+    });
+  } finally {
+    setIsUpdating(false);
+  }
+}, [closeEditModal, refreshInscriptions]);
+
+
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -173,6 +252,13 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     handlePageChange,
     viewInscriptionDetails,
     closeInscriptionDetails,
-    setMessage
+    setMessage,
+    selectedInscriptionForEdit,
+    isEditModalOpen,
+    isUpdating,
+    openEditModal,
+    closeEditModal,
+    updateInscription
+   
   };
 };

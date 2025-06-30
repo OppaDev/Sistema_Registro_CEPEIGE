@@ -8,7 +8,9 @@ import { InscriptionTable } from './components/InscriptionTable';
 import { InscriptionDetailModal } from './components/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Edit } from 'lucide-react';
+import { EditInscriptionModal } from './components/EditInscriptionModal';
+
 
 export default function AdminInscriptionsView() {
   const {
@@ -24,7 +26,13 @@ export default function AdminInscriptionsView() {
     viewInscriptionDetails,
     selectedInscription,
     closeInscriptionDetails,
-    setMessage
+    setMessage,
+    selectedInscriptionForEdit,
+    isEditModalOpen,
+    isUpdating,
+    openEditModal,
+    closeEditModal,
+    updateInscription
   } = useInscriptionController();
 
   const handleRefresh = () => {
@@ -100,23 +108,33 @@ export default function AdminInscriptionsView() {
         )}
 
         {/* Tabla de inscripciones */}
-        <InscriptionTable
+          <InscriptionTable
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}
+          onEditInscription={openEditModal} // 🆕 NUEVA PROP
+          userType="admin" // 🆕 NUEVA PROP
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}
         />
-
         {/* Modal de detalles - SOLO PARA VISUALIZAR */}
         <InscriptionDetailModal
           inscription={selectedInscription}
           isOpen={!!selectedInscription}
           onClose={closeInscriptionDetails}
           userType="admin"
+        />
+        {/* 🆕 NUEVO MODAL DE EDICIÓN */}
+        <EditInscriptionModal
+          inscription={selectedInscriptionForEdit}
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          onUpdate={updateInscription}
+          userType="admin"
+          isUpdating={isUpdating}
         />
       </div>
     </AdminLayout>

@@ -120,3 +120,44 @@
     @apply bg-background text-foreground;
   }
 }
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Estilos para campos con cambios */
+.field-changed {
+  border-left: 4px solid #F3762B;
+  background-color: #FFF7ED;
+}
+
+/* Indicador de cambios pendientes */
+.changes-indicator {
+  position: relative;
+}
+
+.changes-indicator::after {
+  content: '●';
+  color: #F3762B;
+  font-size: 8px;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+}

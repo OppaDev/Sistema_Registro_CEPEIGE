@@ -170,13 +170,7 @@ export function CourseView({
                       </div>
                        <div className="flex items-center">
     <span className="mr-1">🎯</span>
-    <span>
-      Modalidad: {/** Aquí el cambio */}
-      {/** idx es el índice del curso en el array */}
-      {courses.findIndex(c => c.idCurso === course.idCurso) === 0
-        ? "Semipresencial"
-        : "Presencial"}
-    </span>
+    <span>Modalidad: {course.modalidadCurso}</span>
   </div>
                     </div>
                     
