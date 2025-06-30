@@ -1,0 +1,1 @@
+// app/cursos_admin/page.tsx

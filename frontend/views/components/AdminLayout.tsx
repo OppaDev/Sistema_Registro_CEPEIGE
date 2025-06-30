@@ -21,19 +21,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       label: 'Inscripciones',
       icon: <Users className="h-5 w-5" />,
       href: userType === 'admin' ? '/inscripciones_admin' : '/inscripciones_contador'
-    },
-   {/*
-      id: 'reportes',
-      label: 'Reportes',
-      icon: <FileText className="h-5 w-5" />,
-      href: '#'
-    },
-    {
-      id: 'configuracion',
-      label: 'Configuración',
-      icon: <Settings className="h-5 w-5" />,
-      href: '#'
-    }*/},
+    }
    
    
   ];

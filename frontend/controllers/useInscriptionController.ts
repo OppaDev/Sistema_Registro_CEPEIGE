@@ -43,6 +43,7 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   
   
+  
   // Estados de paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -198,10 +199,9 @@ const updateInscription = useCallback(async (updateData: EditInscriptionRequest)
       // 🆕 CERRAR MODAL PRIMERO
       closeEditModal();
 
-      // 🆕 FORZAR ACTUALIZACIÓN COMPLETA
-      setInscriptions([]); // Limpiar temporalmente
-      await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña pausa
-      await refreshInscriptions(); // Recargar todo
+      // 🆕 PEQUEÑA PAUSA Y REFRESCAR
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await refreshInscriptions();
 
     } else {
       throw new Error(response.message);

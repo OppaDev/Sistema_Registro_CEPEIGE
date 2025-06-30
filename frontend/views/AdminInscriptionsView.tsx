@@ -35,10 +35,19 @@ export default function AdminInscriptionsView() {
     updateInscription
   } = useInscriptionController();
 
+   const [refreshKey, setRefreshKey] = React.useState(0);
+
   const handleRefresh = () => {
     setMessage(null);
+    setRefreshKey(prev => prev + 1); // 🆕 INCREMENTAR KEY
     refreshInscriptions();
   };
+
+  // 🆕 EFECTO PARA ACTUALIZAR KEY CUANDO CAMBIAN LAS INSCRIPCIONES
+  React.useEffect(() => {
+    setRefreshKey(prev => prev + 1);
+  }, [inscriptions.length, totalItems]);
+
 
   return (
     <AdminLayout userType="admin" activeModule="inscripciones">
@@ -109,6 +118,7 @@ export default function AdminInscriptionsView() {
 
         {/* Tabla de inscripciones */}
           <InscriptionTable
+          key={`inscriptions-${inscriptions.length}-${totalItems}-${currentPage}`}
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}

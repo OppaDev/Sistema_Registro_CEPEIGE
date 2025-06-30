@@ -109,6 +109,7 @@ export default function AccountantInscriptionsView() {
 
         {/* Tabla de inscripciones */}
        <InscriptionTable
+          key={`inscriptions-${inscriptions.length}-${totalItems}-${currentPage}`}
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}
