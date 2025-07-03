@@ -83,6 +83,9 @@ export class DatosFacturacionService {
         throw new NotFoundError('Datos de facturación');      }
       return toDatosFacturacionResponseDto(datosFacturacion);
     } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al obtener los datos de facturación: ${error.message}`);
       }
@@ -117,6 +120,9 @@ export class DatosFacturacionService {
           throw new ConflictError('Ya existe un registro con estos datos únicos');
         }
       }
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al actualizar los datos de facturación: ${error.message}`);
       }
@@ -137,6 +143,9 @@ export class DatosFacturacionService {
       });
       return toDatosFacturacionResponseDto(datosFacturacionEliminado);
     } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
       if (error instanceof Error) {
         throw new Error(`Error al eliminar los datos de facturación: ${error.message}`);
       }

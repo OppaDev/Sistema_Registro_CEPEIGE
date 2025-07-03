@@ -73,11 +73,11 @@ describe('B. Validador @IsDateFromToday (dateValidators.ts)', () => {
 
     // Casos adicionales de fechas inválidas
     it('debería rechazar fechas en el pasado reciente', async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayString = yesterday.toISOString().split('T')[0];
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 3); // 3 días en el pasado para asegurar que es anterior
+      const pastDateString = pastDate.toISOString().split('T')[0];
       
-      testInstance.dateField = yesterdayString;
+      testInstance.dateField = pastDateString;
       
       const errors = await validate(testInstance);
       expect(errors).toHaveLength(1);

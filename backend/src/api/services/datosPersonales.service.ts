@@ -105,6 +105,9 @@ export class DatosPersonalesService {  //crear nuevos datos personales
 
       return toDatosPersonalesResponseDto(datosPersonales);
     } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new Error(
           `Error al obtener los datos personales: ${error.message}`
@@ -149,6 +152,9 @@ export class DatosPersonalesService {  //crear nuevos datos personales
           throw new ConflictError('Ya existe un registro con estos datos únicos');
         }
       }
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new Error(
           `Error al actualizar los datos personales: ${error.message}`
@@ -174,6 +180,9 @@ export class DatosPersonalesService {  //crear nuevos datos personales
       });
       return toDatosPersonalesResponseDto(datosPersonalesEliminados);
     } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new Error(`Error al eliminar los datos personales: ${error.message}`);
       }
@@ -198,6 +207,9 @@ export class DatosPersonalesService {  //crear nuevos datos personales
       return toDatosPersonalesResponseDto(datosPersonales);
 
     } catch(error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new Error(`Error al buscar los datos personales: ${error.message}`);
       }

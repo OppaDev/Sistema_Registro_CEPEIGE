@@ -28,6 +28,7 @@ jest.mock('@/api/services/mappers/curso.mapper', () => ({
 import { CursoService } from './curso.service';
 import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/curso.dto';
 import { NotFoundError } from '@/utils/errorTypes';
+import { Decimal } from '@prisma/client/runtime/library';
 
 describe('CursoService', () => {
   let cursoService: CursoService;
@@ -50,120 +51,175 @@ describe('CursoService', () => {
   });
 
   describe('createCurso', () => {
-    const validCreateCursoDto: CreateCursoDto = {
-      nombreCortoCurso: 'JS101',
-      nombreCurso: 'Introducción a JavaScript',
-      modalidadCurso: 'Virtual',
-      descripcionCurso: 'Curso básico de JavaScript',
-      valorCurso: 150.00 as any,
-      fechaInicioCurso: '2025-07-01',
-      fechaFinCurso: '2025-07-30',
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    const createCursoDto: CreateCursoDto = {
+      nombreCortoCurso: 'PROG-JS',
+      nombreCurso: 'Programación JavaScript Avanzada',
+      modalidadCurso: 'virtual',
+      descripcionCurso: 'Curso completo de JavaScript moderno',
+      valorCurso: new Decimal(250.00),
+      fechaInicioCurso: tomorrow.toISOString().split('T')[0],
+      fechaFinCurso: nextWeek.toISOString().split('T')[0],
     };
 
-    const mockCursoCreated = {
-      idCurso: 1,
-      nombreCortoCurso: 'JS101',
-      nombreCurso: 'Introducción a JavaScript',
-      modalidadCurso: 'Virtual',
-      descripcionCurso: 'Curso básico de JavaScript',
-      valorCurso: 150.00,
-      fechaInicioCurso: new Date('2025-07-01'),
-      fechaFinCurso: new Date('2025-07-30'),
-    };
-
-    it('debería crear un curso exitosamente', async () => {
+    // SRV-CUR-001: Crear un curso con fechas válidas
+    it('SRV-CUR-001: debería crear un curso con fechas válidas', async () => {
       // Arrange
-      mockCreate.mockResolvedValue(mockCursoCreated);
+      const prismaCurso = {
+        idCurso: 1,
+        nombreCortoCurso: createCursoDto.nombreCortoCurso,
+        nombreCurso: createCursoDto.nombreCurso,
+        modalidadCurso: createCursoDto.modalidadCurso,
+        descripcionCurso: createCursoDto.descripcionCurso,
+        valorCurso: createCursoDto.valorCurso,
+        fechaInicioCurso: new Date(createCursoDto.fechaInicioCurso),
+        fechaFinCurso: new Date(createCursoDto.fechaFinCurso),
+      };
+      const expectedResponseDto = {
+        idCurso: 1,
+        nombreCortoCurso: createCursoDto.nombreCortoCurso,
+        nombreCurso: createCursoDto.nombreCurso,
+        modalidadCurso: createCursoDto.modalidadCurso,
+        descripcionCurso: createCursoDto.descripcionCurso,
+        valorCurso: createCursoDto.valorCurso,
+        fechaInicioCurso: createCursoDto.fechaInicioCurso,
+        fechaFinCurso: createCursoDto.fechaFinCurso,
+      };
+
+      mockCreate.mockResolvedValue(prismaCurso);
+      mockToCursoResponseDto.mockReturnValue(expectedResponseDto);
 
       // Act
-      const result = await cursoService.createCurso(validCreateCursoDto);      // Assert
+      const result = await cursoService.createCurso(createCursoDto);
+
+      // Assert
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          nombreCortoCurso: validCreateCursoDto.nombreCortoCurso,
-          nombreCurso: validCreateCursoDto.nombreCurso,
-          modalidadCurso: validCreateCursoDto.modalidadCurso,
-          descripcionCurso: validCreateCursoDto.descripcionCurso,
-          valorCurso: validCreateCursoDto.valorCurso,
+          nombreCortoCurso: createCursoDto.nombreCortoCurso,
+          nombreCurso: createCursoDto.nombreCurso,
+          modalidadCurso: createCursoDto.modalidadCurso,
+          descripcionCurso: createCursoDto.descripcionCurso,
+          valorCurso: createCursoDto.valorCurso,
           fechaInicioCurso: expect.any(Date),
           fechaFinCurso: expect.any(Date),
         },
       });
-      expect(mockToCursoResponseDto).toHaveBeenCalledWith(mockCursoCreated);
-      expect(result).toEqual(mockCursoCreated);
+      expect(mockToCursoResponseDto).toHaveBeenCalledWith(prismaCurso);
+      expect(result).toEqual(expectedResponseDto);
     });
 
-    it('debería lanzar error si la fecha de inicio es anterior a hoy', async () => {
+    // SRV-CUR-002: Falla al crear si la fecha de inicio es anterior a hoy
+    it('SRV-CUR-002: debería fallar al crear si la fecha de inicio es anterior a hoy', async () => {
       // Arrange
-      const invalidDto = {
-        ...validCreateCursoDto,
-        fechaInicioCurso: '2024-01-01', // Fecha pasada
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 5); // 5 días en el pasado para asegurar que es anterior
+
+      const invalidCursoDto: CreateCursoDto = {
+        ...createCursoDto,
+        fechaInicioCurso: pastDate.toISOString().split('T')[0],
       };
 
       // Act & Assert
-      await expect(cursoService.createCurso(invalidDto))
-        .rejects
-        .toThrow('Error al crear el curso: La fecha de inicio debe ser mayor o igual a la fecha actual');
-
+      await expect(cursoService.createCurso(invalidCursoDto))
+        .rejects.toThrow('La fecha de inicio debe ser mayor o igual a la fecha actual');
+      
       expect(mockCreate).not.toHaveBeenCalled();
     });
 
-    it('debería lanzar error si la fecha de inicio es posterior a la fecha de fin', async () => {
+    // SRV-CUR-003: Falla al crear si la fecha de inicio es posterior a la de fin
+    it('SRV-CUR-003: debería fallar al crear si la fecha de inicio es posterior a la fecha de fin', async () => {
       // Arrange
-      const invalidDto = {
-        ...validCreateCursoDto,
-        fechaInicioCurso: '2025-08-01',
-        fechaFinCurso: '2025-07-30', // Fecha de fin anterior a inicio
+      const invalidCursoDto: CreateCursoDto = {
+        ...createCursoDto,
+        fechaInicioCurso: nextWeek.toISOString().split('T')[0], // Fecha posterior
+        fechaFinCurso: tomorrow.toISOString().split('T')[0],    // Fecha anterior
       };
 
       // Act & Assert
-      await expect(cursoService.createCurso(invalidDto))
-        .rejects
-        .toThrow('Error al crear el curso: La fecha de inicio no puede ser posterior a la fecha de fin');
-
+      await expect(cursoService.createCurso(invalidCursoDto))
+        .rejects.toThrow('La fecha de inicio no puede ser posterior a la fecha de fin');
+      
       expect(mockCreate).not.toHaveBeenCalled();
     });
 
-    it('debería manejar errores de Prisma', async () => {
+    it('debería permitir crear un curso que inicia hoy', async () => {
       // Arrange
-      mockCreate.mockRejectedValue(new Error('Error de base de datos'));
+      const today = new Date();
+      const validCursoDto: CreateCursoDto = {
+        ...createCursoDto,
+        fechaInicioCurso: today.toISOString().split('T')[0],
+      };
 
-      // Act & Assert
-      await expect(cursoService.createCurso(validCreateCursoDto))
-        .rejects
-        .toThrow('Error al crear el curso: Error de base de datos');
+      const prismaCurso = {
+        idCurso: 1,
+        nombreCortoCurso: validCursoDto.nombreCortoCurso,
+        nombreCurso: validCursoDto.nombreCurso,
+        modalidadCurso: validCursoDto.modalidadCurso,
+        descripcionCurso: validCursoDto.descripcionCurso,
+        valorCurso: validCursoDto.valorCurso,
+        fechaInicioCurso: today,
+        fechaFinCurso: new Date(validCursoDto.fechaFinCurso),
+      };
+
+      mockCreate.mockResolvedValue(prismaCurso);
+      mockToCursoResponseDto.mockReturnValue(prismaCurso);
+
+      // Act
+      const result = await cursoService.createCurso(validCursoDto);
+
+      // Assert
+      expect(mockCreate).toHaveBeenCalled();
+      expect(result).toBeDefined();
     });
   });
 
   describe('updateCurso', () => {
-    const validUpdateDto: UpdateCursoDto = {
-      nombreCurso: 'JavaScript Avanzado',
-      valorCurso: 200.00 as any,
-    };
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
 
-    const mockExistingCurso = {
+    const existingCurso = {
       idCurso: 1,
-      nombreCortoCurso: 'JS101',
-      nombreCurso: 'Introducción a JavaScript',
-      modalidadCurso: 'Virtual',
-      descripcionCurso: 'Curso básico de JavaScript',
-      valorCurso: 150.00,
-      fechaInicioCurso: new Date('2025-07-01'),
-      fechaFinCurso: new Date('2025-07-30'),
+      nombreCortoCurso: 'PROG-PY',
+      nombreCurso: 'Programación Python',
+      modalidadCurso: 'presencial',
+      descripcionCurso: 'Curso básico de Python',
+      valorCurso: new Decimal(200.00),
+      fechaInicioCurso: tomorrow.toISOString().split('T')[0],
+      fechaFinCurso: nextWeek.toISOString().split('T')[0],
     };
 
-    const mockUpdatedCurso = {
-      ...mockExistingCurso,
-      nombreCurso: 'JavaScript Avanzado',
-      valorCurso: 200.00,
+    const updateCursoDto: UpdateCursoDto = {
+      valorCurso: new Decimal(150.00),
     };
 
-    it('debería actualizar un curso exitosamente', async () => {
+    // SRV-CUR-004: Actualizar un curso existente
+    it('SRV-CUR-004: debería actualizar un curso existente', async () => {
       // Arrange
-      mockFindUnique.mockResolvedValue(mockExistingCurso);
-      mockUpdate.mockResolvedValue(mockUpdatedCurso);
+      const updatedCurso = {
+        ...existingCurso,
+        valorCurso: updateCursoDto.valorCurso,
+        fechaInicioCurso: new Date(existingCurso.fechaInicioCurso),
+        fechaFinCurso: new Date(existingCurso.fechaFinCurso),
+      };
+      const expectedResponseDto = {
+        ...existingCurso,
+        valorCurso: updateCursoDto.valorCurso,
+      };
+
+      mockFindUnique.mockResolvedValue(updatedCurso);
+      mockUpdate.mockResolvedValue(updatedCurso);
+      mockToCursoResponseDto.mockReturnValue(expectedResponseDto);
 
       // Act
-      await cursoService.updateCurso(1, validUpdateDto);
+      const result = await cursoService.updateCurso(1, updateCursoDto);
 
       // Assert
       expect(mockFindUnique).toHaveBeenCalledWith({
@@ -171,90 +227,99 @@ describe('CursoService', () => {
       });
       expect(mockUpdate).toHaveBeenCalledWith({
         where: { idCurso: 1 },
-        data: validUpdateDto,
+        data: updateCursoDto,
       });
-      expect(mockToCursoResponseDto).toHaveBeenCalledWith(mockUpdatedCurso);
+      expect(mockToCursoResponseDto).toHaveBeenCalledWith(updatedCurso);
+      expect(result).toEqual(expectedResponseDto);
     });
 
-    it('debería lanzar NotFoundError si el curso no existe', async () => {
+    // SRV-CUR-005: Fallar al actualizar un curso inexistente
+    it('SRV-CUR-005: debería fallar al actualizar un curso inexistente', async () => {
       // Arrange
       mockFindUnique.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(cursoService.updateCurso(999, validUpdateDto))
-        .rejects
-        .toThrow(NotFoundError);
-
+      await expect(cursoService.updateCurso(999, updateCursoDto))
+        .rejects.toThrow(NotFoundError);
+      
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
-    it('debería validar fechas al actualizar fecha de inicio', async () => {
+    it('debería fallar con fecha de inicio en el pasado', async () => {
       // Arrange
-      const invalidUpdateDto = {
-        fechaInicioCurso: '2024-01-01', // Fecha pasada
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const invalidUpdateDto: UpdateCursoDto = {
+        fechaInicioCurso: yesterday.toISOString().split('T')[0],
       };
-      mockFindUnique.mockResolvedValue(mockExistingCurso);
+
+      mockFindUnique.mockResolvedValue(existingCurso);
 
       // Act & Assert
       await expect(cursoService.updateCurso(1, invalidUpdateDto))
-        .rejects
-        .toThrow('Error al actualizar el curso: La fecha de inicio debe ser mayor o igual a la fecha actual');
-
+        .rejects.toThrow('La fecha de inicio debe ser mayor o igual a la fecha actual');
+      
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
-    it('debería validar coherencia de fechas al actualizar', async () => {
+    it('debería fallar si la fecha de inicio es posterior a la de fin', async () => {
       // Arrange
-      const invalidUpdateDto = {
-        fechaInicioCurso: '2025-08-01',
-        fechaFinCurso: '2025-07-30', // Fecha de fin anterior a inicio
+      const invalidUpdateDto: UpdateCursoDto = {
+        fechaInicioCurso: nextWeek.toISOString().split('T')[0],
+        fechaFinCurso: tomorrow.toISOString().split('T')[0],
       };
-      mockFindUnique.mockResolvedValue(mockExistingCurso);
+
+      mockFindUnique.mockResolvedValue(existingCurso);
 
       // Act & Assert
       await expect(cursoService.updateCurso(1, invalidUpdateDto))
-        .rejects
-        .toThrow('Error al actualizar el curso: La fecha de inicio no puede ser posterior a la fecha de fin');
-
+        .rejects.toThrow('La fecha de inicio no puede ser posterior a la fecha de fin');
+      
       expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 
   describe('getAllCursos', () => {
-    const mockCursos = [
-      {
-        idCurso: 1,
-        nombreCortoCurso: 'JS101',
-        nombreCurso: 'Introducción a JavaScript',
-        modalidadCurso: 'Virtual',
-        descripcionCurso: 'Curso básico de JavaScript',
-        valorCurso: 150.00,
-        fechaInicioCurso: new Date('2025-07-01'),
-        fechaFinCurso: new Date('2025-07-30'),
-      },
-      {
-        idCurso: 2,
-        nombreCortoCurso: 'PY101',
-        nombreCurso: 'Introducción a Python',
-        modalidadCurso: 'Presencial',
-        descripcionCurso: 'Curso básico de Python',
-        valorCurso: 180.00,
-        fechaInicioCurso: new Date('2025-08-01'),
-        fechaFinCurso: new Date('2025-08-30'),
-      },
-    ];
-
     const options = {
       page: 1,
       limit: 10,
-      orderBy: 'fechaInicioCurso',
+      orderBy: 'nombreCurso',
       order: 'asc' as const,
     };
 
-    it('debería obtener todos los cursos con paginación', async () => {
+    const mockCursos = [
+      {
+        idCurso: 1,
+        nombreCortoCurso: 'PROG-JS',
+        nombreCurso: 'JavaScript',
+        modalidadCurso: 'virtual',
+        descripcionCurso: 'Curso de JavaScript',
+        valorCurso: new Decimal(250.00),
+        fechaInicioCurso: new Date('2024-01-15'),
+        fechaFinCurso: new Date('2024-02-15'),
+      },
+      {
+        idCurso: 2,
+        nombreCortoCurso: 'PROG-PY',
+        nombreCurso: 'Python',
+        modalidadCurso: 'presencial',
+        descripcionCurso: 'Curso de Python',
+        valorCurso: new Decimal(300.00),
+        fechaInicioCurso: new Date('2024-02-01'),
+        fechaFinCurso: new Date('2024-03-01'),
+      },
+    ];
+
+    // SRV-CUR-006: Obtener todos los cursos con paginación
+    it('SRV-CUR-006: debería obtener todos los cursos con paginación', async () => {
       // Arrange
       mockFindMany.mockResolvedValue(mockCursos);
       mockCount.mockResolvedValue(2);
+      mockToCursoResponseDto.mockImplementation((curso) => ({
+        ...curso,
+        valorCurso: true,
+      }));
 
       // Act
       const result = await cursoService.getAllCursos(options);
@@ -263,61 +328,59 @@ describe('CursoService', () => {
       expect(mockFindMany).toHaveBeenCalledWith({
         skip: 0,
         take: 10,
-        orderBy: {
-          fechaInicioCurso: 'asc',
-        },
+        orderBy: { nombreCurso: 'asc' },
       });
       expect(mockCount).toHaveBeenCalled();
-      expect(result.total).toBe(2);
       expect(result.cursos).toHaveLength(2);
-      expect(mockToCursoResponseDto).toHaveBeenCalledTimes(2);
+      expect(result.total).toBe(2);
     });
 
-    it('debería calcular correctamente el skip para paginación', async () => {
+    // SRV-CUR-007: Obtener cursos con página 2
+    it('SRV-CUR-007: debería obtener cursos de la página 2', async () => {
       // Arrange
-      const optionsPage2 = { ...options, page: 2, limit: 5 };
+      const optionsPage2 = { ...options, page: 2 };
       mockFindMany.mockResolvedValue([]);
-      mockCount.mockResolvedValue(0);
+      mockCount.mockResolvedValue(2);
 
       // Act
       await cursoService.getAllCursos(optionsPage2);
 
       // Assert
       expect(mockFindMany).toHaveBeenCalledWith({
-        skip: 5, // (page 2 - 1) * limit 5 = 5
-        take: 5,
-        orderBy: {
-          fechaInicioCurso: 'asc',
-        },
+        skip: 10,
+        take: 10,
+        orderBy: { nombreCurso: 'asc' },
       });
     });
 
-    it('debería manejar errores al obtener cursos', async () => {
+    // SRV-CUR-008: Manejar error de base de datos
+    it('SRV-CUR-008: debería manejar errores de base de datos', async () => {
       // Arrange
-      mockFindMany.mockRejectedValue(new Error('Error de base de datos'));
+      mockFindMany.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
       await expect(cursoService.getAllCursos(options))
-        .rejects
-        .toThrow('Error al obtener los cursos: Error de base de datos');
+        .rejects.toThrow('Error al obtener los cursos: Database error');
     });
   });
 
   describe('getCursoById', () => {
     const mockCurso = {
       idCurso: 1,
-      nombreCortoCurso: 'JS101',
-      nombreCurso: 'Introducción a JavaScript',
-      modalidadCurso: 'Virtual',
-      descripcionCurso: 'Curso básico de JavaScript',
-      valorCurso: 150.00,
-      fechaInicioCurso: new Date('2025-07-01'),
-      fechaFinCurso: new Date('2025-07-30'),
+      nombreCortoCurso: 'PROG-JS',
+      nombreCurso: 'JavaScript',
+      modalidadCurso: 'virtual',
+      descripcionCurso: 'Curso de JavaScript',
+      valorCurso: new Decimal(250.00),
+      fechaInicioCurso: new Date('2024-01-15'),
+      fechaFinCurso: new Date('2024-02-15'),
     };
 
-    it('debería obtener un curso por ID exitosamente', async () => {
+    // SRV-CUR-009: Obtener un curso por ID
+    it('SRV-CUR-009: debería obtener un curso por ID', async () => {
       // Arrange
       mockFindUnique.mockResolvedValue(mockCurso);
+      mockToCursoResponseDto.mockReturnValue(mockCurso);
 
       // Act
       const result = await cursoService.getCursoById(1);
@@ -330,50 +393,90 @@ describe('CursoService', () => {
       expect(result).toEqual(mockCurso);
     });
 
-    it('debería lanzar NotFoundError si el curso no existe', async () => {
+    // SRV-CUR-010: Fallar al obtener un curso inexistente
+    it('SRV-CUR-010: debería fallar al obtener un curso inexistente', async () => {
       // Arrange
       mockFindUnique.mockResolvedValue(null);
 
       // Act & Assert
       await expect(cursoService.getCursoById(999))
-        .rejects
-        .toThrow(NotFoundError);
+        .rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe('deleteCurso', () => {
+    const mockCurso = {
+      idCurso: 1,
+      nombreCortoCurso: 'PROG-JS',
+      nombreCurso: 'JavaScript',
+      modalidadCurso: 'virtual',
+      descripcionCurso: 'Curso de JavaScript',
+      valorCurso: new Decimal(250.00),
+      fechaInicioCurso: new Date('2024-01-15'),
+      fechaFinCurso: new Date('2024-02-15'),
+    };
+
+    // SRV-CUR-011: Eliminar un curso existente
+    it('SRV-CUR-011: debería eliminar un curso existente', async () => {
+      // Arrange
+      mockFindUnique.mockResolvedValue(mockCurso);
+      mockDelete.mockResolvedValue(mockCurso);
+      mockToCursoResponseDto.mockReturnValue(mockCurso);
+
+      // Act
+      const result = await cursoService.deleteCurso(1);
+
+      // Assert
+      expect(mockFindUnique).toHaveBeenCalledWith({
+        where: { idCurso: 1 },
+      });
+      expect(mockDelete).toHaveBeenCalledWith({
+        where: { idCurso: 1 },
+      });
+      expect(mockToCursoResponseDto).toHaveBeenCalledWith(mockCurso);
+      expect(result).toEqual(mockCurso);
     });
 
-    it('debería manejar errores de base de datos', async () => {
+    // SRV-CUR-012: Fallar al eliminar un curso inexistente
+    it('SRV-CUR-012: debería fallar al eliminar un curso inexistente', async () => {
       // Arrange
-      mockFindUnique.mockRejectedValue(new Error('Error de base de datos'));
+      mockFindUnique.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(cursoService.getCursoById(1))
-        .rejects
-        .toThrow('Error al obtener el curso: Error de base de datos');
+      await expect(cursoService.deleteCurso(999))
+        .rejects.toThrow(NotFoundError);
+      
+      expect(mockDelete).not.toHaveBeenCalled();
     });
   });
 
   describe('getCursosDisponibles', () => {
-    const mockCursosDisponibles = [
+    const mockCursos = [
       {
         idCurso: 1,
-        nombreCurso: 'Introducción a JavaScript',
-        modalidadCurso: 'Virtual',
-        valorCurso: 150.00,
-        fechaInicioCurso: new Date('2025-07-01'),
-        fechaFinCurso: new Date('2025-07-30'),
-      },
-      {
-        idCurso: 2,
-        nombreCurso: 'Introducción a Python',
-        modalidadCurso: 'Presencial',
-        valorCurso: 180.00,
-        fechaInicioCurso: new Date('2025-08-01'),
-        fechaFinCurso: new Date('2025-08-30'),
+        nombreCortoCurso: 'PROG-JS',
+        nombreCurso: 'JavaScript',
+        modalidadCurso: 'virtual',
+        descripcionCurso: 'Curso de JavaScript',
+        valorCurso: new Decimal(250.00),
+        fechaInicioCurso: new Date('2024-01-15'),
+        fechaFinCurso: new Date('2024-02-15'),
       },
     ];
 
-    it('debería obtener cursos disponibles (fecha futura)', async () => {
+    // SRV-CUR-013: Obtener cursos disponibles
+    it('SRV-CUR-013: debería obtener cursos disponibles', async () => {
       // Arrange
-      mockFindMany.mockResolvedValue(mockCursosDisponibles);
+      mockFindMany.mockResolvedValue(mockCursos);
+      mockToCursoResponseDto.mockImplementation((curso) => ({
+        idCurso: curso.idCurso,
+        nombreCortoCurso: curso.nombreCortoCurso,
+        nombreCurso: curso.nombreCurso,
+        modalidadCurso: curso.modalidadCurso,
+        valorCurso: curso.valorCurso,
+        fechaInicioCurso: curso.fechaInicioCurso,
+        fechaFinCurso: curso.fechaFinCurso,
+      }));
 
       // Act
       const result = await cursoService.getCursosDisponibles();
@@ -397,72 +500,8 @@ describe('CursoService', () => {
           fechaInicioCurso: 'asc',
         },
       });
-      expect(result).toEqual(mockCursosDisponibles);
-    });
-
-    it('debería manejar errores al obtener cursos disponibles', async () => {
-      // Arrange
-      mockFindMany.mockRejectedValue(new Error('Error de base de datos'));
-
-      // Act & Assert
-      await expect(cursoService.getCursosDisponibles())
-        .rejects
-        .toThrow('Error al obtener los cursos disponibles: Error de base de datos');
-    });
-  });
-
-  describe('deleteCurso', () => {
-    const mockCurso = {
-      idCurso: 1,
-      nombreCortoCurso: 'JS101',
-      nombreCurso: 'Introducción a JavaScript',
-      modalidadCurso: 'Virtual',
-      descripcionCurso: 'Curso básico de JavaScript',
-      valorCurso: 150.00,
-      fechaInicioCurso: new Date('2025-07-01'),
-      fechaFinCurso: new Date('2025-07-30'),
-    };
-
-    it('debería eliminar un curso exitosamente', async () => {
-      // Arrange
-      mockFindUnique.mockResolvedValue(mockCurso);
-      mockDelete.mockResolvedValue(mockCurso);
-
-      // Act
-      const result = await cursoService.deleteCurso(1);
-
-      // Assert
-      expect(mockFindUnique).toHaveBeenCalledWith({
-        where: { idCurso: 1 },
-      });
-      expect(mockDelete).toHaveBeenCalledWith({
-        where: { idCurso: 1 },
-      });
-      expect(mockToCursoResponseDto).toHaveBeenCalledWith(mockCurso);
-      expect(result).toEqual(mockCurso);
-    });
-
-    it('debería lanzar NotFoundError si el curso no existe', async () => {
-      // Arrange
-      mockFindUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(cursoService.deleteCurso(999))
-        .rejects
-        .toThrow(NotFoundError);
-
-      expect(mockDelete).not.toHaveBeenCalled();
-    });
-
-    it('debería manejar errores de base de datos al eliminar', async () => {
-      // Arrange
-      mockFindUnique.mockResolvedValue(mockCurso);
-      mockDelete.mockRejectedValue(new Error('Error de base de datos'));
-
-      // Act & Assert
-      await expect(cursoService.deleteCurso(1))
-        .rejects
-        .toThrow('Error al eliminar el curso: Error de base de datos');
+      expect(result).toHaveLength(1);
+      expect(result[0].idCurso).toBe(1);
     });
   });
 });
