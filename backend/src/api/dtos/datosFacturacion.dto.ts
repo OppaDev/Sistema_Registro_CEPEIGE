@@ -6,10 +6,11 @@ import {
   IsEmail,
 } from "class-validator";
 
+
 export class CreateDatosFacturacionDto {
   @IsString()
   @IsNotEmpty({ message: "La razón social es requerida" })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, {
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-.&0-9]+$/, {
     message:
       "La razón social solo puede contener letras, números, espacios y algunos caracteres especiales permitidos (- . &)",
   })
@@ -21,7 +22,7 @@ export class CreateDatosFacturacionDto {
 
   @IsString()
   @IsNotEmpty({ message: "El teléfono es requerido" })
-  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+  @Matches(/^(\+\d{1,4})?[\s-]?(\(?\d{1,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}$/, {
     message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
   })
   telefono!: string;
@@ -38,7 +39,7 @@ export class CreateDatosFacturacionDto {
 export class UpdateDatosFacturacionDto {
   @IsString()
   @IsOptional()
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, {
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-.&0-9]+$/, {
     message:
       "La razón social solo puede contener letras, números, espacios y algunos caracteres especiales permitidos (- . &)",
   })
@@ -50,7 +51,7 @@ export class UpdateDatosFacturacionDto {
 
   @IsString()
   @IsOptional()
-  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+  @Matches(/^(\+\d{1,4})?[\s-]?(\(?\d{1,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}$/, {
     message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
   })
   telefono?: string;

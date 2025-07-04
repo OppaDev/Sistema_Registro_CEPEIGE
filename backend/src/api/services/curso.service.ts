@@ -21,19 +21,24 @@ interface GetAllCursosOptions {
 export class CursoService {  
   async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
     try {      // Validar que la fecha de inicio no sea mayor que la fecha de fin
-      const fechaInicio = new Date(cursoData.fechaInicioCurso);
-      const fechaFin = new Date(cursoData.fechaFinCurso);
+      // Para strings en formato YYYY-MM-DD, usar la zona horaria local
+      const datePartsInicio = cursoData.fechaInicioCurso.split('-');
+      const fechaInicioLocal = new Date(parseInt(datePartsInicio[0]), parseInt(datePartsInicio[1]) - 1, parseInt(datePartsInicio[2]));
+      
+      const datePartsFin = cursoData.fechaFinCurso.split('-');
+      const fechaFinLocal = new Date(parseInt(datePartsFin[0]), parseInt(datePartsFin[1]) - 1, parseInt(datePartsFin[2]));
+      
       const hoy = new Date();
       
-      // Normalizar fecha de hoy para comparar solo día, mes y año
-      hoy.setHours(0, 0, 0, 0);
-      fechaInicio.setHours(0, 0, 0, 0);
+      // Normalizar fechas para comparar solo día, mes y año
+      const todayNormalized = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+      const fechaInicioNormalized = new Date(fechaInicioLocal.getFullYear(), fechaInicioLocal.getMonth(), fechaInicioLocal.getDate());
 
-      if (fechaInicio < hoy) {
+      if (fechaInicioNormalized < todayNormalized) {
         throw new Error('La fecha de inicio debe ser mayor o igual a la fecha actual');
       }
 
-      if (fechaInicio > fechaFin) {
+      if (fechaInicioLocal > fechaFinLocal) {
         throw new Error('La fecha de inicio no puede ser posterior a la fecha de fin');
       }
 
@@ -44,8 +49,8 @@ export class CursoService {
           modalidadCurso: cursoData.modalidadCurso,
           descripcionCurso: cursoData.descripcionCurso,
           valorCurso: cursoData.valorCurso,
-          fechaInicioCurso: fechaInicio,
-          fechaFinCurso: fechaFin,        },
+          fechaInicioCurso: fechaInicioLocal,
+          fechaFinCurso: fechaFinLocal,        },
       });
       return toCursoResponseDto(curso);
     } catch (error) {
