@@ -7,7 +7,8 @@ import {
 } from "class-validator";
 import { IsCiPasaporte } from "@/utils/validators/ciPasaporte.validator";
 
-export class CreateDatosPersonalesDto {  @IsString()
+export class CreateDatosPersonalesDto {
+  @IsString()
   @IsNotEmpty({ message: "CI o Pasaporte es requerido" })
   @IsCiPasaporte({ 
     message: "Debe ingresar una cédula ecuatoriana válida (10 dígitos) o un pasaporte válido (6-9 caracteres alfanuméricos en mayúsculas)" 
@@ -30,7 +31,7 @@ export class CreateDatosPersonalesDto {  @IsString()
 
   @IsString()
   @IsNotEmpty({ message: "El número de telefono es requerido" })
-  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+  @Matches(/^(\+\d{1,4})?[\s-]?(\(?\d{1,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}$/, {
     message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
   })
   numTelefono!: string;
@@ -96,7 +97,7 @@ export class UpdateDatosPersonalesDto {
 
   @IsString()
   @IsOptional()
-  @Matches(/^(\+\d{1,4})?[\s\-]?(\(?\d{1,4}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{3,4}$/, {
+  @Matches(/^(\+\d{1,4})?[\s-]?(\(?\d{1,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}$/, {
     message: "El formato del teléfono no es válido. Formatos aceptados: +1234567890, +1 234 567 890, (123) 456-7890, 123-456-7890",
   })
   numTelefono?: string;
