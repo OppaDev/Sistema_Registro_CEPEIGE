@@ -1,10 +1,10 @@
 import { Application, Router, Request, Response } from 'express';
-import cursoRoutes from './curso.routes';
-import datosPersonalesRoutes from './datosPersonales.routes';
-import datosFacturacionRoutes from './datosFacturacion.routes';
-import comprobanteRoutes from './comprobante.routes';
-import inscripcionRoutes from './inscripcion.routes';
-import descuentoRoutes from './descuento.routes';
+import cursoRoutes from './inscripcionRoute/curso.routes';
+import datosPersonalesRoutes from './inscripcionRoute/datosPersonales.routes';
+import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
+import comprobanteRoutes from './inscripcionRoute/comprobante.routes';
+import inscripcionRoutes from './inscripcionRoute/inscripcion.routes';
+import descuentoRoutes from './inscripcionRoute/descuento.routes';
 
 
 export const configureRoutes = (app: Application): void => {
