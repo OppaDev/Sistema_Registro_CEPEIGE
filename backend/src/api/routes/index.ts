@@ -5,10 +5,17 @@ import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
 import comprobanteRoutes from './inscripcionRoute/comprobante.routes';
 import inscripcionRoutes from './inscripcionRoute/inscripcion.routes';
 import descuentoRoutes from './inscripcionRoute/descuento.routes';
+import authRoutes from './authRoute/auth.routes';
+import usuarioRoutes from './authRoute/usuario.routes';
 
 
 export const configureRoutes = (app: Application): void => {
   const apiRouter = Router();
+  
+  // Rutas de autenticación (públicas y protegidas)
+  apiRouter.use('/auth', authRoutes);
+  apiRouter.use('/usuarios', usuarioRoutes);
+  
   // Rutas de curso
   apiRouter.use('/cursos', cursoRoutes);
   // Rutas de datos personales
