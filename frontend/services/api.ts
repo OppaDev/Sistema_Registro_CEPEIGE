@@ -35,4 +35,18 @@ api.interceptors.response.use(
   }
 );
 
+
+// Función de login para autenticación
+export async function login(email: string, password: string) {
+  try {
+    const response = await api.post('/auth/login', { email, password });
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      return error.response.data;
+    }
+    return { message: 'Error de red o servidor' };
+  }
+}
+
 export default api;
