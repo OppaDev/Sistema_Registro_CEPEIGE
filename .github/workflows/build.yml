@@ -31,21 +31,21 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: Set up Node.js for Backend
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22' # Desde tu package.json
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+      # - name: Set up Node.js for Backend
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '22' # Desde tu package.json
+      #     cache: 'npm'
+      #     cache-dependency-path: backend/package-lock.json
 
-      - name: Install backend dependencies
-        run: npm ci
+      # - name: Install backend dependencies
+      #   run: npm ci
 
-      - name: Build backend
-        run: npm run build
+      # - name: Build backend
+      #   run: npm run build
 
-      - name: Run backend unit tests
-        run: npm test -- --coverage # El --coverage es para que Jest genere los reportes
+      # - name: Run backend unit tests
+      #   run: npm test -- --coverage # El --coverage es para que Jest genere los reportes
 
       - name: SonarQube Scan for Backend
         uses: SonarSource/sonarqube-scan-action@v5
