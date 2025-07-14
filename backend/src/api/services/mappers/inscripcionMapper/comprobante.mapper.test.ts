@@ -1,6 +1,6 @@
 import { Comprobante as PrismaComprobante } from "@prisma/client";
 import { ComprobanteResponseDto } from "@/api/dtos/inscripcionDto/comprobante.dto";
-import { toComprobanteResponseDto } from "../comprobante.mapper";
+import { toComprobanteResponseDto } from "./comprobante.mapper";
 
 describe('A. Mapper toComprobanteResponseDto', () => {
   describe('Casos de Mapeo Básico', () => {

@@ -25,7 +25,7 @@ jest.mock('@/api/services/mappers/datosFacturacion.mapper', () => ({
   toDatosFacturacionResponseDto: mockToDatosFacturacionResponseDto,
 }));
 
-import { DatosFacturacionService } from '../datosFacturacion.service';
+import { DatosFacturacionService } from './datosFacturacion.service';
 import { CreateDatosFacturacionDto, UpdateDatosFacturacionDto } from '@/api/dtos/inscripcionDto/datosFacturacion.dto';
 import { NotFoundError } from '@/utils/errorTypes';
 
