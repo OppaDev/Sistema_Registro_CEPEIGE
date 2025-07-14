@@ -1,14 +1,21 @@
 import { Application, Router, Request, Response } from 'express';
-import cursoRoutes from './curso.routes';
-import datosPersonalesRoutes from './datosPersonales.routes';
-import datosFacturacionRoutes from './datosFacturacion.routes';
-import comprobanteRoutes from './comprobante.routes';
-import inscripcionRoutes from './inscripcion.routes';
-import descuentoRoutes from './descuento.routes';
+import cursoRoutes from './inscripcionRoute/curso.routes';
+import datosPersonalesRoutes from './inscripcionRoute/datosPersonales.routes';
+import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
+import comprobanteRoutes from './inscripcionRoute/comprobante.routes';
+import inscripcionRoutes from './inscripcionRoute/inscripcion.routes';
+import descuentoRoutes from './inscripcionRoute/descuento.routes';
+import authRoutes from './authRoute/auth.routes';
+import usuarioRoutes from './authRoute/usuario.routes';
 
 
 export const configureRoutes = (app: Application): void => {
   const apiRouter = Router();
+  
+  // Rutas de autenticación (públicas y protegidas)
+  apiRouter.use('/auth', authRoutes);
+  apiRouter.use('/usuarios', usuarioRoutes);
+  
   // Rutas de curso
   apiRouter.use('/cursos', cursoRoutes);
   // Rutas de datos personales
