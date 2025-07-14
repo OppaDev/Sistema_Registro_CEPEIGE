@@ -22,7 +22,7 @@ async function main() {
     update: {},
     create: { 
       nombreRol: 'Admin', 
-      descripcionRol: 'Administrador del sistema - Puede gestionar cursos, inscripciones y reportes' 
+      descripcionRol: 'Administrador del sistema - Puede gestionar cursos, inscripciones, datos personales y facturación' 
     },
   });
 
@@ -31,7 +31,7 @@ async function main() {
     update: {},
     create: { 
       nombreRol: 'Contador', 
-      descripcionRol: 'Contador - Acceso a datos de facturación, pagos y reportes financieros' 
+      descripcionRol: 'Contador - Acceso a datos de facturación y verificación de pagos' 
     },
   });
 
@@ -85,10 +85,6 @@ async function main() {
     { nombrePermiso: 'leer:descuentos', descripcionPermiso: 'Ver descuentos', recurso: 'descuentos', accion: 'leer' },
     { nombrePermiso: 'actualizar:descuento', descripcionPermiso: 'Actualizar descuentos', recurso: 'descuentos', accion: 'actualizar' },
     { nombrePermiso: 'eliminar:descuento', descripcionPermiso: 'Eliminar descuentos', recurso: 'descuentos', accion: 'eliminar' },
-    
-    // Reportes
-    { nombrePermiso: 'leer:reportes', descripcionPermiso: 'Ver reportes del sistema', recurso: 'reportes', accion: 'leer' },
-    { nombrePermiso: 'leer:reportes-financieros', descripcionPermiso: 'Ver reportes financieros', recurso: 'reportes', accion: 'financieros' },
   ];
 
   const permisosCreados: any[] = [];
@@ -132,8 +128,7 @@ async function main() {
     'crear:datos-personales', 'leer:datos-personales', 'actualizar:datos-personales', 'eliminar:datos-personales',
     'crear:facturacion', 'leer:facturacion', 'actualizar:facturacion', 'eliminar:facturacion',
     'crear:comprobante', 'leer:comprobantes', 'eliminar:comprobante',
-    'crear:descuento', 'leer:descuentos', 'actualizar:descuento', 'eliminar:descuento',
-    'leer:reportes'
+    'crear:descuento', 'leer:descuentos', 'actualizar:descuento', 'eliminar:descuento'
   ];
 
   for (const nombrePermiso of permisosAdmin) {
@@ -161,7 +156,7 @@ async function main() {
     'leer:datos-personales', // Solo lectura de datos personales
     'crear:facturacion', 'leer:facturacion', 'actualizar:facturacion', 'verificar:pago',
     'leer:comprobantes', // Ver comprobantes pero no subirlos
-    'leer:reportes', 'leer:reportes-financieros'
+    'leer:reportes'
   ];
 
   for (const nombrePermiso of permisosContador) {

@@ -21,7 +21,8 @@ export const configureRoutes = (app: Application): void => {
   // Rutas de datos personales
   apiRouter.use('/datos-personales', datosPersonalesRoutes);
   // Rutas de datos de facturación
-  apiRouter.use('/datos-facturacion', datosFacturacionRoutes);  // Rutas de comprobantes
+  apiRouter.use('/datos-facturacion', datosFacturacionRoutes);  
+  // Rutas de comprobantes
   apiRouter.use('/comprobantes', comprobanteRoutes);
   // Rutas de inscripciones
   apiRouter.use('/inscripciones', inscripcionRoutes);
