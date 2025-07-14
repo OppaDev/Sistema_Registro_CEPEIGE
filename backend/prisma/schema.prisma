@@ -119,3 +119,92 @@ model Comprobante {
 
   @@map("comprobante")
 }
+
+model Usuario {
+  idUsuario         Int       @id @default(autoincrement()) @map("id_usuario")
+  email             String    @unique @map("email") @db.VarChar(100)
+  password          String    @map("password") @db.VarChar(255)
+  nombres           String    @map("nombres") @db.VarChar(100)
+  apellidos         String    @map("apellidos") @db.VarChar(100)
+  activo            Boolean   @default(true) @map("activo")
+  fechaCreacion     DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion") @db.Timestamp(6)
+  ultimoAcceso      DateTime? @map("ultimo_acceso") @db.Timestamp(6)
+  
+  // Relaciones
+  roles             UsuarioRol[]
+  sesiones          SesionUsuario[]
+  
+  @@map("usuario")
+}
+
+model Rol {
+  idRol             Int       @id @default(autoincrement()) @map("id_rol")
+  nombreRol         String    @unique @map("nombre_rol") @db.VarChar(50)
+  descripcionRol    String    @map("descripcion_rol") @db.VarChar(255)
+  activo            Boolean   @default(true) @map("activo")
+  fechaCreacion     DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  
+  // Relaciones
+  usuarios          UsuarioRol[]
+  permisos          RolPermiso[]
+  
+  @@map("rol")
+}
+
+model UsuarioRol {
+  idUsuario         Int      @map("id_usuario")
+  idRol             Int      @map("id_rol")
+  fechaAsignacion   DateTime @default(now()) @map("fecha_asignacion") @db.Timestamp(6)
+  activo            Boolean  @default(true) @map("activo")
+  
+  // Relaciones
+  usuario           Usuario  @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  rol               Rol      @relation(fields: [idRol], references: [idRol], onDelete: Cascade)
+  
+  @@id([idUsuario, idRol])
+  @@map("usuario_rol")
+}
+
+model Permiso {
+  idPermiso         Int       @id @default(autoincrement()) @map("id_permiso")
+  nombrePermiso     String    @unique @map("nombre_permiso") @db.VarChar(100)
+  descripcionPermiso String   @map("descripcion_permiso") @db.VarChar(255)
+  recurso           String    @map("recurso") @db.VarChar(100) // ej: "cursos", "inscripciones", "usuarios"
+  accion            String    @map("accion") @db.VarChar(50)   // ej: "crear", "leer", "actualizar", "eliminar"
+  activo            Boolean   @default(true) @map("activo")
+  
+  // Relaciones
+  roles             RolPermiso[]
+  
+  @@map("permiso")
+}
+
+model RolPermiso {
+  idRol             Int      @map("id_rol")
+  idPermiso         Int      @map("id_permiso")
+  fechaAsignacion   DateTime @default(now()) @map("fecha_asignacion") @db.Timestamp(6)
+  
+  // Relaciones
+  rol               Rol      @relation(fields: [idRol], references: [idRol], onDelete: Cascade)
+  permiso           Permiso  @relation(fields: [idPermiso], references: [idPermiso], onDelete: Cascade)
+  
+  @@id([idRol, idPermiso])
+  @@map("rol_permiso")
+}
+
+model SesionUsuario {
+  idSesion          String   @id @default(cuid()) @map("id_sesion")
+  idUsuario         Int      @map("id_usuario")
+  tokenRefresh      String   @unique @map("token_refresh") @db.VarChar(500)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaExpiracion   DateTime @map("fecha_expiracion") @db.Timestamp(6)
+  activo            Boolean  @default(true) @map("activo")
+  ipAddress         String?  @map("ip_address") @db.VarChar(45)
+  userAgent         String?  @map("user_agent") @db.VarChar(500)
+  
+  // Relaciones
+  usuario           Usuario  @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  
+  @@map("sesion_usuario")
+}
