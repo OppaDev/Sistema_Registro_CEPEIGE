@@ -40,6 +40,10 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
   userType,
   onDeleteInscription // 🆕 NUEVA PROP
 }) => {
+  const tableKey = React.useMemo(() => {
+    return `table-${inscriptions.length}-${Date.now()}-${JSON.stringify(inscriptions.map(i => i.idInscripcion))}`;
+  }, [inscriptions]);
+
   const getStatusBadge = (estado: string) => {
     const { color, text, bgColor } = inscriptionService.getStatusBadge(estado);
     return (
@@ -70,13 +74,13 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
   }
 
   return (
-    <Card>
-      <CardHeader style={{ backgroundColor: '#F3762B' }} className="text-white">
-        <CardTitle className="text-xl font-bold flex items-center">
-          <FileText className="h-6 w-6 mr-2" />
+     <Card key={tableKey}>
+      <CardHeader style={{ backgroundColor: '#F3762B' }} className="text-white p-4 lg:p-6">
+       <CardTitle className="text-lg lg:text-xl font-bold flex items-center">
+          <FileText className="h-5 w-5 lg:h-6 lg:w-6 mr-2" />
           Inscripciones Registradas
         </CardTitle>
-        <p className="text-orange-100">
+        <p className="text-orange-100 text-sm lg:text-base">
           Mostrando {startItem} - {endItem} de {totalItems} inscripciones
         </p>
       </CardHeader>
@@ -97,28 +101,28 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
         ) : (
           <>
             <div className="overflow-x-auto">
-              <Table>
+             <Table className="min-w-full">
                 <TableHeader>
                   <TableRow style={{ backgroundColor: '#02549E' }}>
                    {/* <TableHead className="text-white font-semibold">ID</TableHead> */}
-                    <TableHead className="text-white font-semibold">Participante</TableHead>
-                    <TableHead className="text-white font-semibold">Nombre/correo</TableHead>
-                    <TableHead className="text-white font-semibold">CI/Pasaporte</TableHead>
-                    <TableHead className="text-white font-semibold">Teléfono</TableHead>
-                    <TableHead className="text-white font-semibold">País</TableHead>
-                    <TableHead className="text-white font-semibold">Profesión</TableHead>
-                    <TableHead className="text-white font-semibold">Curso</TableHead>
-                    <TableHead className="text-white font-semibold">Precio</TableHead>
-                    <TableHead className="text-white font-semibold">Fecha Inscripción</TableHead>
-                    <TableHead className="text-white font-semibold">Estado</TableHead>
-                    <TableHead className="text-white font-semibold">Comprobante</TableHead>
-                    <TableHead className="text-white font-semibold text-center">Ver Detalles</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Participante</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Nombre/correo</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">CI/Pasaporte</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Teléfono</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">País</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Profesión</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Curso</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Precio</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Fecha</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Estado</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Comprobante</TableHead>
+                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap text-center">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {inscriptions.map((inscription, index) => (
                     <TableRow 
-                      key={inscription.idInscripcion}
+                      key={`inscription-${inscription.idInscripcion}-${inscription.fechaInscripcion}-${index}`}
                       className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                     >
                       <TableCell className="font-medium">
@@ -254,25 +258,25 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                           
                            {/* 🆕 BOTÓN ELIMINAR */}
                               {userType === 'admin' && (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onDeleteInscription(inscription)}
-        disabled={!inscriptionService.isInscriptionDeletable(inscription)}
-        className={`h-8 w-8 p-0 ${
-          inscriptionService.isInscriptionDeletable(inscription)
-            ? 'hover:bg-red-50 text-red-600'
-            : 'text-gray-400 cursor-not-allowed'
-        }`}
-        title={
-          inscriptionService.isInscriptionDeletable(inscription)
-            ? 'Eliminar inscripción'
-            : 'Solo se pueden eliminar inscripciones pendientes'
-        }
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => onDeleteInscription(inscription)}
+                                  disabled={!inscriptionService.isInscriptionDeletable(inscription)}
+                                  className={`h-8 w-8 p-0 ${
+                                    inscriptionService.isInscriptionDeletable(inscription)
+                                      ? 'hover:bg-red-50 text-red-600'
+                                      : 'text-gray-400 cursor-not-allowed'
+                                  }`}
+                                  title={
+                                    inscriptionService.isInscriptionDeletable(inscription)
+                                      ? 'Eliminar inscripción'
+                                      : 'Solo se pueden eliminar inscripciones pendientes'
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
 
                         </div>
                       </TableCell>

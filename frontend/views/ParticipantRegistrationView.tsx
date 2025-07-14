@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FormInput } from './components/FormInput';
 import { BillingForm } from './components/BillingForm';
 import { PaymentReceiptUpload } from './components/PaymentReceiptUpload';
-import { CourseView } from './CourseView';
+import CourseView from './CourseView';
 
 export default function ParticipantRegistrationView() {
   const {
@@ -177,11 +177,10 @@ export default function ParticipantRegistrationView() {
               <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</span>
               <h2 className="text-xl font-semibold text-gray-800">Selecciona tu curso</h2>
             </div>
-            
+            {/* Mostrar cursos disponibles */}
             <CourseView
               onCourseSelect={handleCourseSelect}
               selectedCourseId={formData.selectedCourse?.courseId}
-              error={fieldErrors.selectedCourse}
             />
           </div>
         )}

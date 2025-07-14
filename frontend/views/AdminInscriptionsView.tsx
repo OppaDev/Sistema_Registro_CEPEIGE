@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Edit } from 'lucide-react';
 import { EditInscriptionModal } from './components/EditInscriptionModal';
 import { DeleteInscriptionModal } from './components/DeleteInscriptionModal';
+import { EditInscriptionRequest } from '@/models/inscription';
 
 
 export default function AdminInscriptionsView() {
@@ -42,28 +43,35 @@ export default function AdminInscriptionsView() {
     closeDeleteModal,
   } = useInscriptionController();
 
-   const [refreshKey, setRefreshKey] = React.useState(0);
+  const [forceRenderKey, setForceRenderKey] = React.useState(0);
 
   const handleRefresh = () => {
     setMessage(null);
-    setRefreshKey(prev => prev + 1); // 🆕 INCREMENTAR KEY
+    setForceRenderKey(prev => prev + 1); // 🆕 INCREMENTAR KEY
     refreshInscriptions();
   };
 
   // 🆕 EFECTO PARA ACTUALIZAR KEY CUANDO CAMBIAN LAS INSCRIPCIONES
   React.useEffect(() => {
-    setRefreshKey(prev => prev + 1);
-  }, [inscriptions.length, totalItems]);
+    setForceRenderKey(prev => prev + 1);
+  }, [inscriptions, totalItems]);
+  const handleUpdateInscription = React.useCallback(async (updateData: EditInscriptionRequest) => {
+    await updateInscription(updateData);
+    // Forzar re-render adicional después de un pequeño delay
+    setTimeout(() => {
+      setForceRenderKey(prev => prev + 1);
+    }, 200);
+  }, [updateInscription]);
 
 
   return (
     <AdminLayout userType="admin" activeModule="inscripciones">
       <div className="space-y-6">
         {/* Encabezado simplificado */}
-        <div className="flex items-center justify-between">
+       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
             <h1 
-              className="text-3xl font-bold"
+              className="text-2xl lg:text-3xl font-bold"
               style={{ 
                 color: '#000000',
                 fontFamily: 'Montserrat, sans-serif',
@@ -72,7 +80,7 @@ export default function AdminInscriptionsView() {
             >
               Inscripciones Registradas
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm lg:text-base">
               Consulta la información registrada por los participantes
             </p>
           </div>
@@ -82,7 +90,7 @@ export default function AdminInscriptionsView() {
               onClick={handleRefresh}
               disabled={loading}
               variant="outline"
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 w-full lg:w-auto"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span>Actualizar</span>
@@ -91,11 +99,11 @@ export default function AdminInscriptionsView() {
         </div>
 
         {/* QUITAR: Estadísticas rápidas - Solo mostrar total */}
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-white rounded-lg border p-4 lg:p-6">
           <div className="flex items-center justify-center">
             <div className="text-center">
               <p className="text-sm font-medium text-gray-600">Total de Inscripciones</p>
-              <p className="text-4xl font-bold mt-2" style={{ color: '#0367A6' }}>
+               <p className="text-3xl lg:text-4xl font-bold mt-2" style={{ color: '#0367A6' }}>
                 {totalItems}
               </p>
             </div>
@@ -125,7 +133,7 @@ export default function AdminInscriptionsView() {
 
         {/* Tabla de inscripciones */}
           <InscriptionTable
-          key={`inscriptions-${inscriptions.length}-${totalItems}-${currentPage}`}
+          key={`admin-inscriptions-${forceRenderKey}-${inscriptions.length}-${totalItems}-${currentPage}`}
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}
@@ -147,6 +155,7 @@ export default function AdminInscriptionsView() {
         />
         {/* 🆕 NUEVO MODAL DE EDICIÓN */}
         <EditInscriptionModal
+          key={`edit-modal-${selectedInscriptionForEdit?.idInscripcion || 'new'}-${forceRenderKey}`}
           inscription={selectedInscriptionForEdit}
           isOpen={isEditModalOpen}
           onClose={closeEditModal}

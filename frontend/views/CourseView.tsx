@@ -140,9 +140,9 @@ export function CourseView({
                       <div className="text-right">
                         <span className="text-2xl font-bold text-orange-600">
                           {new Intl.NumberFormat('es-EC', {
-  style: 'currency',
-  currency: 'USD'
-}).format(Number(course.valorCurso))}
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(Number(course.valorCurso))}
                         </span>
                       </div>
                     </div>
@@ -169,9 +169,11 @@ export function CourseView({
                         <span>Duración: {duration} días</span>
                       </div>
                        <div className="flex items-center">
-    <span className="mr-1">🎯</span>
-    <span>Modalidad: {course.modalidadCurso}</span>
-  </div>
+                          <span className="mr-1">🎯</span>
+                          <span>
+                            Modalidad: {course.modalidadCurso}
+                          </span>
+                        </div>
                     </div>
                     
                     {/* Indicador de selección */}

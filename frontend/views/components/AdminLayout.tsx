@@ -2,6 +2,7 @@
 import React from 'react';
 import { Users, FileText, Settings, LogOut,BookOpen             } from 'lucide-react';
 
+
 interface AdminLayoutProps {
   children: React.ReactNode;
   userType: 'admin' | 'accountant';
@@ -16,23 +17,23 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const userTypeText = userType === 'admin' ? 'Administrador' : 'Contador';
 
   const menuItems = [
-    {
-      id: 'inscripciones',
-      label: 'Inscripciones',
-      icon: <Users className="h-5 w-5" />,
-      href: userType === 'admin' ? '/inscripciones_admin' : '/inscripciones_contador'
-    }
-   
-   
-  ];
-   if (userType === 'admin') {
-    menuItems.push({
-      id: 'cursos',
-      label: 'Gestión de Cursos',
-      icon: <BookOpen className="h-5 w-5" />,
-      href: '/cursos_admin'
-    });
+  {
+    id: 'inscripciones',
+    label: 'Inscripciones',
+    icon: <Users className="h-5 w-5" />,
+    href: userType === 'admin' ? '/inscripciones_admin' : '/inscripciones_contador'
   }
+];
+
+// 🆕 AGREGAR CURSOS SOLO PARA ADMIN
+if (userType === 'admin') {
+  menuItems.push({
+    id: 'cursos',
+    label: 'Gestión de Cursos',
+    icon: <BookOpen className="h-5 w-5" />,
+    href: '/cursos_admin'
+  });
+}
   
 
   return (
@@ -79,26 +80,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
         <aside 
-          className="w-64 min-h-screen shadow-sm"
+          className="w-full lg:w-64 min-h-screen shadow-sm lg:min-h-screen"
           style={{ backgroundColor: '#0367A6' }}
         >
-          <nav className="p-6">
-            <div className="space-y-3">
+          <nav className="p-4 lg:p-6">
+           <div className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-3 overflow-x-auto lg:overflow-x-visible">
               {menuItems.map((item) => (
                 <a
                   key={item.id}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                 className={`flex items-center space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg transition-all duration-200 whitespace-nowrap ${
                     activeModule === item.id
                       ? 'bg-white text-gray-900 shadow-md'
                       : 'text-white hover:bg-white hover:bg-opacity-10'
                   }`}
                 >
                   {item.icon}
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-sm lg:text-base">{item.label}</span>
                 </a>
               ))}
             </div>
@@ -106,7 +107,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </aside>
 
         {/* Contenido principal */}
-        <main className="flex-1 p-6">
+         <main className="flex-1 p-4 lg:p-6">
           {children}
         </main>
       </div>

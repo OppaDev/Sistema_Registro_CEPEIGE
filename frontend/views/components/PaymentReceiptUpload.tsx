@@ -102,8 +102,31 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Información de pago */}
-         
-
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h4 className="font-semibold text-blue-800 mb-2 flex items-center">
+              💳 Información de Pago
+            </h4>
+            <ul className="text-sm text-blue-700 space-y-1 list-disc pl-5">
+              <li>
+                <span className="font-medium">Transferencias bancarias:</span>
+                <ul className="list-disc pl-5">
+                  <li>Revisa la imagen donde se muestra la cuenta bancaria a la que deberás realizar la transferencia.</li>
+                  <li>Asegúrate de confirmar que los datos (número de cuenta, banco, etc.) sean correctos.</li>
+                  <li>Una vez realizada la transferencia, adjunta el comprobante de pago.</li>
+                </ul>
+              </li>
+              <li className="mt-2">
+                <span className="font-medium">Pago con tarjeta de Crédito:</span>
+                <ul className="list-disc pl-5">
+                  <li>Si deseas pagar con tarjeta de crédito, solicita el enlace de pago <span className="text-blue-600 font-semibold underline cursor-pointer">AQUÍ</span>.</li>
+                  <li>Espera la respuesta del Jefe Académico, ya que se te enviará un enlace de pago seguro.</li>
+                  <li>Realiza el Pago.</li>
+                  <li>Guarda el comprobante digital o la captura de la pantalla que indique que el pago se ha realizado correctamente.</li>
+                  <li>Adjunta el Comprobante en el Formulario de Inscripción.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
           {/* Área de carga de archivo */}
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">

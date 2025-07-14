@@ -168,6 +168,7 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    
     if (!inscription || !validateForm()) return;
 
     const updateData: EditInscriptionRequest = {
@@ -447,13 +448,13 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                       onChange={(e) => handleCourseChange(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value={inscription.curso.idCurso}>
+                      <option key={`current-${inscription.curso.idCurso}`} value={inscription.curso.idCurso}>
                         {inscription.curso.nombreCurso} (Actual)
                       </option>
                       {availableCourses
                         .filter(course => course.id !== inscription.curso.idCurso)
                         .map(course => (
-                          <option key={course.id} value={course.id}>
+                          <option key={`course-${course.id}`} value={course.id}>
                             {course.nombre} - ${course.precio}
                           </option>
                         ))}
@@ -497,3 +498,5 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
     </div>
   );
 };
+
+

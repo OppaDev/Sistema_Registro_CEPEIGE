@@ -1,48 +1,174 @@
-// services/courseService.ts 
+// services/courseService.ts - ACTUALIZAR SERVICIO COMPLETO
 import { api } from './api';
-import { Course, CourseAvailable } from '@/models/course';
- // Asegúrate de que este modelo esté actualizado
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-  pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
+import { Course, CreateCourseData, UpdateCourseData, CourseFilters, CourseApiResponse } from '@/models/course';
 
 class CourseService {
   private readonly baseUrl = '/cursos';
 
-  async getAvailableCourses(): Promise<Course[]> {
+  // 🆕 RF-04.1 CREAR CURSO
+  async createCourse(courseData: CreateCourseData): Promise<CourseApiResponse<Course>> {
     try {
-      console.log('🚀 Obteniendo cursos disponibles...');
+      console.log('🚀 Creando nuevo curso:', courseData);
       
-      const response = await api.get<ApiResponse<CourseAvailable[]>>(`${this.baseUrl}/disponibles`);
+      const response = await api.post<CourseApiResponse<Course>>(this.baseUrl, courseData);
       
-      console.log('📥 Respuesta cursos:', response.data);
+      console.log('📥 Respuesta crear curso:', response.data);
       
       if (response.data.success) {
-        return response.data.data.map(course => ({
-          idCurso: course.idCurso,
-          nombreCortoCurso:'', // Los cursos disponibles no incluyen nombre corto
-          modalidadCurso: course.modalidadCurso, // Asegúrate de que este campo exista en el backend
-          nombreCurso: course.nombreCurso,
-          valorCurso: Number(course.valorCurso),
+        return {
+          ...response.data,
+          data: {
+            ...response.data.data,
+            fechaInicioCurso: new Date(response.data.data.fechaInicioCurso),
+            fechaFinCurso: new Date(response.data.data.fechaFinCurso),
+            valorCurso: Number(response.data.data.valorCurso)
+          }
+        };
+      }
+      
+      throw new Error(response.data.message || 'Error al crear curso');
+    } catch (error: any) {
+      console.error('❌ Error creating course:', error);
+      
+      if (error.response) {
+        throw new Error(
+          error.response.data?.message || 
+          `Error del servidor: ${error.response.status}`
+        );
+      } else if (error.request) {
+        throw new Error('Error de conexión. Verifique que el servidor esté ejecutándose.');
+      } else {
+        throw new Error(error.message || 'Error desconocido');
+      }
+    }
+  }
+
+  // 🆕 RF-04.2 OBTENER TODOS LOS CURSOS CON PAGINACIÓN
+  async getAllCoursesAdmin(params: {
+    page?: number;
+    limit?: number;
+    filters?: CourseFilters;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+  } = {}): Promise<CourseApiResponse<Course[]>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        filters = {},
+        orderBy = 'fechaInicioCurso',
+        order = 'desc'
+      } = params;
+
+      console.log('🚀 Obteniendo cursos para admin:', { page, limit, filters, orderBy, order });
+      
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        orderBy,
+        order,
+        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+      });
+
+      const response = await api.get<CourseApiResponse<Course[]>>(`${this.baseUrl}?${queryParams}`);
+      
+      console.log('📥 Respuesta cursos admin:', response.data);
+      
+      if (response.data.success) {
+        const courses = response.data.data.map(course => ({
+          ...course,
           fechaInicioCurso: new Date(course.fechaInicioCurso),
           fechaFinCurso: new Date(course.fechaFinCurso),
-          descripcionCurso: '' // Los cursos disponibles no incluyen descripción
+          valorCurso: Number(course.valorCurso)
         }));
+        
+        return {
+          ...response.data,
+          data: courses
+        };
       }
       
       throw new Error(response.data.message || 'Error al obtener cursos');
     } catch (error: any) {
-      console.error('❌ Error fetching courses:', error);
+      console.error('❌ Error fetching admin courses:', error);
+      throw new Error(
+        error.response?.data?.message || 
+        'Error de conexión al obtener cursos'
+      );
+    }
+  }
+
+  // 🆕 RF-04.3 ACTUALIZAR CURSO
+  async updateCourse(courseData: UpdateCourseData): Promise<CourseApiResponse<Course>> {
+    try {
+      console.log('🚀 Actualizando curso:', courseData);
       
+      const { idCurso, ...updateData } = courseData;
+      
+      const response = await api.put<CourseApiResponse<Course>>(`${this.baseUrl}/${idCurso}`, updateData);
+      
+      console.log('📥 Respuesta actualizar curso:', response.data);
+      
+      if (response.data.success) {
+        return {
+          ...response.data,
+          data: {
+            ...response.data.data,
+            fechaInicioCurso: new Date(response.data.data.fechaInicioCurso),
+            fechaFinCurso: new Date(response.data.data.fechaFinCurso),
+            valorCurso: Number(response.data.data.valorCurso)
+          }
+        };
+      }
+      
+      throw new Error(response.data.message || 'Error al actualizar curso');
+    } catch (error: any) {
+      console.error('❌ Error updating course:', error);
+      throw new Error(error.response?.data?.message || 'Error al actualizar curso');
+    }
+  }
+
+  // 🆕 RF-04.4 ELIMINAR CURSO
+  async deleteCourse(courseId: number): Promise<CourseApiResponse<Course>> {
+    try {
+      console.log('🗑️ Eliminando curso:', courseId);
+      
+      const response = await api.delete<CourseApiResponse<Course>>(`${this.baseUrl}/${courseId}`);
+      
+      console.log('📥 Respuesta eliminar curso:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar curso');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error deleting course:', error);
+      throw new Error(error.response?.data?.message || 'Error al eliminar curso');
+    }
+  }
+
+  // MÉTODOS EXISTENTES (mantener)
+  async getAvailableCourses(): Promise<Course[]> {
+    try {
+      console.log('🚀 Obteniendo cursos disponibles...');
+      const response = await api.get<CourseApiResponse<any[]>>(`${this.baseUrl}/disponibles`);
+      console.log('📥 Respuesta cursos:', response.data);
+      if (response.data.success) {
+        return response.data.data.map(course => ({
+          idCurso: course.idCurso,
+          nombreCortoCurso: course.nombreCortoCurso ?? '',
+          modalidadCurso: course.modalidadCurso ?? '',
+          nombreCurso: course.nombreCurso ?? '',
+          valorCurso: Number(course.valorCurso),
+          fechaInicioCurso: new Date(course.fechaInicioCurso),
+          fechaFinCurso: new Date(course.fechaFinCurso),
+          descripcionCurso: course.descripcionCurso ?? ''
+        }));
+      }
+      throw new Error(response.data.message || 'Error al obtener cursos');
+    } catch (error: any) {
+      console.error('❌ Error fetching courses:', error);
       if (error.response) {
         throw new Error(
           error.response.data?.message || 
@@ -60,7 +186,7 @@ class CourseService {
     try {
       console.log('🚀 Obteniendo curso por ID:', id);
       
-      const response = await api.get<ApiResponse<Course>>(`${this.baseUrl}/${id}`);
+      const response = await api.get<CourseApiResponse<Course>>(`${this.baseUrl}/${id}`);
       
       console.log('📥 Respuesta curso:', response.data);
       
@@ -91,70 +217,77 @@ class CourseService {
     }
   }
 
-  async getAllCourses(page: number = 1, limit: number = 10): Promise<{ courses: Course[]; total: number }> {
-    try {
-      console.log('🚀 Obteniendo todos los cursos...');
-      
-      const response = await api.get<ApiResponse<Course[]>>(`${this.baseUrl}?page=${page}&limit=${limit}`);
-      
-      if (response.data.success) {
-        const courses = response.data.data.map(course => ({
-          ...course,
-          fechaInicioCurso: new Date(course.fechaInicioCurso),
-          fechaFinCurso: new Date(course.fechaFinCurso),
-          valorCurso: Number(course.valorCurso)
-        }));
-        
+  // 🆕 MÉTODOS AUXILIARES
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-EC', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  }
+
+  formatDate(date: Date): string {
+    return new Intl.DateTimeFormat('es-EC', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  }
+
+  formatDateTime(date: Date): string {
+    return new Intl.DateTimeFormat('es-EC', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
+  calculateDuration(startDate: Date, endDate: Date): number {
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  canDeleteCourse(course: Course): boolean {
+    // Un curso se puede eliminar si la fecha de inicio es futura
+    const now = new Date();
+    return course.fechaInicioCurso > now;
+  }
+
+  getModalidadBadge(modalidad: string) {
+    switch (modalidad) {
+      case 'PRESENCIAL':
         return {
-          courses,
-          total: response.data.pagination?.total || courses.length
+          color: 'text-blue-800',
+          bgColor: 'bg-blue-100',
+          text: 'Presencial'
         };
-      }
-      
-      throw new Error(response.data.message || 'Error al obtener cursos');
-    } catch (error: any) {
-      console.error('❌ Error fetching all courses:', error);
-      throw new Error(
-        error.response?.data?.message || 
-        'Error de conexión al obtener cursos'
-      );
+      case 'VIRTUAL':
+        return {
+          color: 'text-green-800',
+          bgColor: 'bg-green-100',
+          text: 'Virtual'
+        };
+      case 'SEMIPRESENCIAL':
+        return {
+          color: 'text-purple-800',
+          bgColor: 'bg-purple-100',
+          text: 'Semipresencial'
+        };
+      case 'HÍBRIDO':
+        return {
+          color: 'text-orange-800',
+          bgColor: 'bg-orange-100',
+          text: 'Híbrido'
+        };
+      default:
+        return {
+          color: 'text-gray-800',
+          bgColor: 'bg-gray-100',
+          text: modalidad
+        };
     }
   }
-   async createCourse(course: Partial<Course>): Promise<Course> {
-    try {
-      const response = await api.post<ApiResponse<Course>>(this.baseUrl, course);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || 'Error al crear curso');
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al crear curso');
-    }
-  }
-
-  async updateCourse(id: number, course: Partial<Course>): Promise<Course> {
-    try {
-      const response = await api.put<ApiResponse<Course>>(`${this.baseUrl}/${id}`, course);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || 'Error al actualizar curso');
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al actualizar curso');
-    }
-  }
-
-  async deleteCourse(id: number): Promise<void> {
-    try {
-      const response = await api.delete<ApiResponse<null>>(`${this.baseUrl}/${id}`);
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Error al eliminar curso');
-      }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al eliminar curso');
-    }
-  }
-
 }
 
 export const courseService = new CourseService();

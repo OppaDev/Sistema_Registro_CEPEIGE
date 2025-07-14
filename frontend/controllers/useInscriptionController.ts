@@ -190,6 +190,8 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
 
 // useInscriptionController.ts - Método updateInscription MEJORADO
 
+// controllers/useInscriptionController.ts - MÉTODO updateInscription MEJORADO
+
 const updateInscription = useCallback(async (updateData: EditInscriptionRequest) => {
   try {
     setIsUpdating(true);
@@ -200,17 +202,29 @@ const updateInscription = useCallback(async (updateData: EditInscriptionRequest)
     const response = await inscriptionService.updateInscription(updateData);
 
     if (response.success) {
+      console.log('✅ Inscripción actualizada exitosamente');
+      
+      // 🆕 ACTUALIZAR INSCRIPCIÓN EN EL ESTADO LOCAL INMEDIATAMENTE
+      setInscriptions(prevInscriptions => 
+        prevInscriptions.map(inscription => 
+          inscription.idInscripcion === updateData.idInscripcion
+            ? inscriptionService.mapApiDataToInscriptionData(response.data)
+            : inscription
+        )
+      );
+
       setMessage({
         type: 'success',
         text: '✅ Inscripción actualizada exitosamente'
       });
 
-      // 🆕 CERRAR MODAL PRIMERO
+      // Cerrar modal
       closeEditModal();
 
-      // 🆕 PEQUEÑA PAUSA Y REFRESCAR
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await refreshInscriptions();
+      // 🆕 FORZAR RE-RENDER CON DELAY MÍNIMO
+      setTimeout(async () => {
+        await refreshInscriptions();
+      }, 100);
 
     } else {
       throw new Error(response.message);
@@ -225,6 +239,7 @@ const updateInscription = useCallback(async (updateData: EditInscriptionRequest)
     setIsUpdating(false);
   }
 }, [closeEditModal, refreshInscriptions]);
+
 
 const openDeleteModal = useCallback((inscription: InscriptionData) => {
     console.log('🗑️ Abriendo modal de eliminación para:', inscription.idInscripcion);
