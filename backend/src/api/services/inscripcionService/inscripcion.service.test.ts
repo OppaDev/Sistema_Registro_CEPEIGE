@@ -46,7 +46,7 @@ jest.mock('@prisma/client', () => ({
 // Mock de los mappers
 const mockToInscripcionResponseDto = jest.fn();
 const mockToInscripcionAdminResponseDto = jest.fn();
-jest.mock('@/api/services/mappers/inscripcion.mapper', () => ({
+jest.mock('@/api/services/mappers/inscripcionMapper/inscripcion.mapper', () => ({
   toInscripcionResponseDto: mockToInscripcionResponseDto,
   toInscripcionAdminResponseDto: mockToInscripcionAdminResponseDto,
 }));

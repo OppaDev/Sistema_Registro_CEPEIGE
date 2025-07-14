@@ -21,7 +21,7 @@ jest.mock('@prisma/client', () => ({
 
 // Mock del mapper
 const mockToDatosFacturacionResponseDto = jest.fn();
-jest.mock('@/api/services/mappers/datosFacturacion.mapper', () => ({
+jest.mock('@/api/services/mappers/inscripcionMapper/datosFacturacion.mapper', () => ({
   toDatosFacturacionResponseDto: mockToDatosFacturacionResponseDto,
 }));
 
