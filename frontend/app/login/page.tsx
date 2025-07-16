@@ -1,4 +1,3 @@
-// frontend/app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -16,30 +15,42 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const res = await login(form.email, form.password);
-      if (res.token) {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.role);
-        if (res.role === 'admin') {
-          router.push('/inscripciones_admin');
-        } else if (res.role === 'contador') {
-          router.push('/inscripciones_contador');
-        } else {
-          setError('Rol no autorizado');
-        }
-      } else {
-        setError(res.message || 'Credenciales incorrectas');
-      }
-    } catch (err) {
-      setError('Error de conexión');
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  try {
+    const res = await login(form.email, form.password);
+    if (res.token) {
+      localStorage.setItem('token', res.token);
+      // Siempre toma el primer rol del array si existe
+      let role = (Array.isArray(res.roles) && res.roles.length > 0) ? res.roles[0] : res.role;
+      console.log('Rol detectado:', role, res);
+      localStorage.setItem('role', role);
+
+     if (role === 'Admin') {
+  try {
+    router.push('/inscripciones_admin');
+  } catch {
+    window.location.href = '/inscripciones_admin';
+  }
+} else if (role === 'Contador') {
+  try {
+    router.push('/inscripciones_contador');
+  } catch {
+    window.location.href = '/inscripciones_contador';
+  }
+} else {
+  setError('Rol no autorizado');
+}
+    } else {
+      setError(res.message || 'Credenciales incorrectas');
     }
-  };
+  } catch (err) {
+    setError('Error de conexión');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
