@@ -25,13 +25,32 @@ This is a **Node.js/TypeScript/Express** backend for a course registration syste
 #### Authentication & Authorization
 - JWT-based auth with role-based permissions
 - `authenticate` and `authorize` middlewares in `auth.middleware.ts`
+- **Permission system**: `checkPermissions(['crear:usuario', 'leer:usuarios'])` 
+- **Session management**: Refresh tokens stored in `SesionUsuario` model
+- **Multiple sessions support**: Users can have multiple active sessions
 - Global Request interface extended with `user` property
+- Auth endpoints: `/login`, `/refresh`, `/logout`, `/logout-all`, `/profile`, `/sessions`
+
+### Session Management Details
+- **Refresh tokens**: Stored in `SesionUsuario` table with expiration
+- **Multiple sessions**: Users can have multiple active sessions across devices
+- **Session metadata**: Tracks IP address and user agent
+- **Session endpoints**: `/auth/sessions` (list), `/auth/logout-all` (clear all)
 
 #### Data Layer
 - **Prisma ORM** with PostgreSQL
-- Models: `Curso`, `DatosPersonales`, `DatosFacturacion`, `Inscripcion`, `Comprobante`, `Descuento`, `Usuario`, `Rol`
+- Models: `Curso`, `DatosPersonales`, `DatosFacturacion`, `Inscripcion`, `Comprobante`, `Descuento`, `Usuario`, `Rol`, `Permiso`, `SesionUsuario`
 - Complex relations with proper foreign key mappings
+- **Role-based permissions system** with `Usuario`, `Rol`, `Permiso`, `UsuarioRol`, `RolPermiso`
+- **Session management** with `SesionUsuario` for JWT refresh tokens
 - Database migrations in `prisma/migrations/`
+
+#### File Upload System
+- **Multer configuration** in `src/config/multer.ts`
+- File upload for payment receipts (`comprobantes`)
+- Storage in `uploads/comprobantes/` directory
+- File validation and secure naming
+- Environment variables: `UPLOAD_PATH`, `MAX_FILE_SIZE_BYTES`
 
 #### Validation
 - Class-validator DTOs for request validation
@@ -96,8 +115,11 @@ export type PrismaInscripcionConRelaciones = PrismaInscripcion & {
 
 ### Route Structure
 - All routes under `/api/v1/` prefix
-- Feature-grouped routes: `/inscripciones`, `/cursos`, `/auth`
-- Protected routes use `authenticate` and `authorize` middlewares
+- Feature-grouped routes: `/inscripciones`, `/cursos`, `/auth`, `/usuarios`
+- Protected routes use `authenticate` and `checkPermissions(['permiso:recurso'])` middlewares
+- Auth routes: `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/profile`
+- User management: `/usuarios` (protected with role-based permissions)
+- File upload endpoints for comprobantes (payment receipts)
 
 ## Critical Files
 - `src/app.ts` - Application configuration
@@ -111,6 +133,20 @@ export type PrismaInscripcionConRelaciones = PrismaInscripcion & {
 - Tests in `src/**/*.test.ts`
 - Coverage reports in `coverage/`
 - Module path mapping configured for tests
+
+### Environment Variables
+- **Database**: `DATABASE_URL` for PostgreSQL connection
+- **JWT**: `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`
+- **Server**: `PORT`, `NODE_ENV`
+- **File Upload**: `UPLOAD_PATH`, `MAX_FILE_SIZE_BYTES`
+- **Rate Limiting**: `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`
+- **Logging**: `LOG_LEVEL`, `LOG_FILE`
+
+### API Documentation
+- Health check endpoint: `/health`
+- Root endpoint: `/` (API info)
+- API documentation: `/api/docs` (configured in express.ts)
+- Ping endpoint: `/api/v1/ping`
 
 ## Security & Middleware
 - Helmet for security headers

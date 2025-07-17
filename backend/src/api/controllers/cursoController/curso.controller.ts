@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/inscripcionDto/curso.dto';
-import { CursoService } from '@/api/services/inscripcionService/curso.service';
+import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/cursoDto/curso.dto';
+import { CursoService } from '@/api/services/cursoService/curso.service';
 
 const cursoService = new CursoService();
 

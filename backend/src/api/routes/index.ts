@@ -1,5 +1,5 @@
 import { Application, Router, Request, Response } from 'express';
-import cursoRoutes from './inscripcionRoute/curso.routes';
+import cursoRoutes from './cursoRoute/curso.routes';
 import datosPersonalesRoutes from './inscripcionRoute/datosPersonales.routes';
 import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
 import comprobanteRoutes from './inscripcionRoute/comprobante.routes';

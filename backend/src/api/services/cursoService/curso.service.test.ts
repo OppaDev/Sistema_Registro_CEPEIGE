@@ -26,7 +26,7 @@ jest.mock('@/api/services/mappers/inscripcionMapper/curso.mapper', () => ({
 }));
 
 import { CursoService } from './curso.service';
-import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/inscripcionDto/curso.dto';
+import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/cursoDto/curso.dto';
 import { NotFoundError } from '@/utils/errorTypes';
 import { Decimal } from '@prisma/client/runtime/library';
 

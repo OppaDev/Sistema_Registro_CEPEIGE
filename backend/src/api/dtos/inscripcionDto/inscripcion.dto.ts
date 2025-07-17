@@ -4,7 +4,7 @@ import {
     IsBoolean,
     IsNotEmpty
 } from "class-validator";
-import { CursoResponseDto } from "@/api/dtos/inscripcionDto/curso.dto";
+import { CursoResponseDto } from "@/api/dtos/cursoDto/curso.dto";
 import { DatosPersonalesResponseDto } from "@/api/dtos/inscripcionDto/datosPersonales.dto";
 import { DatosFacturacionResponseDto } from "@/api/dtos/inscripcionDto/datosFacturacion.dto";
 import { ComprobanteResponseDto } from "@/api/dtos/inscripcionDto/comprobante.dto";

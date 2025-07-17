@@ -4,7 +4,7 @@ import {
   UpdateCursoDto,
   CursoResponseDto,
   CursosDisponiblesDto,
-} from "@/api/dtos/inscripcionDto/curso.dto";
+} from "@/api/dtos/cursoDto/curso.dto";
 import { NotFoundError } from "@/utils/errorTypes";
 import { toCursoResponseDto } from "@/api/services/mappers/inscripcionMapper/curso.mapper";
 
