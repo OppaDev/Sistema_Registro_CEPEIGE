@@ -1,6 +1,5 @@
 # Sistema de Registro CEPEIGE - Backend
 
-Sistema de gestión de inscripciones para cursos del Centro de Posgrado e Investigación en Gestión Empresarial (CEPEIGE), desarrollado con Node.js, TypeScript, Express y Prisma.
 
 ## 🚀 Características
 
