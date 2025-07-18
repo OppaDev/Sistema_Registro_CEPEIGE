@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { CreateDescuentoDto, UpdateDescuentoDto } from '@/api/dtos/inscripcionDto/descuento.dto';
-import { DescuentoService } from '@/api/services/inscripcionService/descuento.service';
+import { CreateDescuentoDto, UpdateDescuentoDto } from '@/api/dtos/validarPagoDto/descuento.dto';
+import { DescuentoService } from '@/api/services/validarPagoService/descuento.service';
 
 const descuentoService = new DescuentoService();
 

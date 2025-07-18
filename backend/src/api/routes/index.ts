@@ -4,7 +4,7 @@ import datosPersonalesRoutes from './inscripcionRoute/datosPersonales.routes';
 import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
 import comprobanteRoutes from './inscripcionRoute/comprobante.routes';
 import inscripcionRoutes from './inscripcionRoute/inscripcion.routes';
-import descuentoRoutes from './inscripcionRoute/descuento.routes';
+import descuentoRoutes from './validarPagoRoute/descuento.routes';
 import authRoutes from './authRoute/auth.routes';
 import usuarioRoutes from './authRoute/usuario.routes';
 

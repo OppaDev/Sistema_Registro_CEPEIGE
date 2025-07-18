@@ -10,11 +10,11 @@ import {
   InscripcionResponseDto,
   InscripcionAdminResponseDto,
 } from "@/api/dtos/inscripcionDto/inscripcion.dto";
-import { toCursoResponseDto } from "@/api/services/mappers/inscripcionMapper/curso.mapper";
+import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
 import { toDatosPersonalesResponseDto } from "@/api/services/mappers/inscripcionMapper/datosPersonales.mapper";
 import { toDatosFacturacionResponseDto } from "@/api/services/mappers/inscripcionMapper/datosFacturacion.mapper";
 import { toComprobanteResponseDto } from "@/api/services/mappers/inscripcionMapper/comprobante.mapper";
-import { toDescuentoResponseDto } from "@/api/services/mappers/inscripcionMapper/descuento.mapper";
+import { toDescuentoResponseDto } from "@/api/services/mappers/validarPagoMapper/descuento.mapper";
 
 //para IncripcionResponseDto
 export type PrismaInscripcionConRelaciones = PrismaInscripcion & {

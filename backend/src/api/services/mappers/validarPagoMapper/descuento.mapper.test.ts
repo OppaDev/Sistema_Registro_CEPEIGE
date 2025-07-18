@@ -1,6 +1,6 @@
 import { Descuento as PrismaDescuento } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
-import { toDescuentoResponseDto } from "./descuento.mapper";
+import { toDescuentoResponseDto } from "@/api/services/mappers/validarPagoMapper/descuento.mapper";
 
 describe('E. Mapper toDescuentoResponseDto', () => {
   describe('Casos de Mapeo Básico', () => {

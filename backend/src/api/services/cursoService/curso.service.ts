@@ -6,7 +6,7 @@ import {
   CursosDisponiblesDto,
 } from "@/api/dtos/cursoDto/curso.dto";
 import { NotFoundError } from "@/utils/errorTypes";
-import { toCursoResponseDto } from "@/api/services/mappers/inscripcionMapper/curso.mapper";
+import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
 
 const prisma = new PrismaClient();
 
