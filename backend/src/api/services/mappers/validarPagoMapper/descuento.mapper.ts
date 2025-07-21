@@ -1,5 +1,5 @@
 import { Descuento as PrismaDescuento } from "@prisma/client";
-import { DescuentoResponseDto } from "@/api/dtos/inscripcionDto/descuento.dto";
+import { DescuentoResponseDto } from "@/api/dtos/validarPagoDto/descuento.dto";
 
 export const toDescuentoResponseDto = (
   descuento: PrismaDescuento
