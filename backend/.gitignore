@@ -5,3 +5,4 @@ logs/
 uploads/ 
 coverage/ 
 *.tsbuildinfo 
+.vscode

@@ -94,7 +94,6 @@ describe('FacturaService', () => {
       numeroFactura: 'FAC-2025-001',
     };
 
-    // SRV-FAC-001: Crear una factura exitosamente
     it('SRV-FAC-001: debería crear una factura exitosamente', async () => {
       // Arrange
       const prismaFactura = {
@@ -145,7 +144,6 @@ describe('FacturaService', () => {
       expect(result).toEqual(expectedResponseDto);
     });
 
-    // SRV-FAC-002: Error cuando la inscripción no existe
     it('SRV-FAC-002: debería lanzar NotFoundError cuando la inscripción no existe', async () => {
       // Arrange
       mockInscripcionFindUnique.mockResolvedValue(null);
@@ -158,7 +156,6 @@ describe('FacturaService', () => {
         .rejects.toThrow('Inscripción con ID 1');
     });
 
-    // SRV-FAC-003: Error cuando los datos de facturación no existen
     it('SRV-FAC-003: debería lanzar NotFoundError cuando los datos de facturación no existen', async () => {
       // Arrange
       mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
@@ -171,7 +168,6 @@ describe('FacturaService', () => {
         .rejects.toThrow('Datos de facturación con ID 1');
     });
 
-    // SRV-FAC-004: Error cuando ya existe una factura para la inscripción
     it('SRV-FAC-004: debería lanzar ConflictError cuando ya existe una factura para la inscripción', async () => {
       // Arrange
       mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
@@ -185,7 +181,6 @@ describe('FacturaService', () => {
         .rejects.toThrow('Ya existe una factura para la inscripción con ID 1');
     });
 
-    // SRV-FAC-005: Error de unicidad en número de factura
     it('SRV-FAC-005: debería manejar error de unicidad en número de factura', async () => {
       // Arrange
       mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
@@ -204,10 +199,56 @@ describe('FacturaService', () => {
       await expect(facturaService.createFactura(createFacturaDto))
         .rejects.toThrow('El número de factura FAC-2025-001 ya está en uso');
     });
+
+    it('SRV-FAC-005b: debería manejar error de unicidad en número de ingreso', async () => {
+      // Arrange
+      mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
+      mockDatosFacturacionFindUnique.mockResolvedValue({ idFacturacion: 1 });
+      mockFindFirst.mockResolvedValue(null);
+      
+      const uniqueError = {
+        code: 'P2002',
+        meta: { target: ['numeroIngreso'] }
+      };
+      mockCreate.mockRejectedValue(uniqueError);
+
+      // Act & Assert
+      await expect(facturaService.createFactura(createFacturaDto))
+        .rejects.toThrow(ConflictError);
+      await expect(facturaService.createFactura(createFacturaDto))
+        .rejects.toThrow('El número de ingreso ING-2025-001 ya está en uso');
+    });
+
+    it('SRV-FAC-005c: debería manejar errores genéricos en la creación', async () => {
+      // Arrange
+      mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
+      mockDatosFacturacionFindUnique.mockResolvedValue({ idFacturacion: 1 });
+      mockFindFirst.mockResolvedValue(null);
+      
+      const dbError = new Error('Database connection failed');
+      mockCreate.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(facturaService.createFactura(createFacturaDto))
+        .rejects.toThrow('Error al crear la factura: Database connection failed');
+    });
+
+    it('SRV-FAC-005d: debería manejar errores desconocidos en la creación', async () => {
+      // Arrange
+      mockInscripcionFindUnique.mockResolvedValue({ idInscripcion: 1 });
+      mockDatosFacturacionFindUnique.mockResolvedValue({ idFacturacion: 1 });
+      mockFindFirst.mockResolvedValue(null);
+      
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockCreate.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(facturaService.createFactura(createFacturaDto))
+        .rejects.toThrow('Error desconocido al crear la factura');
+    });
   });
 
   describe('getFacturaById', () => {
-    // SRV-FAC-006: Obtener factura por ID sin relaciones
     it('SRV-FAC-006: debería obtener una factura por ID sin relaciones', async () => {
       // Arrange
       const facturaId = 1;
@@ -235,7 +276,51 @@ describe('FacturaService', () => {
       expect(result).toEqual(prismaFactura);
     });
 
-    // SRV-FAC-007: Error cuando la factura no existe
+    it('SRV-FAC-006b: debería obtener una factura por ID con relaciones', async () => {
+      // Arrange
+      const facturaId = 1;
+      const facturaConRelaciones = {
+        idFactura: 1,
+        idInscripcion: 1,
+        idFacturacion: 1,
+        valorPagado: new Decimal(150.00),
+        verificacionPago: false,
+        numeroIngreso: 'ING-2025-001',
+        numeroFactura: 'FAC-2025-001',
+        inscripcion: {
+          idInscripcion: 1,
+          curso: { nombre: 'Curso Test' },
+          persona: { nombres: 'Juan', apellidos: 'Pérez' },
+        },
+        datosFacturacion: {
+          idFacturacion: 1,
+          razonSocial: 'Empresa Test S.A.',
+        },
+      };
+
+      mockFindUnique.mockResolvedValue(facturaConRelaciones);
+      mockToFacturaWithRelationsResponseDto.mockReturnValue(facturaConRelaciones);
+
+      // Act
+      const result = await facturaService.getFacturaById(facturaId, true);
+
+      // Assert
+      expect(mockFindUnique).toHaveBeenCalledWith({
+        where: { idFactura: facturaId },
+        include: {
+          inscripcion: {
+            include: {
+              curso: true,
+              persona: true,
+            },
+          },
+          datosFacturacion: true,
+        },
+      });
+      expect(mockToFacturaWithRelationsResponseDto).toHaveBeenCalledWith(facturaConRelaciones);
+      expect(result).toEqual(facturaConRelaciones);
+    });
+
     it('SRV-FAC-007: debería lanzar NotFoundError cuando la factura no existe', async () => {
       // Arrange
       const facturaId = 999;
@@ -247,10 +332,31 @@ describe('FacturaService', () => {
       await expect(facturaService.getFacturaById(facturaId))
         .rejects.toThrow('Factura con ID 999');
     });
+
+    it('SRV-FAC-007b: debería manejar errores genéricos en getFacturaById', async () => {
+      // Arrange
+      const facturaId = 1;
+      const dbError = new Error('Database connection failed');
+      mockFindUnique.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(facturaService.getFacturaById(facturaId))
+        .rejects.toThrow('Error al obtener la factura: Database connection failed');
+    });
+
+    it('SRV-FAC-007c: debería manejar errores desconocidos en getFacturaById', async () => {
+      // Arrange
+      const facturaId = 1;
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockFindUnique.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(facturaService.getFacturaById(facturaId))
+        .rejects.toThrow('Error desconocido al obtener la factura');
+    });
   });
 
   describe('verificarPago', () => {
-    // SRV-FAC-008: Verificar pago exitosamente
     it('SRV-FAC-008: debería verificar el pago de una factura exitosamente', async () => {
       // Arrange
       const facturaId = 1;
@@ -284,7 +390,6 @@ describe('FacturaService', () => {
       expect(result).toEqual(facturaVerificada);
     });
 
-    // SRV-FAC-009: Error cuando la factura ya está verificada
     it('SRV-FAC-009: debería lanzar ConflictError cuando la factura ya está verificada', async () => {
       // Arrange
       const facturaId = 1;
@@ -304,7 +409,6 @@ describe('FacturaService', () => {
   });
 
   describe('deleteFactura', () => {
-    // SRV-FAC-010: Eliminar factura exitosamente
     it('SRV-FAC-010: debería eliminar una factura exitosamente', async () => {
       // Arrange
       const facturaId = 1;
@@ -332,7 +436,6 @@ describe('FacturaService', () => {
       expect(result).toEqual(facturaExistente);
     });
 
-    // SRV-FAC-011: Error cuando se intenta eliminar factura verificada
     it('SRV-FAC-011: debería lanzar ConflictError cuando se intenta eliminar factura verificada', async () => {
       // Arrange
       const facturaId = 1;
@@ -348,6 +451,350 @@ describe('FacturaService', () => {
         .rejects.toThrow(ConflictError);
       await expect(facturaService.deleteFactura(facturaId))
         .rejects.toThrow('La factura con ID 1 no puede ser eliminada porque ya está verificada');
+    });
+  });
+
+  describe('getAllFacturas', () => {
+    it('SRV-FAC-012: debería obtener todas las facturas sin relaciones', async () => {
+      // Arrange
+      const options = {
+        page: 1,
+        limit: 10,
+        orderBy: 'numeroFactura',
+        order: 'desc' as const,
+        includeRelations: false,
+      };
+
+      const facturas = [
+        {
+          idFactura: 1,
+          idInscripcion: 1,
+          idFacturacion: 1,
+          valorPagado: new Decimal(150.00),
+          verificacionPago: false,
+          numeroIngreso: 'ING-2025-001',
+          numeroFactura: 'FAC-2025-001',
+        },
+        {
+          idFactura: 2,
+          idInscripcion: 2,
+          idFacturacion: 2,
+          valorPagado: new Decimal(200.00),
+          verificacionPago: true,
+          numeroIngreso: 'ING-2025-002',
+          numeroFactura: 'FAC-2025-002',
+        },
+      ];
+
+      mockFindMany.mockResolvedValue(facturas);
+      mockCount.mockResolvedValue(2);
+      mockToFacturaResponseDto
+        .mockReturnValueOnce(facturas[0])
+        .mockReturnValueOnce(facturas[1]);
+
+      // Act
+      const result = await facturaService.getAllFacturas(options);
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        orderBy: { numeroFactura: 'desc' },
+      });
+      expect(result).toEqual({
+        facturas: facturas,
+        total: 2,
+      });
+    });
+
+    it('SRV-FAC-013: debería obtener todas las facturas con relaciones', async () => {
+      // Arrange
+      const options = {
+        page: 1,
+        limit: 10,
+        orderBy: 'numeroFactura',
+        order: 'desc' as const,
+        includeRelations: true,
+      };
+
+      const facturasConRelaciones = [
+        {
+          idFactura: 1,
+          idInscripcion: 1,
+          idFacturacion: 1,
+          valorPagado: new Decimal(150.00),
+          verificacionPago: false,
+          numeroIngreso: 'ING-2025-001',
+          numeroFactura: 'FAC-2025-001',
+          inscripcion: {
+            idInscripcion: 1,
+            curso: { nombre: 'Curso Test' },
+            persona: { nombres: 'Juan', apellidos: 'Pérez' },
+          },
+          datosFacturacion: {
+            idFacturacion: 1,
+            razonSocial: 'Empresa Test S.A.',
+          },
+        },
+      ];
+
+      mockFindMany.mockResolvedValue(facturasConRelaciones);
+      mockCount.mockResolvedValue(1);
+      mockToFacturaWithRelationsResponseDto.mockReturnValue(facturasConRelaciones[0]);
+
+      // Act
+      const result = await facturaService.getAllFacturas(options);
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        orderBy: { numeroFactura: 'desc' },
+        include: {
+          inscripcion: {
+            include: {
+              curso: true,
+              persona: true,
+            },
+          },
+          datosFacturacion: true,
+        },
+      });
+      expect(result).toEqual({
+        facturas: [facturasConRelaciones[0]],
+        total: 1,
+      });
+    });
+
+    it('SRV-FAC-014: debería manejar errores genéricos en getAllFacturas', async () => {
+      // Arrange
+      const options = {
+        page: 1,
+        limit: 10,
+        orderBy: 'numeroFactura',
+        order: 'desc' as const,
+      };
+
+      const dbError = new Error('Database timeout');
+      mockFindMany.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(facturaService.getAllFacturas(options))
+        .rejects.toThrow('Error al obtener las facturas: Database timeout');
+    });
+
+    it('SRV-FAC-015: debería manejar errores desconocidos en getAllFacturas', async () => {
+      // Arrange
+      const options = {
+        page: 1,
+        limit: 10,
+        orderBy: 'numeroFactura',
+        order: 'desc' as const,
+      };
+
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockFindMany.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(facturaService.getAllFacturas(options))
+        .rejects.toThrow('Error desconocido al obtener las facturas');
+    });
+  });
+
+  describe('getFacturaByNumeroFactura', () => {
+    it('SRV-FAC-016: debería obtener una factura por número de factura', async () => {
+      // Arrange
+      const numeroFactura = 'FAC-2025-001';
+      const facturaConRelaciones = {
+        idFactura: 1,
+        idInscripcion: 1,
+        idFacturacion: 1,
+        valorPagado: new Decimal(150.00),
+        verificacionPago: false,
+        numeroIngreso: 'ING-2025-001',
+        numeroFactura: 'FAC-2025-001',
+        inscripcion: {
+          idInscripcion: 1,
+          curso: { nombre: 'Curso Test' },
+          persona: { nombres: 'Juan', apellidos: 'Pérez' },
+        },
+        datosFacturacion: {
+          idFacturacion: 1,
+          razonSocial: 'Empresa Test S.A.',
+        },
+      };
+
+      mockFindUnique.mockResolvedValue(facturaConRelaciones);
+      mockToFacturaWithRelationsResponseDto.mockReturnValue(facturaConRelaciones);
+
+      // Act
+      const result = await facturaService.getFacturaByNumeroFactura(numeroFactura);
+
+      // Assert
+      expect(mockFindUnique).toHaveBeenCalledWith({
+        where: { numeroFactura },
+        include: {
+          inscripcion: {
+            include: {
+              curso: true,
+              persona: true,
+            },
+          },
+          datosFacturacion: true,
+        },
+      });
+      expect(result).toEqual(facturaConRelaciones);
+    });
+
+    it('SRV-FAC-017: debería lanzar NotFoundError cuando no existe factura con el número', async () => {
+      // Arrange
+      const numeroFactura = 'FAC-2025-999';
+      mockFindUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(facturaService.getFacturaByNumeroFactura(numeroFactura))
+        .rejects.toThrow(NotFoundError);
+      await expect(facturaService.getFacturaByNumeroFactura(numeroFactura))
+        .rejects.toThrow('Factura con número FAC-2025-999');
+    });
+
+    it('SRV-FAC-018: debería manejar errores genéricos en getFacturaByNumeroFactura', async () => {
+      // Arrange
+      const numeroFactura = 'FAC-2025-001';
+      const dbError = new Error('Database connection failed');
+      mockFindUnique.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(facturaService.getFacturaByNumeroFactura(numeroFactura))
+        .rejects.toThrow('Error al obtener la factura: Database connection failed');
+    });
+  });
+
+  describe('getFacturaByNumeroIngreso', () => {
+    it('SRV-FAC-019: debería obtener una factura por número de ingreso', async () => {
+      // Arrange
+      const numeroIngreso = 'ING-2025-001';
+      const facturaConRelaciones = {
+        idFactura: 1,
+        idInscripcion: 1,
+        idFacturacion: 1,
+        valorPagado: new Decimal(150.00),
+        verificacionPago: false,
+        numeroIngreso: 'ING-2025-001',
+        numeroFactura: 'FAC-2025-001',
+        inscripcion: {
+          idInscripcion: 1,
+          curso: { nombre: 'Curso Test' },
+          persona: { nombres: 'Juan', apellidos: 'Pérez' },
+        },
+        datosFacturacion: {
+          idFacturacion: 1,
+          razonSocial: 'Empresa Test S.A.',
+        },
+      };
+
+      mockFindUnique.mockResolvedValue(facturaConRelaciones);
+      mockToFacturaWithRelationsResponseDto.mockReturnValue(facturaConRelaciones);
+
+      // Act
+      const result = await facturaService.getFacturaByNumeroIngreso(numeroIngreso);
+
+      // Assert
+      expect(mockFindUnique).toHaveBeenCalledWith({
+        where: { numeroIngreso },
+        include: {
+          inscripcion: {
+            include: {
+              curso: true,
+              persona: true,
+            },
+          },
+          datosFacturacion: true,
+        },
+      });
+      expect(result).toEqual(facturaConRelaciones);
+    });
+
+    it('SRV-FAC-020: debería lanzar NotFoundError cuando no existe factura con el número de ingreso', async () => {
+      // Arrange
+      const numeroIngreso = 'ING-2025-999';
+      mockFindUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(facturaService.getFacturaByNumeroIngreso(numeroIngreso))
+        .rejects.toThrow(NotFoundError);
+      await expect(facturaService.getFacturaByNumeroIngreso(numeroIngreso))
+        .rejects.toThrow('Factura con número de ingreso ING-2025-999');
+    });
+  });
+
+  describe('getFacturasByInscripcionId', () => {
+    it('SRV-FAC-021: debería obtener facturas por ID de inscripción', async () => {
+      // Arrange
+      const idInscripcion = 1;
+      const facturas = [
+        {
+          idFactura: 1,
+          idInscripcion: 1,
+          idFacturacion: 1,
+          valorPagado: new Decimal(150.00),
+          verificacionPago: false,
+          numeroIngreso: 'ING-2025-001',
+          numeroFactura: 'FAC-2025-001',
+          inscripcion: {
+            idInscripcion: 1,
+            curso: { nombre: 'Curso Test' },
+            persona: { nombres: 'Juan', apellidos: 'Pérez' },
+          },
+          datosFacturacion: {
+            idFacturacion: 1,
+            razonSocial: 'Empresa Test S.A.',
+          },
+        },
+      ];
+
+      mockFindMany.mockResolvedValue(facturas);
+      mockToFacturaWithRelationsResponseDto.mockReturnValue(facturas[0]);
+
+      // Act
+      const result = await facturaService.getFacturasByInscripcionId(idInscripcion);
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith({
+        where: { idInscripcion },
+        include: {
+          inscripcion: {
+            include: {
+              curso: true,
+              persona: true,
+            },
+          },
+          datosFacturacion: true,
+        },
+      });
+      expect(result).toEqual([facturas[0]]);
+    });
+
+    it('SRV-FAC-022: debería manejar errores genéricos en getFacturasByInscripcionId', async () => {
+      // Arrange
+      const idInscripcion = 1;
+      const dbError = new Error('Database connection failed');
+      mockFindMany.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(facturaService.getFacturasByInscripcionId(idInscripcion))
+        .rejects.toThrow('Error al obtener las facturas: Database connection failed');
+    });
+
+    it('SRV-FAC-023: debería manejar errores desconocidos en getFacturasByInscripcionId', async () => {
+      // Arrange
+      const idInscripcion = 1;
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockFindMany.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(facturaService.getFacturasByInscripcionId(idInscripcion))
+        .rejects.toThrow('Error desconocido al obtener las facturas');
     });
   });
 });
