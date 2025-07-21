@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { InscriptionData, EditInscriptionRequest } from '@/models/inscription';
 import { inscriptionService } from '@/services/inscriptionService';
+import { courseService } from '@/services/courseService'; // ✅ AÑADIR IMPORT DEL COURSE SERVICE
 import { participantSchema } from '@/models/validation';
 import { billingSchema } from '@/models/billing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,6 +54,8 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
   });
 
   const [availableCourses, setAvailableCourses] = useState<{id: number; nombre: string; precio: number}[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -88,15 +91,55 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
 
       setErrors({});
       setHasChanges(false);
+    } else if (!isOpen) {
+      // ✅ LIMPIAR ESTADOS CUANDO SE CIERRA EL MODAL
+      setAvailableCourses([]);
+      setCoursesError(null);
+      setCoursesLoading(false);
     }
   }, [inscription, isOpen, userType]);
 
   const loadAvailableCourses = async () => {
+    setCoursesLoading(true);
+    setCoursesError(null);
+    
     try {
-      const courses = await inscriptionService.getAvailableCoursesForChange();
-      setAvailableCourses(courses);
-    } catch (error) {
-      console.error('Error cargando cursos:', error);
+      console.log('📚 EditInscriptionModal: Cargando cursos disponibles...');
+      
+      // ✅ USAR EL COURSE SERVICE CON LA NUEVA FUNCIÓN getAllCourses
+      const response = await courseService.getAllCourses();
+      
+      console.log('📥 Respuesta de cursos:', response);
+      
+      if (response.success && response.data) {
+        // Filtrar solo cursos activos y mapear al formato esperado
+        const activeCourses = response.data
+          .filter(course => course.activo !== false)
+          .map(course => ({
+            id: course.idCurso,
+            nombre: course.nombreCurso,
+            precio: Number(course.valorCurso || course.costoTotal || 0)
+          }));
+        
+        console.log(`✅ ${activeCourses.length} cursos activos cargados para edición`);
+        setAvailableCourses(activeCourses);
+        
+        if (activeCourses.length === 0) {
+          setCoursesError('No hay cursos activos disponibles para cambio.');
+        }
+      } else {
+        const errorMessage = response.message || 'Error al cargar cursos';
+        console.error('❌ Error en respuesta de cursos:', errorMessage);
+        setCoursesError(errorMessage);
+        setAvailableCourses([]);
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Error de conexión al cargar cursos';
+      console.error('❌ Error cargando cursos:', error);
+      setCoursesError(errorMessage);
+      setAvailableCourses([]);
+    } finally {
+      setCoursesLoading(false);
     }
   };
 
@@ -168,8 +211,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    
     if (!inscription || !validateForm()) return;
+
+    console.log('📝 EditInscriptionModal: Enviando actualización...');
 
     const updateData: EditInscriptionRequest = {
       idInscripcion: inscription.idInscripcion,
@@ -180,9 +224,19 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
     // Solo incluir cambio de curso si es admin y ha cambiado
     if (userType === 'admin' && formData.nuevoCurso !== inscription.curso.idCurso) {
       updateData.nuevoCurso = formData.nuevoCurso;
+      console.log('🔄 Cambio de curso detectado:', formData.nuevoCurso);
     }
 
-    await onUpdate(updateData);
+    try {
+      await onUpdate(updateData);
+      console.log('✅ Actualización completada exitosamente');
+      
+      // El modal se cerrará automáticamente desde el controlador
+      // No necesitamos hacer nada más aquí
+    } catch (error) {
+      console.error('❌ Error en actualización:', error);
+      // Los errores se manejan en el controlador
+    }
   };
 
   if (!isOpen || !inscription) return null;
@@ -439,26 +493,62 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                 </div>
 
                 {/* Cambio de curso (solo admin) */}
-                {userType === 'admin' && availableCourses.length > 0 && (
+                {userType === 'admin' && (
                   <div>
                     <Label htmlFor="nuevoCurso">Cambiar Curso</Label>
-                    <select
-                      id="nuevoCurso"
-                      value={formData.nuevoCurso}
-                      onChange={(e) => handleCourseChange(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option key={`current-${inscription.curso.idCurso}`} value={inscription.curso.idCurso}>
-                        {inscription.curso.nombreCurso} (Actual)
-                      </option>
-                      {availableCourses
-                        .filter(course => course.id !== inscription.curso.idCurso)
-                        .map(course => (
-                          <option key={`course-${course.id}`} value={course.id}>
-                            {course.nombre} - ${course.precio}
-                          </option>
-                        ))}
-                    </select>
+                    
+                    {coursesLoading && (
+                      <div className="flex items-center space-x-2 py-2 text-blue-600">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm">Cargando cursos disponibles...</span>
+                      </div>
+                    )}
+                    
+                    {coursesError && (
+                      <Alert className="my-2">
+                        <AlertDescription className="text-red-600">
+                          {coursesError}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={loadAvailableCourses}
+                            className="ml-2 h-6 px-2 text-xs"
+                          >
+                            Reintentar
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {!coursesLoading && !coursesError && availableCourses.length === 0 && (
+                      <Alert className="my-2">
+                        <AlertDescription className="text-orange-600">
+                          No hay cursos disponibles para cambio. Verifique que existan cursos activos.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {!coursesLoading && availableCourses.length > 0 && (
+                      <select
+                        id="nuevoCurso"
+                        value={formData.nuevoCurso}
+                        onChange={(e) => handleCourseChange(Number(e.target.value))}
+                        disabled={coursesLoading}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                      >
+                        <option key={`current-${inscription.curso.idCurso}`} value={inscription.curso.idCurso}>
+                          {inscription.curso.nombreCurso} (Actual)
+                        </option>
+                        {availableCourses
+                          .filter(course => course.id !== inscription.curso.idCurso)
+                          .map(course => (
+                            <option key={`course-${course.id}`} value={course.id}>
+                              {course.nombre} - ${course.precio}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </div>
                 )}
               </CardContent>

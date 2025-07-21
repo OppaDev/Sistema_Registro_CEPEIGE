@@ -1,6 +1,7 @@
 // views/components/AdminLayout.tsx
 import React from 'react';
 import { Users, FileText, Settings, LogOut,BookOpen             } from 'lucide-react';
+import { useAuthController } from '@/controllers/useAuthController'; 
 
 
 interface AdminLayoutProps {
@@ -14,6 +15,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   userType, 
   activeModule = 'inscripciones' 
 }) => {
+  const { handleLogout, userName, userEmail } = useAuthController();
   const userTypeText = userType === 'admin' ? 'Administrador' : 'Contador';
 
   const menuItems = [
@@ -67,10 +69,15 @@ if (userType === 'admin') {
           {/* Área de usuario */}
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-700">{userTypeText}</p>
-              <p className="text-xs text-gray-500">Sistema de Gestión</p>
+              <p className="text-sm font-medium text-gray-700">
+                {userName || userTypeText}
+              </p>
+              <p className="text-xs text-gray-500">
+                {userEmail || 'Sistema de Gestión'}
+              </p>
             </div>
             <button 
+              onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
               title="Cerrar sesión"
             >

@@ -27,6 +27,7 @@ export default function AccountantInscriptionsView() {
     totalItems,
     itemsPerPage,
     refreshInscriptions,
+    forceRefresh, // ✅ USAR LA NUEVA FUNCIÓN
     handlePageChange,
     viewInscriptionDetails,
     selectedInscription,
@@ -48,21 +49,43 @@ export default function AccountantInscriptionsView() {
   } = useInscriptionController();
 
   const [forceRenderKey, setForceRenderKey] = React.useState(0);
-  const handleRefresh = () => {
+  
+  // ✅ FUNCIÓN MEJORADA PARA REFRESH
+  const handleRefresh = async () => {
     setMessage(null);
     setForceRenderKey(prev => prev + 1);
-    refreshInscriptions();
+    await forceRefresh(); // ✅ USAR forceRefresh EN LUGAR DE refreshInscriptions
+    console.log('🔄 Tabla de contador refrescada manualmente');
   };
 
   React.useEffect(() => {
+    console.log('🔄 AccountantView: Inscripciones cambiaron, actualizando renderKey');
     setForceRenderKey(prev => prev + 1);
-  }, [inscriptions, totalItems]);
+  }, [inscriptions, totalItems, inscriptions.length]);
 
+  // 🆕 EFECTO ADICIONAL PARA DETECTAR CAMBIOS PROFUNDOS EN INSCRIPCIONES
+  React.useEffect(() => {
+    const inscriptionIds = inscriptions.map(i => `${i.idInscripcion}-${i.updatedAt || ''}`).join(',');
+    setForceRenderKey(prev => prev + 1);
+  }, [inscriptions.map(i => `${i.idInscripcion}-${i.participante?.nombres}-${i.participante?.apellidos}-${i.facturacion?.ruc}-${i.facturacion?.razonSocial}`).join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ✅ FUNCIÓN MEJORADA PARA ACTUALIZACIÓN
   const handleUpdateInscription = React.useCallback(async (updateData: EditInscriptionRequest) => {
-    await updateInscription(updateData);
-    setTimeout(() => {
-      setForceRenderKey(prev => prev + 1);
-    }, 200);
+    console.log('📝 AccountantInscriptionsView: Procesando actualización...');
+    
+    try {
+      // Actualizar usando el controlador
+      await updateInscription(updateData);
+      
+      // Forzar actualización adicional de la vista después de un breve delay
+      setTimeout(() => {
+        console.log('🔄 Forzando re-render adicional en AccountantView');
+        setForceRenderKey(prev => prev + 1);
+      }, 300);
+      
+    } catch (error) {
+      console.error('❌ Error en handleUpdateInscription (AccountantView):', error);
+    }
   }, [updateInscription]);
 
   return (
@@ -160,7 +183,7 @@ export default function AccountantInscriptionsView() {
           inscription={selectedInscriptionForEdit}
           isOpen={isEditModalOpen}
           onClose={closeEditModal}
-          onUpdate={updateInscription}
+          onUpdate={handleUpdateInscription}
           userType="accountant"
           isUpdating={isUpdating}
         />

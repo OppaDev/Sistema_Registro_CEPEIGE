@@ -1,5 +1,6 @@
-// services/api.ts - CREAR NUEVO ARCHIVO
+// services/api.ts - ACTUALIZAR PARA INCLUIR AUTH
 import axios from 'axios';
+import { authService } from './authService'; // 🆕 IMPORTAR
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -11,10 +12,17 @@ export const api = axios.create({
   },
 });
 
-// Interceptor para requests
+// 🆕 INTERCEPTOR PARA AGREGAR TOKEN AUTOMÁTICAMENTE
 api.interceptors.request.use(
   (config) => {
     console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
+    
+    // Agregar token de autorización si existe
+    const authHeaders = authService.getAuthHeader();
+    if (authHeaders.Authorization) {
+      config.headers.Authorization = authHeaders.Authorization;
+    }
+    
     return config;
   },
   (error) => {
@@ -23,30 +31,31 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para responses
+// 🆕 INTERCEPTOR PARA MANEJAR RESPUESTAS Y ERRORES DE AUTH
 api.interceptors.response.use(
   (response) => {
     console.log('✅ API Response:', response.status, response.config.url);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error('❌ Response Error:', error.response?.status, error.response?.data);
+    
+    // Si el token expiró (401), intentar refrescar
+    if (error.response?.status === 401 && authService.isAuthenticated()) {
+      try {
+        await authService.refreshToken();
+        // Reintentar la petición original
+        return api.request(error.config);
+      } catch (refreshError) {
+        // Si falla el refresh, cerrar sesión
+        await authService.logout();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
-
-
-// Función de login para autenticación
-export async function login(email: string, password: string) {
-  try {
-    const response = await api.post('/auth/login', { email, password });
-    return response.data;
-  } catch (error: any) {
-    if (error.response && error.response.data) {
-      return error.response.data;
-    }
-    return { message: 'Error de red o servidor' };
-  }
-}
 
 export default api;

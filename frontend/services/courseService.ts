@@ -182,6 +182,71 @@ class CourseService {
     }
   }
 
+  // 🆕 MÉTODO SIMPLE PARA OBTENER TODOS LOS CURSOS (para EditParticipantModal)
+  async getAllCourses(): Promise<{ success: boolean; data?: Course[]; message?: string }> {
+    try {
+      console.log('📚 CourseService: Obteniendo todos los cursos...');
+      
+      const response = await api.get<CourseApiResponse<Course[]>>(`${this.baseUrl}`);
+      
+      console.log('📥 Respuesta completa de cursos:', response.data);
+
+      if (response.data.success) {
+        const courses = response.data.data.map(course => ({
+          ...course,
+          fechaInicioCurso: new Date(course.fechaInicioCurso),
+          fechaFinCurso: new Date(course.fechaFinCurso),
+          valorCurso: Number(course.valorCurso)
+        }));
+        
+        console.log(`✅ ${courses.length} cursos obtenidos exitosamente`);
+
+        return {
+          success: true,
+          data: courses,
+        };
+      }
+
+      return {
+        success: false,
+        message: response.data.message || 'Error al obtener cursos',
+      };
+    } catch (error: any) {
+      console.error('❌ Error en getAllCourses:', error);
+      
+      // Manejar errores de red
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 401) {
+          return {
+            success: false,
+            message: 'No autorizado. Por favor, inicie sesión nuevamente.',
+          };
+        }
+        if (status === 403) {
+          return {
+            success: false,
+            message: 'No tiene permisos para ver los cursos.',
+          };
+        }
+        return {
+          success: false,
+          message: `Error del servidor: ${status}`,
+        };
+      } else if (error.request) {
+        return {
+          success: false,
+          message: 'Error de conexión. Verifique su conexión a internet.',
+        };
+      }
+
+      return {
+        success: false,
+        message: error.message || 'Error inesperado al obtener cursos',
+      };
+    }
+  }
+
   async getCourseById(id: number): Promise<Course> {
     try {
       console.log('🚀 Obteniendo curso por ID:', id);

@@ -24,6 +24,7 @@ export default function AdminInscriptionsView() {
     totalItems,
     itemsPerPage,
     refreshInscriptions,
+    forceRefresh, // ✅ USAR LA NUEVA FUNCIÓN
     handlePageChange,
     viewInscriptionDetails,
     selectedInscription,
@@ -45,22 +46,41 @@ export default function AdminInscriptionsView() {
 
   const [forceRenderKey, setForceRenderKey] = React.useState(0);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setMessage(null);
-    setForceRenderKey(prev => prev + 1); // 🆕 INCREMENTAR KEY
-    refreshInscriptions();
+    setForceRenderKey(prev => prev + 1);
+    await forceRefresh();
+    console.log('🔄 Tabla de admin refrescada manualmente');
   };
 
   // 🆕 EFECTO PARA ACTUALIZAR KEY CUANDO CAMBIAN LAS INSCRIPCIONES
   React.useEffect(() => {
+    console.log('🔄 AdminView: Inscripciones cambiaron, actualizando renderKey');
     setForceRenderKey(prev => prev + 1);
-  }, [inscriptions, totalItems]);
+  }, [inscriptions, totalItems, inscriptions.length]);
+
+  // 🆕 EFECTO ADICIONAL PARA DETECTAR CAMBIOS PROFUNDOS EN INSCRIPCIONES
+  React.useEffect(() => {
+    const inscriptionIds = inscriptions.map(i => `${i.idInscripcion}-${i.updatedAt || ''}`).join(',');
+    setForceRenderKey(prev => prev + 1);
+  }, [inscriptions.map(i => `${i.idInscripcion}-${i.participante?.nombres}-${i.participante?.apellidos}-${i.facturacion?.ruc}-${i.facturacion?.razonSocial}`).join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleUpdateInscription = React.useCallback(async (updateData: EditInscriptionRequest) => {
-    await updateInscription(updateData);
-    // Forzar re-render adicional después de un pequeño delay
-    setTimeout(() => {
-      setForceRenderKey(prev => prev + 1);
-    }, 200);
+    console.log('📝 AdminInscriptionsView: Procesando actualización...');
+    
+    try {
+      // Actualizar usando el controlador
+      await updateInscription(updateData);
+      
+      // Forzar actualización adicional de la vista después de un breve delay
+      setTimeout(() => {
+        console.log('🔄 Forzando re-render adicional en AdminView');
+        setForceRenderKey(prev => prev + 1);
+      }, 300);
+      
+    } catch (error) {
+      console.error('❌ Error en handleUpdateInscription (AdminView):', error);
+    }
   }, [updateInscription]);
 
 
@@ -159,7 +179,7 @@ export default function AdminInscriptionsView() {
           inscription={selectedInscriptionForEdit}
           isOpen={isEditModalOpen}
           onClose={closeEditModal}
-          onUpdate={updateInscription}
+          onUpdate={handleUpdateInscription}
           userType="admin"
           isUpdating={isUpdating}
         />

@@ -18,6 +18,7 @@ interface UseInscriptionControllerReturn {
   
   // Acciones
   refreshInscriptions: () => Promise<void>;
+  forceRefresh: () => Promise<void>; // ✅ NUEVA FUNCIÓN
   handlePageChange: (page: number) => void;
   viewInscriptionDetails: (inscription: InscriptionData) => void;
   closeInscriptionDetails: () => void;
@@ -185,63 +186,115 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     setMessage(null);
   }, []);
 
-  // 🆕 ACTUALIZAR INSCRIPCIÓN
- // 🔄 REEMPLAZA este método en useInscriptionController.ts
+  // 🆕 ACTUALIZAR INSCRIPCIÓN - VERSIÓN MEJORADA
+  const updateInscription = useCallback(async (updateData: EditInscriptionRequest) => {
+    try {
+      setIsUpdating(true);
+      setMessage(null);
 
-// useInscriptionController.ts - Método updateInscription MEJORADO
+      console.log('🔄 Iniciando actualización de inscripción:', updateData);
 
-// controllers/useInscriptionController.ts - MÉTODO updateInscription MEJORADO
+      // 1. ACTUALIZAR EN EL SERVIDOR PRIMERO
+      const response = await inscriptionService.updateInscription(updateData);
 
-const updateInscription = useCallback(async (updateData: EditInscriptionRequest) => {
-  try {
-    setIsUpdating(true);
-    setMessage(null);
+      if (response.success) {
+        console.log('✅ Respuesta del servidor exitosa:', response.data);
+        
+        // 2. ACTUALIZAR ESTADO LOCAL INMEDIATAMENTE
+        setInscriptions(prevInscriptions => {
+          const updated = prevInscriptions.map(inscription => {
+            if (inscription.idInscripcion === updateData.idInscripcion) {
+              return {
+                ...inscription,
+                participante: {
+                  ...inscription.participante,
+                  ...(updateData.datosPersonales || {})
+                },
+                facturacion: {
+                  ...inscription.facturacion,
+                  ...(updateData.datosFacturacion || {})
+                },
+                // Marcar como recientemente actualizado
+                updatedAt: new Date().toISOString(),
+                _locallyUpdated: true
+              };
+            }
+            return inscription;
+          });
+          
+          console.log('� Estado local actualizado inmediatamente');
+          return updated;
+        });
 
-    console.log('🔄 Actualizando inscripción:', updateData);
+        // 3. MOSTRAR MENSAJE DE ÉXITO
+        setMessage({
+          type: 'success',
+          text: 'Inscripción actualizada exitosamente'
+        });
 
-    const response = await inscriptionService.updateInscription(updateData);
+        // 4. CERRAR EL MODAL AUTOMÁTICAMENTE
+        closeEditModal();
 
-    if (response.success) {
-      console.log('✅ Inscripción actualizada exitosamente');
-      
-      // 🆕 ACTUALIZAR INSCRIPCIÓN EN EL ESTADO LOCAL INMEDIATAMENTE
-      setInscriptions(prevInscriptions => 
-        prevInscriptions.map(inscription => 
-          inscription.idInscripcion === updateData.idInscripcion
-            ? inscriptionService.mapApiDataToInscriptionData(response.data)
-            : inscription
-        )
-      );
+        // 5. REFRESCAR DESDE EL SERVIDOR EN BACKGROUND (SIN BLOQUEAR UI)
+        setTimeout(async () => {
+          try {
+            console.log('🔄 Sincronizando con servidor en background...');
+            const freshResponse = await inscriptionService.getAllInscriptions({
+              page: currentPage,
+              limit: itemsPerPage,
+              orderBy: 'fechaInscripcion',
+              order: 'desc'
+            });
 
+            if (freshResponse.success) {
+              const freshInscriptions = freshResponse.data.map(apiData => 
+                inscriptionService.mapApiDataToInscriptionData(apiData)
+              );
+              
+              // Solo actualizar si los datos son diferentes
+              setInscriptions(prevInscriptions => {
+                const hasChanges = JSON.stringify(prevInscriptions.map(i => ({
+                  id: i.idInscripcion, 
+                  nombres: i.participante?.nombres,
+                  apellidos: i.participante?.apellidos,
+                  ruc: i.facturacion?.ruc
+                }))) !== JSON.stringify(freshInscriptions.map(i => ({
+                  id: i.idInscripcion,
+                  nombres: i.participante?.nombres, 
+                  apellidos: i.participante?.apellidos,
+                  ruc: i.facturacion?.ruc
+                })));
+
+                if (hasChanges) {
+                  console.log('📡 Aplicando datos frescos del servidor');
+                  return freshInscriptions;
+                }
+                
+                console.log('✅ Datos locales ya sincronizados');
+                return prevInscriptions;
+              });
+            }
+          } catch (error) {
+            console.log('⚠️ Error en sincronización background (no crítico):', error);
+          }
+        }, 2000); // 2 segundos de delay
+
+      } else {
+        throw new Error(response.message || 'Error al actualizar la inscripción');
+      }
+    } catch (error) {
+      console.error('❌ Error al actualizar inscripción:', error);
       setMessage({
-        type: 'success',
-        text: '✅ Inscripción actualizada exitosamente'
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Error al actualizar la inscripción'
       });
-
-      // Cerrar modal
-      closeEditModal();
-
-      // 🆕 FORZAR RE-RENDER CON DELAY MÍNIMO
-      setTimeout(async () => {
-        await refreshInscriptions();
-      }, 100);
-
-    } else {
-      throw new Error(response.message);
+    } finally {
+      setIsUpdating(false);
     }
-  } catch (error: any) {
-    console.error('❌ Error actualizando inscripción:', error);
-    setMessage({
-      type: 'error',
-      text: error.message || 'Error al actualizar la inscripción'
-    });
-  } finally {
-    setIsUpdating(false);
-  }
-}, [closeEditModal, refreshInscriptions]);
+  }, [inscriptionService, closeEditModal, currentPage, loadInscriptions]);
 
-
-const openDeleteModal = useCallback((inscription: InscriptionData) => {
+  // 🆕 ABRIR MODAL DE ELIMINACIÓN
+  const openDeleteModal = useCallback((inscription: InscriptionData) => {
     console.log('🗑️ Abriendo modal de eliminación para:', inscription.idInscripcion);
     
     // Verificar si es eliminable
@@ -317,6 +370,30 @@ const openDeleteModal = useCallback((inscription: InscriptionData) => {
     }
   }, [message]);
 
+  // ✅ FUNCIÓN PARA FORZAR RECARGA COMPLETA - VERSIÓN MEJORADA
+  const forceRefresh = useCallback(async () => {
+    console.log('🔄 Forzando recarga completa de inscripciones...');
+    try {
+      setMessage(null);
+      
+      // Limpiar estados modales
+      closeInscriptionDetails();
+      closeEditModal();
+      closeDeleteModal();
+      
+      // Recargar datos desde el servidor
+      await loadInscriptions(currentPage);
+      
+      console.log('✅ Recarga completa finalizada exitosamente');
+    } catch (error) {
+      console.error('❌ Error en forceRefresh:', error);
+      setMessage({
+        type: 'error',
+        text: 'Error al actualizar los datos'
+      });
+    }
+  }, [currentPage, loadInscriptions, closeInscriptionDetails, closeEditModal, closeDeleteModal]);
+
   return {
     // Estado
     inscriptions,
@@ -332,6 +409,7 @@ const openDeleteModal = useCallback((inscription: InscriptionData) => {
     
     // Acciones
     refreshInscriptions,
+    forceRefresh, // ✅ NUEVA FUNCIÓN EXPORTADA
     handlePageChange,
     viewInscriptionDetails,
     closeInscriptionDetails,
