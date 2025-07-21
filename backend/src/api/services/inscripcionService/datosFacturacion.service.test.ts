@@ -27,7 +27,7 @@ jest.mock('@/api/services/mappers/inscripcionMapper/datosFacturacion.mapper', ()
 
 import { DatosFacturacionService } from './datosFacturacion.service';
 import { CreateDatosFacturacionDto, UpdateDatosFacturacionDto } from '@/api/dtos/inscripcionDto/datosFacturacion.dto';
-import { NotFoundError } from '@/utils/errorTypes';
+import { NotFoundError, ConflictError } from '@/utils/errorTypes';
 
 describe('3.1. DatosFacturacionService', () => {
   let datosFacturacionService: DatosFacturacionService;
@@ -115,6 +115,93 @@ describe('3.1. DatosFacturacionService', () => {
         expect((error as Error).message).toContain('Error al crear los datos de facturación');
       }
     });
+
+    it('SRV-DFAC-002: debería lanzar ConflictError cuando la identificación tributaria ya existe', async () => {
+      // Arrange
+      const createDatosFacturacionDto: CreateDatosFacturacionDto = {
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123'
+      };
+
+      const prismaError = {
+        code: 'P2002',
+        meta: { target: ['identificacion_tributaria'] }
+      };
+      mockCreate.mockRejectedValue(prismaError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow(ConflictError);
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow('La identificación tributaria ya está registrada');
+    });
+
+    it('SRV-DFAC-002b: debería lanzar ConflictError cuando el correo de factura ya existe', async () => {
+      // Arrange
+      const createDatosFacturacionDto: CreateDatosFacturacionDto = {
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123'
+      };
+
+      const prismaError = {
+        code: 'P2002',
+        meta: { target: ['correo_factura'] }
+      };
+      mockCreate.mockRejectedValue(prismaError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow(ConflictError);
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow('El correo de facturación ya está registrado');
+    });
+
+    it('SRV-DFAC-002c: debería lanzar ConflictError genérico para otros campos únicos', async () => {
+      // Arrange
+      const createDatosFacturacionDto: CreateDatosFacturacionDto = {
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123'
+      };
+
+      const prismaError = {
+        code: 'P2002',
+        meta: { target: ['otro_campo'] }
+      };
+      mockCreate.mockRejectedValue(prismaError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow(ConflictError);
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow('Ya existe un registro con estos datos únicos');
+    });
+
+    it('SRV-DFAC-002d: debería lanzar error genérico para errores desconocidos', async () => {
+      // Arrange
+      const createDatosFacturacionDto: CreateDatosFacturacionDto = {
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123'
+      };
+
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockCreate.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
+        .rejects.toThrow('Error desconocido al crear los datos de facturación');
+    });
   });
 
   describe('updateDatosFacturacion', () => {
@@ -192,6 +279,65 @@ describe('3.1. DatosFacturacionService', () => {
       });
       expect(mockUpdate).not.toHaveBeenCalled();
     });
+
+    it('SRV-DFAC-004b: debería lanzar ConflictError cuando hay conflicto de identificación tributaria en actualización', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const updateDatosFacturacionDto: UpdateDatosFacturacionDto = {
+        identificacionTributaria: '0402084040',
+      };
+
+      const mockExistingDatos = {
+        idFacturacion: 1,
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084041',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123',
+        fechaCreacion: new Date('2025-06-30T12:00:00Z'),
+      };
+
+      const prismaError = {
+        code: 'P2002',
+        meta: { target: ['identificacion_tributaria'] }
+      };
+
+      mockFindUnique.mockResolvedValue(mockExistingDatos);
+      mockUpdate.mockRejectedValue(prismaError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.updateDatosFacturacion(idFacturacion, updateDatosFacturacionDto))
+        .rejects.toThrow(ConflictError);
+      await expect(datosFacturacionService.updateDatosFacturacion(idFacturacion, updateDatosFacturacionDto))
+        .rejects.toThrow('La identificación tributaria ya está registrada');
+    });
+
+    it('SRV-DFAC-004c: debería manejar errores genéricos en actualización', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const updateDatosFacturacionDto: UpdateDatosFacturacionDto = {
+        razonSocial: 'Empresa Test Actualizada S.A.',
+      };
+
+      const mockExistingDatos = {
+        idFacturacion: 1,
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123',
+        fechaCreacion: new Date('2025-06-30T12:00:00Z'),
+      };
+
+      const unknownError = { message: 'Database error', code: 'DB_ERROR' };
+
+      mockFindUnique.mockResolvedValue(mockExistingDatos);
+      mockUpdate.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.updateDatosFacturacion(idFacturacion, updateDatosFacturacionDto))
+        .rejects.toThrow('Error desconocido al actualizar los datos de facturación');
+    });
   });
 
   describe('getDatosFacturacionById', () => {
@@ -243,6 +389,28 @@ describe('3.1. DatosFacturacionService', () => {
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { idFacturacion },
       });
+    });
+
+    it('SRV-DFAC-006b: debería manejar errores genéricos al obtener por ID', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const dbError = new Error('Database connection failed');
+      mockFindUnique.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.getDatosFacturacionById(idFacturacion))
+        .rejects.toThrow('Error al obtener los datos de facturación: Database connection failed');
+    });
+
+    it('SRV-DFAC-006c: debería manejar errores desconocidos al obtener por ID', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockFindUnique.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.getDatosFacturacionById(idFacturacion))
+        .rejects.toThrow('Error desconocido al obtener los datos de facturación');
     });
   });
 
@@ -300,6 +468,50 @@ describe('3.1. DatosFacturacionService', () => {
         where: { idFacturacion },
       });
       expect(mockDelete).not.toHaveBeenCalled();
+    });
+
+    it('SRV-DFAC-008b: debería manejar errores genéricos durante la eliminación', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const mockDatosFacturacion = {
+        idFacturacion: 1,
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123',
+        fechaCreacion: new Date('2025-06-30T12:00:00Z'),
+      };
+
+      const dbError = new Error('Database constraint violation');
+      mockFindUnique.mockResolvedValue(mockDatosFacturacion);
+      mockDelete.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.deleteDatosFacturacion(idFacturacion))
+        .rejects.toThrow('Error al eliminar los datos de facturación: Database constraint violation');
+    });
+
+    it('SRV-DFAC-008c: debería manejar errores desconocidos durante la eliminación', async () => {
+      // Arrange
+      const idFacturacion = 1;
+      const mockDatosFacturacion = {
+        idFacturacion: 1,
+        razonSocial: 'Empresa Test S.A.',
+        identificacionTributaria: '0402084040',
+        telefono: '+593987654321',
+        correoFactura: 'test@example.com',
+        direccion: 'Av. Principal 123',
+        fechaCreacion: new Date('2025-06-30T12:00:00Z'),
+      };
+
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      mockFindUnique.mockResolvedValue(mockDatosFacturacion);
+      mockDelete.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.deleteDatosFacturacion(idFacturacion))
+        .rejects.toThrow('Error desconocido al eliminar los datos de facturación');
     });
   });
 
@@ -368,6 +580,30 @@ describe('3.1. DatosFacturacionService', () => {
         take: 5,
         orderBy: { razonSocial: 'desc' },
       });
+    });
+
+    it('SRV-DFAC-010: debería manejar errores genéricos al obtener todos los datos', async () => {
+      // Arrange
+      const options = { page: 1, limit: 10, order: 'desc' as const };
+      const dbError = new Error('Database timeout');
+      
+      mockFindMany.mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.getAllDatosFacturacion(options))
+        .rejects.toThrow('Error al obtener los datos de facturación: Database timeout');
+    });
+
+    it('SRV-DFAC-011: debería manejar errores desconocidos al obtener todos los datos', async () => {
+      // Arrange
+      const options = { page: 1, limit: 10, order: 'desc' as const };
+      const unknownError = { message: 'Unknown error', code: 'UNKNOWN' };
+      
+      mockFindMany.mockRejectedValue(unknownError);
+
+      // Act & Assert
+      await expect(datosFacturacionService.getAllDatosFacturacion(options))
+        .rejects.toThrow('Error desconocido al obtener los datos de facturación');
     });
   });
 });
