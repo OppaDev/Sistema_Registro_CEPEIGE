@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { CreateUsuarioDto, UpdateUsuarioDto, UsuarioDetailResponseDto } from '@/api/dtos/authDto/usuario.dto';
 import { BadRequestError, NotFoundError, ConflictError } from '@/utils/errorTypes';
 import { logger } from '@/utils/logger';
+import { toUsuarioDetailDto, type PrismaUsuarioConRoles } from '@/api/services/mappers';
 
 export class UsuarioService {
   private prisma: PrismaClient;
@@ -91,23 +92,9 @@ export class UsuarioService {
         this.prisma.usuario.count()
       ]);
 
-      const usuariosFormateados = usuarios.map(usuario => ({
-        idUsuario: usuario.idUsuario,
-        email: usuario.email,
-        nombres: usuario.nombres,
-        apellidos: usuario.apellidos,
-        activo: usuario.activo,
-        fechaCreacion: usuario.fechaCreacion,
-        fechaActualizacion: usuario.fechaActualizacion,
-        ultimoAcceso: usuario.ultimoAcceso,
-        roles: usuario.roles.map(ur => ({
-          idRol: ur.rol.idRol,
-          nombreRol: ur.rol.nombreRol,
-          descripcionRol: ur.rol.descripcionRol,
-          fechaAsignacion: ur.fechaAsignacion,
-          activo: ur.activo
-        }))
-      }));
+      const usuariosFormateados = usuarios.map(usuario => 
+        toUsuarioDetailDto(usuario as PrismaUsuarioConRoles)
+      );
 
       return {
         usuarios: usuariosFormateados,
@@ -143,23 +130,7 @@ export class UsuarioService {
         throw new NotFoundError(`Usuario con ID ${id}`);
       }
 
-      return {
-        idUsuario: usuario.idUsuario,
-        email: usuario.email,
-        nombres: usuario.nombres,
-        apellidos: usuario.apellidos,
-        activo: usuario.activo,
-        fechaCreacion: usuario.fechaCreacion,
-        fechaActualizacion: usuario.fechaActualizacion,
-        ultimoAcceso: usuario.ultimoAcceso,
-        roles: usuario.roles.map(ur => ({
-          idRol: ur.rol.idRol,
-          nombreRol: ur.rol.nombreRol,
-          descripcionRol: ur.rol.descripcionRol,
-          fechaAsignacion: ur.fechaAsignacion,
-          activo: ur.activo
-        }))
-      };
+      return toUsuarioDetailDto(usuario as PrismaUsuarioConRoles);
 
     } catch (error) {
       if (error instanceof NotFoundError) {

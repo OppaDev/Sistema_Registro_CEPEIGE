@@ -1,5 +1,5 @@
 import { Curso as PrismaCurso } from "@prisma/client";
-import { CursoResponseDto } from "@/api/dtos/inscripcionDto/curso.dto";
+import { CursoResponseDto } from "@/api/dtos/cursoDto/curso.dto";
 
 export const toCursoResponseDto = (curso: PrismaCurso): CursoResponseDto => {
   return {

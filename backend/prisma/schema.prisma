@@ -96,7 +96,7 @@ model Factura {
   idInscripcion    Int              @map("id_inscripcion")
   idFacturacion    Int              @map("id_facturacion")
   valorPagado      Decimal          @map("valor_pagado") @db.Decimal(10, 2)
-  verificacionPago Boolean          @map("verificacion_pago")
+  verificacionPago Boolean          @default(false) @map("verificacion_pago")
   numeroIngreso    String           @unique @map("numero_ingreso") @db.VarChar(100)
   numeroFactura    String           @unique @map("numero_factura") @db.VarChar(100) 
 

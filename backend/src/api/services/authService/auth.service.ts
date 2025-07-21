@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { LoginDto, RefreshTokenDto, LoginResponseDto, RefreshResponseDto, UsuarioResponseDto } from '@/api/dtos/authDto/auth.dto';
+import { LoginDto, RefreshTokenDto, LoginResponseDto, RefreshResponseDto } from '@/api/dtos/authDto/auth.dto';
 import { jwtConfig } from '@/config/jwt';
 import { UnauthorizedError, BadRequestError } from '@/utils/errorTypes';
 import { logger } from '@/utils/logger';
+import { toUsuarioResponseDto, type PrismaUsuarioConRoles } from '@/api/services/mappers';
 
 export class AuthService {
   private prisma: PrismaClient;
@@ -85,16 +86,9 @@ export class AuthService {
         data: { ultimoAcceso: new Date() }
       });
 
-      // 7. Preparar respuesta
-      const userResponse: UsuarioResponseDto = {
-        idUsuario: usuario.idUsuario,
-        email: usuario.email,
-        nombres: usuario.nombres,
-        apellidos: usuario.apellidos,
-        activo: usuario.activo,
-        roles: roles,
-        ultimoAcceso: new Date()
-      };
+      // 7. Preparar respuesta usando el mapper
+      const userResponse = toUsuarioResponseDto(usuario as PrismaUsuarioConRoles);
+      userResponse.ultimoAcceso = new Date(); // Actualizar con la fecha actual
 
       logger.info(`Login exitoso: ${usuario.email}`, { 
         userId: usuario.idUsuario, 

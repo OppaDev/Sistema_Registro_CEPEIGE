@@ -21,12 +21,12 @@ jest.mock('@prisma/client', () => ({
 
 // Mock del mapper
 const mockToDescuentoResponseDto = jest.fn();
-jest.mock('@/api/services/mappers/inscripcionMapper/descuento.mapper', () => ({
+jest.mock('@/api/services/mappers/validarPagoMapper/descuento.mapper', () => ({
   toDescuentoResponseDto: mockToDescuentoResponseDto,
 }));
 
-import { DescuentoService } from './descuento.service';
-import { CreateDescuentoDto, UpdateDescuentoDto } from '@/api/dtos/inscripcionDto/descuento.dto';
+import { DescuentoService } from '@/api/services/validarPagoService/descuento.service';
+import { CreateDescuentoDto, UpdateDescuentoDto } from '@/api/dtos/validarPagoDto/descuento.dto';
 import { NotFoundError, AppError } from '@/utils/errorTypes';
 import { Decimal } from '@prisma/client/runtime/library';
 

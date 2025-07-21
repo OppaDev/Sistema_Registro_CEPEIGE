@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { CursoController } from '@/api/controllers/inscripcionController/curso.controller';
+import { CursoController } from '@/api/controllers/cursoController/curso.controller';
 import { validateDto } from '../../middlewares/validate.dto';
-import { CreateCursoDto, UpdateCursoDto} from '@/api/dtos/inscripcionDto/curso.dto';
+import { CreateCursoDto, UpdateCursoDto} from '@/api/dtos/cursoDto/curso.dto';
 
 const router = Router();
 const cursoController = new CursoController();

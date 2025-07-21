@@ -3,9 +3,9 @@ import {
   CreateDescuentoDto,
   UpdateDescuentoDto,
   DescuentoResponseDto,
-} from "@/api/dtos/inscripcionDto/descuento.dto";
+} from "@/api/dtos/validarPagoDto/descuento.dto";
 import { NotFoundError, AppError } from "@/utils/errorTypes";
-import { toDescuentoResponseDto } from "@/api/services/mappers/inscripcionMapper/descuento.mapper";
+import { toDescuentoResponseDto } from "@/api/services/mappers/validarPagoMapper/descuento.mapper";
 
 const prisma = new PrismaClient();
 
