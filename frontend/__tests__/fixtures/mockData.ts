@@ -2,24 +2,33 @@
 export const mockCourses = [
   { 
     idCurso: 1, 
-    nombreCorto: 'PYTHON-BAS', 
-    nombreLargo: 'Curso de Python - Nivel Básico',
-    costoTotal: 100,
-    activo: true
+    nombreCortoCurso: 'PYTHON-BAS', 
+    nombreCurso: 'Curso de Python - Nivel Básico',
+    descripcionCurso: 'Curso básico de Python',
+    modalidadCurso: 'Virtual',
+    valorCurso: 150.00,
+    fechaInicioCurso: new Date('2024-01-01'),
+    fechaFinCurso: new Date('2024-02-01'),
   },
   { 
     idCurso: 2, 
-    nombreCorto: 'JAVA-ADV', 
-    nombreLargo: 'Curso de Java - Nivel Avanzado',
-    costoTotal: 150,
-    activo: true
+    nombreCortoCurso: 'JAVA-ADV', 
+    nombreCurso: 'Curso de Java - Nivel Avanzado',
+    descripcionCurso: 'Curso avanzado de Java',
+    modalidadCurso: 'Presencial',
+    valorCurso: 250.00,
+    fechaInicioCurso: new Date('2024-02-01'),
+    fechaFinCurso: new Date('2024-04-01'),
   },
   { 
     idCurso: 3, 
-    nombreCorto: 'REACT-INT', 
-    nombreLargo: 'Curso de React - Nivel Intermedio',
-    costoTotal: 120,
-    activo: true
+    nombreCortoCurso: 'REACT-INT', 
+    nombreCurso: 'Curso de React - Nivel Intermedio',
+    descripcionCurso: 'Curso intermedio de React',
+    modalidadCurso: 'Virtual',
+    valorCurso: 200.00,
+    fechaInicioCurso: new Date('2024-03-01'),
+    fechaFinCurso: new Date('2024-05-01'),
   }
 ];
 
