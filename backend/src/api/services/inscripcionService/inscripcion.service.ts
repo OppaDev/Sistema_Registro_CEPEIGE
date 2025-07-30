@@ -12,6 +12,7 @@ import {
   type PrismaInscripcionConRelaciones,
   type PrismaInscripcionAdminConRelaciones 
 } from "@/api/services/mappers/inscripcionMapper/inscripcion.mapper";
+import { inscripcionMoodleTrigger } from "@/triggers/inscripcionMoodle.trigger";
 
 const prisma = new PrismaClient();
 
@@ -91,7 +92,10 @@ export class InscripcionService {
   async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionAdminResponseDto> {
     // Verificar que la inscripción exista
     const inscripcionExistente = await prisma.inscripcion.findUnique({
-      where: { idInscripcion }
+      where: { idInscripcion },
+      include: {
+        persona: true // Incluir datos personales para Moodle
+      }
     });
     if (!inscripcionExistente) {
       throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
@@ -101,7 +105,12 @@ export class InscripcionService {
     if (data.idDescuento) {
       const descuento = await prisma.descuento.findUnique({ where: { idDescuento: data.idDescuento }});
       if (!descuento) throw new NotFoundError(`Descuento con ID ${data.idDescuento}`);
-    }    try {
+    }
+
+    // Detectar si se está cambiando el estado de matrícula de false a true
+    const cambioAMatriculado = data.matricula === true && inscripcionExistente.matricula === false;
+
+    try {
       // Construir el objeto data solo con propiedades definidas
       const updateData: any = {};
       if (data.idDescuento !== undefined) {
@@ -111,6 +120,7 @@ export class InscripcionService {
         updateData.matricula = data.matricula;
       }
 
+      // Actualizar la inscripción en la base de datos
       const inscripcionActualizada = await prisma.inscripcion.update({
         where: { idInscripcion },
         data: updateData,
@@ -122,7 +132,14 @@ export class InscripcionService {
           descuento: true,
         }
       });
+
+      // TRIGGER: Si se cambió a matriculado, ejecutar trigger de matrícula en Moodle
+      if (cambioAMatriculado) {
+        await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
+      }
+
       return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);
+
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error instanceof Error) {
@@ -209,6 +226,9 @@ export class InscripcionService {
         throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
       }
 
+      // Ejecutar trigger pre-eliminación
+      await inscripcionMoodleTrigger.ejecutarPreEliminacion(idInscripcion);
+
       await prisma.inscripcion.delete({
         where: { idInscripcion }
       });
@@ -222,5 +242,6 @@ export class InscripcionService {
       throw new AppError("Error desconocido al eliminar la inscripción", 500);
     }
   }
+
     
 }

@@ -1,0 +1,62 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: moodle-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=${MOODLE_DATABASE_USER}
+      - POSTGRES_PASSWORD=${MOODLE_DATABASE_PASSWORD}
+      - POSTGRES_DB=${MOODLE_DATABASE_NAME}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MOODLE_DATABASE_USER} -d ${MOODLE_DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  moodle:
+    image: bitnami/moodle:5.0.1-debian-12-r4
+    container_name: moodle-app
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 1.1.1.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - MOODLE_USERNAME=admin
+      - MOODLE_PASSWORD=${MOODLE_ADMIN_PASSWORD}
+      - MOODLE_EMAIL=admin@cepeige.com
+      - MOODLE_SITE_NAME=CEPEIGE Moodle
+      - MOODLE_DATABASE_TYPE=pgsql
+      - MOODLE_DATABASE_HOST=postgres
+      - MOODLE_DATABASE_PORT_NUMBER=5432
+      - MOODLE_DATABASE_USER=${MOODLE_DATABASE_USER}
+      - MOODLE_DATABASE_PASSWORD=${MOODLE_DATABASE_PASSWORD}
+      - MOODLE_DATABASE_NAME=${MOODLE_DATABASE_NAME}
+      - MOODLE_SITE_URL=http://localhost:8080
+      - ALLOW_EMPTY_PASSWORD=no
+      - MOODLE_SKIP_BOOTSTRAP=no
+      - BITNAMI_DEBUG=true
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  moodle_data:
+    driver: local
+  moodledata_data:
+    driver: local
