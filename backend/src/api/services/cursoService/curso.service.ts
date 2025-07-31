@@ -8,6 +8,7 @@ import {
 import { NotFoundError, AppError } from "@/utils/errorTypes";
 import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
 import { cursoMoodleTrigger } from "@/triggers/cursoMoodle.trigger";
+import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
 
 const prisma = new PrismaClient();
 
@@ -57,8 +58,9 @@ export class CursoService {
         },
       });
 
-      // Ejecutar trigger post-creación
+      // Ejecutar triggers post-creación
       await cursoMoodleTrigger.ejecutarPostCreacion(curso);
+      await cursoTelegramTrigger.ejecutarPostCreacion(curso);
 
       return toCursoResponseDto(curso);
       
@@ -119,8 +121,9 @@ export class CursoService {
         data: datosActualizados,
       });
 
-      // Ejecutar trigger post-actualización
+      // Ejecutar triggers post-actualización
       await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
+      await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
 
       return toCursoResponseDto(curso);    } catch (error) {
       if (error instanceof NotFoundError) {
@@ -227,8 +230,9 @@ export class CursoService {
         throw new NotFoundError('Curso');
       }
 
-      // Ejecutar trigger pre-eliminación
+      // Ejecutar triggers pre-eliminación
       await cursoMoodleTrigger.ejecutarPreEliminacion(id);
+      await cursoTelegramTrigger.ejecutarPreEliminacion(id);
 
       // Eliminar el curso
       const cursoEliminado = await prisma.curso.delete({

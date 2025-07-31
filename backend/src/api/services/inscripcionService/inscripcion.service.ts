@@ -13,8 +13,11 @@ import {
   type PrismaInscripcionAdminConRelaciones 
 } from "@/api/services/mappers/inscripcionMapper/inscripcion.mapper";
 import { inscripcionMoodleTrigger } from "@/triggers/inscripcionMoodle.trigger";
+import { inscripcionTelegramTrigger } from "@/triggers/inscripcionTelegram.trigger";
+import { FacturaService } from "@/api/services/validarPagoService/factura.service";
 
 const prisma = new PrismaClient();
+const facturaService = new FacturaService();
 
 interface GetAllInscripcionesOptions {
   page: number;
@@ -110,6 +113,21 @@ export class InscripcionService {
     // Detectar si se está cambiando el estado de matrícula de false a true
     const cambioAMatriculado = data.matricula === true && inscripcionExistente.matricula === false;
 
+    // Validar que el pago esté verificado antes de permitir el cambio a matriculado
+    if (cambioAMatriculado) {
+      const facturas = await facturaService.getFacturasByInscripcionId(idInscripcion);
+      
+      if (facturas.length === 0) {
+        throw new ConflictError(`No se puede matricular: No existe factura para la inscripción ID ${idInscripcion}`);
+      }
+
+      const pagoVerificado = facturas.some(factura => factura.verificacionPago === true);
+      
+      if (!pagoVerificado) {
+        throw new ConflictError(`No se puede matricular: El pago no ha sido verificado para la inscripción ID ${idInscripcion}`);
+      }
+    }
+
     try {
       // Construir el objeto data solo con propiedades definidas
       const updateData: any = {};
@@ -133,9 +151,13 @@ export class InscripcionService {
         }
       });
 
-      // TRIGGER: Si se cambió a matriculado, ejecutar trigger de matrícula en Moodle
+      // TRIGGERS: Si se cambió a matriculado, ejecutar triggers de matrícula
       if (cambioAMatriculado) {
+        // Trigger de matrícula en Moodle (crítico - puede revertir matrícula)
         await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
+        
+        // Trigger de invitación a Telegram (no crítico - no revierte matrícula)
+        await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
       }
 
       return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);

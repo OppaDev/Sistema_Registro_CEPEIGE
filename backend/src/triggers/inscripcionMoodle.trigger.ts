@@ -2,10 +2,13 @@ import { PrismaClient } from "@prisma/client";
 import { usuarioMoodleService } from "@/api/services/moodleService/usuarioMoodle.service";
 import { cursoMoodleService } from "@/api/services/moodleService/cursoMoodle.service";
 import { matriculaMoodleService } from "@/api/services/moodleService/matriculaMoodle.service";
+import { InscripcionMoodleService } from "@/api/services/integrationService/inscripcionMoodle.service";
+import { EstadoMatriculaMoodle } from "@/api/dtos/integrationDto/inscripcionMoodle.dto";
 import { AppError } from "@/utils/errorTypes";
 import { logger } from "@/utils/logger";
 
 const prisma = new PrismaClient();
+const inscripcionMoodleServicePersistence = new InscripcionMoodleService();
 
 /**
  * Trigger para manejar eventos relacionados con inscripciones y Moodle
@@ -155,12 +158,18 @@ export class InscripcionMoodleTrigger {
         moodleCourseId,
         curso: inscripcionData.curso.nombreCortoCurso
       });
+
+      // Guardar información de la matrícula en la base de datos
+      await this.guardarInscripcionMoodle(inscripcionId, moodleUserId, inscripcionData.persona.correo);
     } else {
       logger.info(`Usuario ya está matriculado en el curso, omitiendo`, {
         inscripcionId,
         moodleUserId,
         moodleCourseId
       });
+
+      // Guardar información de la matrícula existente en la base de datos
+      await this.guardarInscripcionMoodle(inscripcionId, moodleUserId, inscripcionData.persona.correo);
     }
   }
 
@@ -233,6 +242,82 @@ export class InscripcionMoodleTrigger {
         `Error en validaciones pre-eliminación: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         400
       );
+    }
+  }
+
+  /**
+   * Guardar información de la matrícula Moodle en la base de datos
+   * @param inscripcionId - ID de la inscripción
+   * @param moodleUserId - ID del usuario en Moodle
+   * @param email - Email del usuario (usado como username en Moodle)
+   * @returns Promise<void>
+   */
+  private async guardarInscripcionMoodle(inscripcionId: number, moodleUserId: number, email: string): Promise<void> {
+    try {
+      // Verificar si ya existe un registro
+      const existeRegistro = await inscripcionMoodleServicePersistence.existeIntegracionMoodle(inscripcionId);
+      
+      if (!existeRegistro) {
+        // Crear nuevo registro
+        await inscripcionMoodleServicePersistence.createInscripcionMoodle({
+          idInscripcion: inscripcionId,
+          moodleUserId: moodleUserId,
+          moodleUsername: email, // Usamos el email como username
+          estadoMatricula: EstadoMatriculaMoodle.MATRICULADO,
+          notas: 'Matrícula automática desde sistema de inscripciones'
+        });
+
+        logger.info(`Información de matrícula Moodle guardada en BD`, {
+          inscripcionId,
+          moodleUserId,
+          moodleUsername: email
+        });
+      } else {
+        logger.debug(`Ya existe registro de matrícula Moodle para inscripción ${inscripcionId}`);
+      }
+
+    } catch (error) {
+      logger.error(`Error al guardar información de matrícula Moodle:`, {
+        inscripcionId,
+        moodleUserId,
+        email,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+      
+      // No lanzamos error para no interrumpir el flujo de matrícula
+      // El proceso de Moodle ya fue exitoso, esto es solo persistencia adicional
+    }
+  }
+
+  /**
+   * Actualizar estado de matrícula Moodle en la base de datos
+   * @param inscripcionId - ID de la inscripción
+   * @param nuevoEstado - Nuevo estado de matrícula
+   * @param notas - Notas adicionales
+   * @returns Promise<void>
+   */
+  async actualizarEstadoMatriculaMoodle(inscripcionId: number, nuevoEstado: EstadoMatriculaMoodle, notas?: string): Promise<void> {
+    try {
+      const existeRegistro = await inscripcionMoodleServicePersistence.existeIntegracionMoodle(inscripcionId);
+      
+      if (existeRegistro) {
+        await inscripcionMoodleServicePersistence.cambiarEstadoMatricula(inscripcionId, nuevoEstado, notas);
+        
+        logger.info(`Estado de matrícula Moodle actualizado`, {
+          inscripcionId,
+          nuevoEstado,
+          notas
+        });
+      } else {
+        logger.warn(`No se encontró registro de matrícula Moodle para inscripción ${inscripcionId}`);
+      }
+
+    } catch (error) {
+      logger.error(`Error al actualizar estado de matrícula Moodle:`, {
+        inscripcionId,
+        nuevoEstado,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
     }
   }
 }

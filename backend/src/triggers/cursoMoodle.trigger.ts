@@ -1,9 +1,11 @@
 import { PrismaClient, Curso } from "@prisma/client";
 import { cursoMoodleService } from "@/api/services/moodleService/cursoMoodle.service";
+import { CursoMoodleService } from "@/api/services/integrationService/cursoMoodle.service";
 import { AppError } from "@/utils/errorTypes";
 import { logger } from "@/utils/logger";
 
 const prisma = new PrismaClient();
+const cursoMoodleServicePersistence = new CursoMoodleService();
 
 /**
  * Trigger para manejar eventos relacionados con cursos y Moodle
@@ -24,7 +26,10 @@ export class CursoMoodleTrigger {
       // Crear curso en Moodle
       const moodleCourseId = await cursoMoodleService.crearCursoEnMoodle(curso);
       
-      logger.info(`Curso creado exitosamente en Moodle`, {
+      // Guardar información del curso en la base de datos de persistencia
+      await this.guardarCursoMoodle(curso.idCurso, moodleCourseId, curso.nombreCortoCurso);
+      
+      logger.info(`Curso creado exitosamente en Moodle y guardado en BD`, {
         cursoId: curso.idCurso,
         nombreCortoCurso: curso.nombreCortoCurso,
         moodleCourseId
@@ -83,10 +88,20 @@ export class CursoMoodleTrigger {
     try {
       logger.info(`Trigger pre-eliminación activado para curso ID ${cursoId}`);
       
-      // Aquí se pueden agregar acciones como:
-      // - Verificar si hay inscripciones activas
-      // - Eliminar curso de Moodle
-      // - Archivar datos relacionados
+      // Verificar si existe integración con Moodle
+      const existeIntegracion = await cursoMoodleServicePersistence.existeIntegracionMoodle(cursoId);
+      
+      if (existeIntegracion) {
+        // Eliminar registro de la integración Moodle
+        await cursoMoodleServicePersistence.deleteCursoMoodle(cursoId);
+        logger.info(`Integración Moodle eliminada para curso ${cursoId}`);
+        
+        // TODO: Aquí se podría eliminar también el curso de Moodle si es necesario
+        // const moodleCourseId = await this.obtenerMoodleCourseId(cursoId);
+        // if (moodleCourseId) {
+        //   await cursoMoodleService.eliminarCursoEnMoodle(moodleCourseId);
+        // }
+      }
       
       logger.info(`Trigger pre-eliminación completado para curso ID ${cursoId}`);
       
@@ -96,10 +111,8 @@ export class CursoMoodleTrigger {
       });
       
       // En eliminaciones, podemos permitir que continúe o bloquear según el caso
-      throw new AppError(
-        `Error en validaciones pre-eliminación: ${error instanceof Error ? error.message : 'Error desconocido'}`,
-        400
-      );
+      // Para integraciones, no bloqueamos la eliminación del curso principal
+      logger.warn(`Eliminando curso ${cursoId} a pesar del error en Moodle: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 
@@ -132,12 +145,55 @@ export class CursoMoodleTrigger {
   }
 
   /**
+   * Guardar información del curso Moodle en la base de datos
+   * @param cursoId - ID del curso
+   * @param moodleCourseId - ID del curso en Moodle
+   * @param nombreCortoMoodle - Nombre corto en Moodle
+   * @returns Promise<void>
+   */
+  private async guardarCursoMoodle(cursoId: number, moodleCourseId: number, nombreCortoMoodle: string): Promise<void> {
+    try {
+      await cursoMoodleServicePersistence.createCursoMoodle({
+        idCurso: cursoId,
+        moodleCursoId: moodleCourseId,
+        nombreCortoMoodle: nombreCortoMoodle,
+        activo: true
+      });
+
+      logger.info(`Información del curso Moodle guardada en BD`, {
+        cursoId,
+        moodleCourseId,
+        nombreCortoMoodle
+      });
+
+    } catch (error) {
+      logger.error(`Error al guardar información del curso Moodle:`, {
+        cursoId,
+        moodleCourseId,
+        nombreCortoMoodle,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+      
+      // Lanzamos error para que se ejecute el rollback
+      throw error;
+    }
+  }
+
+  /**
    * Verificar estado de sincronización con Moodle
    * @param curso - Curso a verificar
    * @returns Promise<boolean> - true si está sincronizado
    */
   async verificarSincronizacionMoodle(curso: Curso): Promise<boolean> {
     try {
+      // Primero verificar en nuestra BD de persistencia
+      const existeEnBD = await cursoMoodleServicePersistence.existeIntegracionMoodle(curso.idCurso);
+      
+      if (existeEnBD) {
+        return true;
+      }
+
+      // Si no está en BD, verificar directamente en Moodle
       const moodleCourseId = await cursoMoodleService.obtenerMoodleCourseIdPorShortname(
         curso.nombreCortoCurso
       );
@@ -150,6 +206,20 @@ export class CursoMoodleTrigger {
       });
       
       return false;
+    }
+  }
+
+  /**
+   * Obtener ID de curso en Moodle desde la BD de persistencia
+   * @param cursoId - ID del curso
+   * @returns Promise<number | null> - ID del curso en Moodle o null
+   */
+  async obtenerMoodleCourseId(cursoId: number): Promise<number | null> {
+    try {
+      return await cursoMoodleServicePersistence.obtenerMoodleCursoId(cursoId);
+    } catch (error) {
+      logger.error(`Error al obtener ID de curso Moodle para curso ${cursoId}:`, error);
+      return null;
     }
   }
 }

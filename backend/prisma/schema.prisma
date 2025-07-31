@@ -19,6 +19,8 @@ model Curso {
 
   //relaciones
   inscripciones    Inscripcion[]
+  cursoMoodle      CursoMoodle?
+  grupoTelegram    GrupoTelegram?
 
   @@map("curso")
 }
@@ -87,6 +89,7 @@ model Inscripcion {
   descuento        Descuento?       @relation(fields: [idDescuento], references: [idDescuento], onUpdate: Restrict)
   datosFacturacion DatosFacturacion @relation(fields: [idFacturacion], references: [idFacturacion], onUpdate: Restrict)
   persona          DatosPersonales  @relation(fields: [idPersona], references: [idPersona], onUpdate: Restrict)
+  inscripcionMoodle InscripcionMoodle?
 
   @@map("inscripcion")
 }
@@ -207,4 +210,53 @@ model SesionUsuario {
   usuario           Usuario  @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
   
   @@map("sesion_usuario")
+}
+
+// ===== NUEVAS TABLAS PARA INTEGRACIONES =====
+
+model CursoMoodle {
+  idCursoMoodle     Int      @id @default(autoincrement()) @map("id_curso_moodle")
+  idCurso           Int      @unique @map("id_curso")
+  moodleCursoId     Int      @map("moodle_curso_id")
+  nombreCortoMoodle String   @map("nombre_corto_moodle") @db.VarChar(100)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion") @db.Timestamp(6)
+  activo            Boolean  @default(true) @map("activo")
+  
+  // Relaciones
+  curso             Curso    @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
+  
+  @@map("curso_moodle")
+}
+
+model GrupoTelegram {
+  idGrupoTelegram   Int      @id @default(autoincrement()) @map("id_grupo_telegram")
+  idCurso           Int      @unique @map("id_curso")
+  telegramGroupId   String   @map("telegram_group_id") @db.VarChar(50)
+  nombreGrupo       String   @map("nombre_grupo") @db.VarChar(200)
+  enlaceInvitacion  String   @map("enlace_invitacion") @db.VarChar(500)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion") @db.Timestamp(6)
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion") @db.Timestamp(6)
+  activo            Boolean  @default(true) @map("activo")
+  
+  // Relaciones
+  curso             Curso    @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
+  
+  @@map("grupo_telegram")
+}
+
+model InscripcionMoodle {
+  idInscripcionMoodle Int         @id @default(autoincrement()) @map("id_inscripcion_moodle")
+  idInscripcion       Int         @unique @map("id_inscripcion")
+  moodleUserId        Int         @map("moodle_user_id")
+  moodleUsername      String      @map("moodle_username") @db.VarChar(100)
+  estadoMatricula     String      @default("matriculado") @map("estado_matricula") @db.VarChar(50) // "matriculado", "suspendido", "completado"
+  fechaMatricula      DateTime    @default(now()) @map("fecha_matricula") @db.Timestamp(6)
+  fechaActualizacion  DateTime    @updatedAt @map("fecha_actualizacion") @db.Timestamp(6)
+  notas               String?     @map("notas") @db.Text
+  
+  // Relaciones
+  inscripcion         Inscripcion @relation(fields: [idInscripcion], references: [idInscripcion], onDelete: Cascade)
+  
+  @@map("inscripcion_moodle")
 }
