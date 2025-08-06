@@ -5,8 +5,10 @@ import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
 import comprobanteRoutes from './inscripcionRoute/comprobante.routes';
 import inscripcionRoutes from './inscripcionRoute/inscripcion.routes';
 import descuentoRoutes from './validarPagoRoute/descuento.routes';
+import facturaRoutes from './validarPagoRoute/factura.routes';
 import authRoutes from './authRoute/auth.routes';
 import usuarioRoutes from './authRoute/usuario.routes';
+import informeRoutes from './informeRoute/informe.routes';
 
 
 export const configureRoutes = (app: Application): void => {
@@ -28,6 +30,10 @@ export const configureRoutes = (app: Application): void => {
   apiRouter.use('/inscripciones', inscripcionRoutes);
   // Rutas de descuentos
   apiRouter.use('/descuentos', descuentoRoutes);
+  // Rutas de facturas
+  apiRouter.use('/facturas', facturaRoutes);
+  // Rutas de informes
+  apiRouter.use('/informes', informeRoutes);
 
   // Una ruta de prueba simple para verificar que el router funciona
   apiRouter.get('/ping', (_: Request, res: Response) => {

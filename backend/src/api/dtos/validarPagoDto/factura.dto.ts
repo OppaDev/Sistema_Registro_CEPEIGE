@@ -4,7 +4,7 @@ import {
     IsString,
     IsNumber,
     IsBoolean,
-    IsDecimal,
+    
     Length,
     Matches,
 } from "class-validator";
@@ -22,7 +22,6 @@ export class CreateFacturaDto {
 
     @IsNotEmpty({ message: "El valor pagado es obligatorio" })
     @Type(() => Decimal)
-    @IsDecimal({ decimal_digits: '2' }, { message: "El valor pagado debe ser un número decimal con máximo 2 decimales" })
     valorPagado!: Decimal;
 
     @IsNotEmpty({ message: "El número de ingreso es obligatorio" })

@@ -1,5 +1,6 @@
 import { logger } from "@/utils/logger";
 import { AppError } from "@/utils/errorTypes";
+import nodemailer from 'nodemailer';
 
 export interface CorreoConfig {
   from: string;
@@ -18,6 +19,19 @@ export interface CorreoInvitacionTelegramData {
 }
 
 export class CorreoService {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: process.env['EMAIL_HOST'] || 'smtp.maileroo.com',
+      port: parseInt(process.env['EMAIL_PORT'] || '587'),
+      secure: false, // true para 465, false para otros puertos
+      auth: {
+        user: process.env['EMAIL_USER'],
+        pass: process.env['EMAIL_PASS']
+      }
+    });
+  }
 
   /**
    * Enviar correo de invitación a grupo de Telegram
@@ -27,7 +41,7 @@ export class CorreoService {
   async enviarInvitacionTelegram(data: CorreoInvitacionTelegramData): Promise<boolean> {
     try {
       const correoConfig: CorreoConfig = {
-        from: process.env['EMAIL_FROM'] || 'noreply@cepeige.edu',
+        from: process.env['EMAIL_USER'] || 'noreply@cepeige.edu',
         to: data.email,
         subject: `¡Únete al grupo de Telegram de ${data.nombreCurso}!`,
         html: this.generarPlantillaInvitacionTelegram(data)
@@ -52,44 +66,30 @@ export class CorreoService {
    */
   async enviarCorreo(config: CorreoConfig): Promise<boolean> {
     try {
-      // Por ahora solo registramos en logs
-      // En producción se implementaría con nodemailer, sendgrid, etc.
-      logger.info('📧 Correo electrónico enviado:', {
+      logger.info('📧 Enviando correo electrónico:', {
         from: config.from,
         to: config.to,
         subject: config.subject,
         htmlLength: config.html.length
       });
 
-      // TODO: Implementar envío real
-      /*
-      const transporter = nodemailer.createTransporter({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
-
-      await transporter.sendMail({
+      await this.transporter.sendMail({
         from: config.from,
         to: config.to,
         subject: config.subject,
         html: config.html
       });
-      */
 
+      logger.info('✅ Correo enviado exitosamente a:', config.to);
       return true;
 
     } catch (error) {
-      logger.error('Error al enviar correo:', {
+      logger.error('❌ Error al enviar correo:', {
         to: config.to,
         subject: config.subject,
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
-      return false;
+      throw new AppError(`Error al enviar correo: ${error instanceof Error ? error.message : 'Error desconocido'}`, 500);
     }
   }
 
@@ -190,10 +190,7 @@ export class CorreoService {
    * @returns boolean - true si está configurado
    */
   verificarConfiguracion(): boolean {
-    const requiredEnvVars = ['EMAIL_FROM'];
-    
-    // En producción también verificar SMTP_HOST, SMTP_USER, etc.
-    // const requiredEnvVars = ['EMAIL_FROM', 'SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'];
+    const requiredEnvVars = ['EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USER', 'EMAIL_PASS'];
     
     for (const envVar of requiredEnvVars) {
       if (!process.env[envVar]) {
@@ -203,5 +200,40 @@ export class CorreoService {
     }
     
     return true;
+  }
+
+  /**
+   * Probar conexión con el servidor de correo
+   * @returns Promise<boolean> - true si la conexión es exitosa
+   */
+  async probarConexion(): Promise<boolean> {
+    try {
+      await this.transporter.verify();
+      logger.info('✅ Conexión con servidor de correo verificada');
+      return true;
+    } catch (error) {
+      logger.error('❌ Error al verificar conexión con servidor de correo:', {
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Enviar correo de notificación genérico
+   * @param to - Email destinatario
+   * @param subject - Asunto del correo
+   * @param html - Contenido HTML
+   * @returns Promise<boolean> - true si se envió exitosamente
+   */
+  async enviarNotificacion(to: string, subject: string, html: string): Promise<boolean> {
+    const config: CorreoConfig = {
+      from: process.env['EMAIL_USER'] || 'noreply@cepeige.edu',
+      to,
+      subject,
+      html
+    };
+
+    return await this.enviarCorreo(config);
   }
 }
