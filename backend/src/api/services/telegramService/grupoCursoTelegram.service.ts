@@ -241,7 +241,7 @@ class GrupoCursoTelegramService {
       }
 
       logger.error('No se pudo extraer group ID de la respuesta');
-      throw new AppError('Respuesta inesperada al crear grupo', 500);
+      throw new AppError('Respuesta inválida al crear grupo de Telegram', 500);
 
     } catch (error) {
       logger.error('Error al crear grupo de Telegram:', {
@@ -249,7 +249,13 @@ class GrupoCursoTelegramService {
         curso: curso.nombreCortoCurso
       });
 
-      throw new AppError('Error al crear grupo de Telegram', 500);
+      // Si ya es un AppError, re-lanzarlo sin modificar
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      throw new AppError(`Error al crear grupo de Telegram: ${errorMessage}`, 500);
     }
   }
 
