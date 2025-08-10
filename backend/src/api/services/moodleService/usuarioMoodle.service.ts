@@ -85,9 +85,7 @@ export class UsuarioMoodleService {
       if (moodleUser.department) {
         formData.append('users[0][department]', moodleUser.department);
       }
-      if (moodleUser.lang) {
-        formData.append('users[0][lang]', moodleUser.lang);
-      }
+      // lang: removido - usar idioma por defecto del sitio
       if (moodleUser.timezone) {
         formData.append('users[0][timezone]', moodleUser.timezone);
       }
@@ -251,7 +249,7 @@ export class UsuarioMoodleService {
       phone1: datosPersonales.numTelefono || '',
       institution: datosPersonales.institucion || '',
       department: datosPersonales.profesion || '',
-      lang: 'es', // Idioma español por defecto
+      // lang: removido - usar idioma por defecto del sitio  
       auth: 'manual', // Autenticación manual
       // Preferencias simplificadas
       preferences: [

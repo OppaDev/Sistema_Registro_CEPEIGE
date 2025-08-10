@@ -22,10 +22,10 @@ services:
 
   moodle:
     image: bitnami/moodle:5.0.1-debian-12-r4
-    container_name: moodle-app
+    container_name: moodle-test
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "706:8080"
+      - "707:8443"
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -44,7 +44,7 @@ services:
       - MOODLE_DATABASE_USER=${MOODLE_DATABASE_USER}
       - MOODLE_DATABASE_PASSWORD=${MOODLE_DATABASE_PASSWORD}
       - MOODLE_DATABASE_NAME=${MOODLE_DATABASE_NAME}
-      - MOODLE_SITE_URL=http://localhost:8080
+      - MOODLE_SITE_URL=moodle.oppadev.com
       - ALLOW_EMPTY_PASSWORD=no
       - MOODLE_SKIP_BOOTSTRAP=no
       - BITNAMI_DEBUG=true

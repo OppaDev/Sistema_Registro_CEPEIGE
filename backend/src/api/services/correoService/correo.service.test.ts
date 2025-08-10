@@ -13,7 +13,8 @@ describe('CorreoService', () => {
   });
 
   describe('verificarConfiguracion', () => {
-    it('debe devolver true cuando todas las variables de entorno están configuradas', () => {
+    // SRV-COR-001: Devolver true cuando todas las variables de entorno están configuradas
+    it('SRV-COR-001: debe devolver true cuando todas las variables de entorno están configuradas', () => {
       process.env.EMAIL_HOST = 'smtp.maileroo.com';
       process.env.EMAIL_PORT = '587';
       process.env.EMAIL_USER = 'test@test.com';
@@ -23,7 +24,8 @@ describe('CorreoService', () => {
       expect(resultado).toBe(true);
     });
 
-    it('debe devolver false cuando falta una variable de entorno', () => {
+    // SRV-COR-002: Devolver false cuando falta una variable de entorno
+    it('SRV-COR-002: debe devolver false cuando falta una variable de entorno', () => {
       const originalValue = process.env.EMAIL_HOST;
       delete (process.env as any).EMAIL_HOST;
       
@@ -41,7 +43,8 @@ describe('CorreoService', () => {
   });
 
   describe('generarPlantillaInvitacionTelegram', () => {
-    it('debe generar una plantilla HTML válida', () => {
+    // SRV-COR-003: Generar una plantilla HTML válida
+    it('SRV-COR-003: debe generar una plantilla HTML válida', () => {
       const data: CorreoInvitacionTelegramData = {
         email: 'test@test.com',
         nombre: 'Juan',
@@ -63,7 +66,8 @@ describe('CorreoService', () => {
   });
 
   describe('enviarNotificacion', () => {
-    it('debe crear la configuración correcta del correo', async () => {
+    // SRV-COR-004: Crear la configuración correcta del correo
+    it('SRV-COR-004: debe crear la configuración correcta del correo', async () => {
       const enviarCorreoSpy = jest.spyOn(correoService, 'enviarCorreo').mockResolvedValue(true);
       
       await correoService.enviarNotificacion(
