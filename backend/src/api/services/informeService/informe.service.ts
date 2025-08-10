@@ -288,55 +288,85 @@ export class InformeService {
             doc.text(`Generado el: ${new Date().toLocaleString('es-ES')}`, 148, 30, { align: 'center' });
             doc.text(`Total de registros: ${datos.length}`, 148, 35, { align: 'center' });
 
-            // Preparar datos para la tabla
-            const tableData = datos.map(inscripcion => [
-                inscripcion.idInscripcion.toString(),
-                inscripcion.nombreCompleto,
-                inscripcion.email,
-                inscripcion.nombreCurso,
-                inscripcion.fechaInscripcion.toLocaleDateString('es-ES'),
-                inscripcion.matricula ? 'SÍ' : 'NO',
-                inscripcion.tipoComprobante,
-                `$${inscripcion.montoComprobante.toFixed(2)}`,
-                inscripcion.estadoPago
-            ]);
-
-            // Configurar tabla
-            (doc as any).autoTable({
-                head: [['ID', 'Nombre', 'Email', 'Curso', 'Fecha', 'Matriculado', 'Comprobante', 'Monto', 'Estado Pago']],
-                body: tableData,
-                startY: 45,
-                styles: {
-                    fontSize: 7,
-                    cellPadding: 1.5,
-                    overflow: 'linebreak',
-                    halign: 'center'
-                },
-                headStyles: {
-                    fillColor: [70, 173, 71],
-                    textColor: [255, 255, 255],
-                    fontStyle: 'bold',
-                    fontSize: 8
-                },
-                alternateRowStyles: {
-                    fillColor: [242, 242, 242]
-                },
-                columnStyles: {
-                    0: { cellWidth: 15 },
-                    1: { cellWidth: 35, halign: 'left' },
-                    2: { cellWidth: 40, halign: 'left' },
-                    3: { cellWidth: 30, halign: 'left' },
-                    4: { cellWidth: 20 },
-                    5: { cellWidth: 18 },
-                    6: { cellWidth: 22 },
-                    7: { cellWidth: 18 },
-                    8: { cellWidth: 22 }
-                },
-                margin: { left: 10, right: 10 },
+            // Preparar datos para la tabla con validación de datos
+            const tableData = datos.map(inscripcion => {
+                try {
+                    return [
+                        inscripcion.idInscripcion?.toString() || 'N/A',
+                        inscripcion.nombreCompleto || 'N/A',
+                        inscripcion.email || 'N/A',
+                        inscripcion.nombreCurso || 'N/A',
+                        inscripcion.fechaInscripcion ? inscripcion.fechaInscripcion.toLocaleDateString('es-ES') : 'N/A',
+                        inscripcion.matricula ? 'SÍ' : 'NO',
+                        inscripcion.tipoComprobante || 'N/A',
+                        inscripcion.montoComprobante ? `$${parseFloat(inscripcion.montoComprobante.toString()).toFixed(2)}` : '$0.00',
+                        inscripcion.estadoPago || 'N/A'
+                    ];
+                } catch (error) {
+                    logger.warn('Error procesando inscripción para PDF:', error);
+                    return ['N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', '$0.00', 'N/A'];
+                }
             });
 
-            // Resumen
-            const finalY = (doc as any).lastAutoTable.finalY + 10;
+            // Configurar tabla con manejo de errores
+            try {
+                if (typeof (doc as any).autoTable === 'function') {
+                    (doc as any).autoTable({
+                        head: [['ID', 'Nombre', 'Email', 'Curso', 'Fecha', 'Matriculado', 'Comprobante', 'Monto', 'Estado Pago']],
+                        body: tableData,
+                        startY: 45,
+                        styles: {
+                            fontSize: 7,
+                            cellPadding: 1.5,
+                            overflow: 'linebreak',
+                            halign: 'center'
+                        },
+                        headStyles: {
+                            fillColor: [70, 173, 71],
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold',
+                            fontSize: 8
+                        },
+                        alternateRowStyles: {
+                            fillColor: [242, 242, 242]
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 15 },
+                            1: { cellWidth: 35, halign: 'left' },
+                            2: { cellWidth: 40, halign: 'left' },
+                            3: { cellWidth: 30, halign: 'left' },
+                            4: { cellWidth: 20 },
+                            5: { cellWidth: 18 },
+                            6: { cellWidth: 22 },
+                            7: { cellWidth: 18 },
+                            8: { cellWidth: 22 }
+                        },
+                        margin: { left: 10, right: 10 },
+                    });
+                } else {
+                    throw new Error('autoTable function is not available. jspdf-autotable may not be properly loaded.');
+                }
+            } catch (tableError) {
+                logger.error('Error al crear tabla en PDF:', tableError);
+                // Crear tabla simple como fallback
+                let yPosition = 50;
+                doc.setFontSize(8);
+                doc.text('ID | Nombre | Email | Curso | Fecha | Matriculado | Monto | Estado', 20, yPosition);
+                yPosition += 5;
+                
+                tableData.forEach((row) => {
+                    if (yPosition > 200) { // Nueva página si es necesario
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    const rowText = row.join(' | ');
+                    doc.text(rowText.substring(0, 100), 20, yPosition); // Limitar longitud
+                    yPosition += 4;
+                });
+            }
+
+            // Resumen con posición segura
+            const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 150;
             const matriculados = datos.filter(d => d.matricula).length;
             const pagosVerificados = datos.filter(d => d.verificacionPago).length;
             
@@ -348,25 +378,60 @@ export class InformeService {
             doc.text(`Estudiantes matriculados: ${matriculados}`, 20, finalY + 16);
             doc.text(`Pagos verificados: ${pagosVerificados}`, 20, finalY + 24);
 
-            // Pie de página
-            const pageCount = (doc as any).internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text(`Página ${i} de ${pageCount}`, 148, 200, { align: 'center' });
-                doc.text('Sistema de Registro CEPEIGE', 148, 205, { align: 'center' });
+            // Pie de página - usar método seguro para múltiples páginas
+            try {
+                const pageCount = (doc as any).internal?.pages?.length ? (doc as any).internal.pages.length - 1 : 1;
+                for (let i = 1; i <= pageCount; i++) {
+                    if (typeof doc.setPage === 'function') {
+                        doc.setPage(i);
+                    }
+                    doc.setFontSize(8);
+                    doc.text(`Página ${i} de ${pageCount}`, 148, 200, { align: 'center' });
+                    doc.text('Sistema de Registro CEPEIGE', 148, 205, { align: 'center' });
+                }
+            } catch (pageError) {
+                logger.warn('Error al agregar pie de página, continuando sin él:', pageError);
+                // Continuar sin pie de página
             }
 
-            const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+            // Generar buffer PDF de manera segura
+            let pdfBuffer: Buffer;
+            try {
+                const pdfOutput = doc.output('arraybuffer');
+                pdfBuffer = Buffer.from(pdfOutput);
+                
+                if (pdfBuffer.length === 0) {
+                    throw new Error('PDF buffer está vacío');
+                }
+                
+            } catch (bufferError) {
+                logger.warn('Error generando arraybuffer, intentando con string:', bufferError);
+                try {
+                    // Fallback: usar output string y convertir
+                    const pdfString = doc.output('datauristring');
+                    const base64Data = pdfString.split(',')[1];
+                    pdfBuffer = Buffer.from(base64Data, 'base64');
+                } catch (fallbackError) {
+                    logger.error('Error en fallback de PDF:', fallbackError);
+                    throw new Error('No se pudo generar el buffer PDF');
+                }
+            }
+
             const nombreArchivo = generarNombreArchivo(tipoInforme, 'pdf', filtros);
             const archivoInfo = toArchivoInformeDto(nombreArchivo, 'application/pdf', pdfBuffer, filtros);
 
-            logger.info('✅ Informe PDF generado exitosamente');
+            logger.info('✅ Informe PDF generado exitosamente', { 
+                size: pdfBuffer.length,
+                filename: nombreArchivo 
+            });
             return { buffer: pdfBuffer, archivoInfo };
 
         } catch (error) {
             logger.error('❌ Error al generar informe PDF:', error);
-            throw new AppError('Error al generar el informe PDF', 500);
+            
+            // Proporcionar más detalle del error si es posible
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            throw new AppError(`Error al generar el informe PDF: ${errorMessage}`, 500);
         }
     }
 

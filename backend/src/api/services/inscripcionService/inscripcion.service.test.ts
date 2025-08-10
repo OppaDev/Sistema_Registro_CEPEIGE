@@ -13,6 +13,7 @@ const mockDatosPersonalesFindUnique = jest.fn();
 const mockDatosFacturacionFindUnique = jest.fn();
 const mockComprobanteFindUnique = jest.fn();
 const mockDescuentoFindUnique = jest.fn();
+const mockFacturaFindMany = jest.fn();
 
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
@@ -40,6 +41,9 @@ jest.mock('@prisma/client', () => ({
     descuento: {
       findUnique: mockDescuentoFindUnique,
     },
+    factura: {
+      findMany: mockFacturaFindMany,
+    },
   })),
 }));
 
@@ -49,6 +53,28 @@ const mockToInscripcionAdminResponseDto = jest.fn();
 jest.mock('@/api/services/mappers/inscripcionMapper/inscripcion.mapper', () => ({
   toInscripcionResponseDto: mockToInscripcionResponseDto,
   toInscripcionAdminResponseDto: mockToInscripcionAdminResponseDto,
+}));
+
+// Mock del FacturaService
+const mockGetFacturasByInscripcionId = jest.fn();
+jest.mock('@/api/services/validarPagoService/factura.service', () => ({
+  FacturaService: jest.fn().mockImplementation(() => ({
+    getFacturasByInscripcionId: mockGetFacturasByInscripcionId,
+  })),
+}));
+
+// Mock de los triggers
+jest.mock('@/triggers/inscripcionMoodle.trigger', () => ({
+  inscripcionMoodleTrigger: {
+    ejecutarMatriculaEnMoodle: jest.fn().mockResolvedValue(undefined),
+    ejecutarPreEliminacion: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('@/triggers/inscripcionTelegram.trigger', () => ({
+  inscripcionTelegramTrigger: {
+    ejecutarInvitacionTelegram: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 import { InscripcionService } from './inscripcion.service';
@@ -334,7 +360,14 @@ describe('InscripcionService', () => {
         comprobante: mockComprobante,
       };
 
+      const mockFacturas = [{
+        idFactura: 1,
+        verificacionPago: true,
+        valorPagado: 100.00,
+      }];
+
       mockFindUnique.mockResolvedValue(existingInscripcion);
+      mockGetFacturasByInscripcionId.mockResolvedValue(mockFacturas);
       mockUpdate.mockResolvedValue(updatedInscripcion);
       mockToInscripcionAdminResponseDto.mockReturnValue(expectedResponseDto);
 
@@ -344,6 +377,7 @@ describe('InscripcionService', () => {
       // Assert
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { idInscripcion: 1 },
+        include: { persona: true },
       });
       expect(mockUpdate).toHaveBeenCalledWith({
         where: { idInscripcion: 1 },
@@ -403,7 +437,14 @@ describe('InscripcionService', () => {
         descuento: mockDescuento,
       };
 
+      const mockFacturas = [{
+        idFactura: 1,
+        verificacionPago: true,
+        valorPagado: 100.00,
+      }];
+
       mockFindUnique.mockResolvedValueOnce(existingInscripcion); // For initial check
+      mockGetFacturasByInscripcionId.mockResolvedValue(mockFacturas);
       mockDescuentoFindUnique.mockResolvedValue(mockDescuento);
       mockUpdate.mockResolvedValue(updatedInscripcion);
       mockToInscripcionAdminResponseDto.mockReturnValue(expectedResponseDto);
@@ -414,6 +455,7 @@ describe('InscripcionService', () => {
       // Assert
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { idInscripcion: 1 },
+        include: { persona: true },
       });
       expect(mockDescuentoFindUnique).toHaveBeenCalledWith({
         where: { idDescuento: 1 },

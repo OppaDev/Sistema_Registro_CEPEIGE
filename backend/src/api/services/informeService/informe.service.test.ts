@@ -54,12 +54,32 @@ jest.mock('jspdf', () => {
   return jest.fn().mockImplementation(() => mockPDFInstance);
 });
 
-const mockWorkbookInstance = {
-  addWorksheet: jest.fn(() => ({
-    addRow: jest.fn(),
-    columns: [],
-    eachRow: jest.fn(),
+const mockCell = {
+  value: null,
+  border: {},
+  fill: {},
+  alignment: {},
+  font: {},
+};
+
+const mockRow = {
+  getCell: jest.fn(() => mockCell),
+};
+
+const mockWorksheet = {
+  addRow: jest.fn(() => mockRow),
+  columns: [],
+  eachRow: jest.fn(),
+  mergeCells: jest.fn(),
+  getCell: jest.fn(() => mockCell),
+  getRow: jest.fn(() => mockRow),
+  getColumn: jest.fn(() => ({
+    width: 0,
   })),
+};
+
+const mockWorkbookInstance = {
+  addWorksheet: jest.fn(() => mockWorksheet),
   xlsx: {
     writeBuffer: jest.fn(() => Promise.resolve(Buffer.from('fake excel content'))),
   },
@@ -344,7 +364,8 @@ describe('InformeService', () => {
     // SRV-INF-007: Generar informe Excel válido
     it('SRV-INF-007: debería generar un informe Excel válido', async () => {
       // Arrange
-      jest.spyOn(informeService, 'obtenerDatosInscripciones').mockResolvedValue(mockDatos);
+      const mockObtenerDatos = jest.spyOn(informeService, 'obtenerDatosInscripciones')
+        .mockResolvedValue(mockDatos);
       mockGenerarNombreArchivo.mockReturnValue('informe_inscripciones_2024-01-15.xlsx');
       mockToArchivoInformeDto.mockReturnValue(mockArchivoInfo);
 
@@ -357,6 +378,7 @@ describe('InformeService', () => {
       expect(result.buffer).toBeInstanceOf(Buffer);
       expect(result.buffer.length).toBeGreaterThan(0);
       expect(result.archivoInfo).toEqual(mockArchivoInfo);
+      expect(mockObtenerDatos).toHaveBeenCalledWith(filtros);
       expect(logger.info).toHaveBeenCalledWith('📊 Generando informe Excel:', {
         tipoInforme: TipoInforme.INSCRIPCIONES,
         filtros: filtros
@@ -411,7 +433,8 @@ describe('InformeService', () => {
     // SRV-INF-009: Generar informe PDF válido
     it('SRV-INF-009: debería generar un informe PDF válido', async () => {
       // Arrange
-      jest.spyOn(informeService, 'obtenerDatosInscripciones').mockResolvedValue(mockDatos);
+      const mockObtenerDatos = jest.spyOn(informeService, 'obtenerDatosInscripciones')
+        .mockResolvedValue(mockDatos);
       mockGenerarNombreArchivo.mockReturnValue('informe_inscripciones_2024-01-15.pdf');
       mockToArchivoInformeDto.mockReturnValue(mockArchivoInfo);
 
@@ -424,11 +447,15 @@ describe('InformeService', () => {
       expect(result.buffer).toBeInstanceOf(Buffer);
       expect(result.buffer.length).toBeGreaterThan(0);
       expect(result.archivoInfo).toEqual(mockArchivoInfo);
+      expect(mockObtenerDatos).toHaveBeenCalledWith(filtros);
       expect(logger.info).toHaveBeenCalledWith('📄 Generando informe PDF:', {
         tipoInforme: TipoInforme.INSCRIPCIONES,
         filtros: filtros
       });
-      expect(logger.info).toHaveBeenCalledWith('✅ Informe PDF generado exitosamente');
+      expect(logger.info).toHaveBeenCalledWith('✅ Informe PDF generado exitosamente', {
+        size: expect.any(Number),
+        filename: 'informe_inscripciones_2024-01-15.pdf'
+      });
     });
 
     // SRV-INF-010: Manejar errores en generación de PDF
