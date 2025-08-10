@@ -40,6 +40,35 @@ jest.mock('@/utils/logger', () => ({
   },
 }));
 
+// Mock de jsPDF y exceljs
+const mockPDFInstance = {
+  text: jest.fn(),
+  setFont: jest.fn(),
+  setFontSize: jest.fn(),
+  autoTable: jest.fn(),
+  save: jest.fn(),
+  output: jest.fn(() => Buffer.from('fake pdf content')),
+};
+
+jest.mock('jspdf', () => {
+  return jest.fn().mockImplementation(() => mockPDFInstance);
+});
+
+const mockWorkbookInstance = {
+  addWorksheet: jest.fn(() => ({
+    addRow: jest.fn(),
+    columns: [],
+    eachRow: jest.fn(),
+  })),
+  xlsx: {
+    writeBuffer: jest.fn(() => Promise.resolve(Buffer.from('fake excel content'))),
+  },
+};
+
+jest.mock('exceljs', () => ({
+  Workbook: jest.fn().mockImplementation(() => mockWorkbookInstance),
+}));
+
 import { InformeService } from './informe.service';
 import { TipoInforme, FiltrosInformeDto } from '@/api/dtos/informeDto/informe.dto';
 import { AppError } from '@/utils/errorTypes';
@@ -483,10 +512,10 @@ describe('InformeService', () => {
       expect(mockFindMany).toHaveBeenCalledWith({
         select: {
           idCurso: true,
-          nombre: true,
+          nombreCurso: true,
         },
         orderBy: {
-          nombre: 'asc',
+          nombreCurso: 'asc',
         },
       });
     });

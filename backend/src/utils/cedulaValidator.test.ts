@@ -18,7 +18,8 @@ describe('CedulaEcuatorianaValidator', () => {
         '1717695496', // Pichincha
       ];
 
-      test.each(cedulasValidas)('debería validar la cédula %s como válida', (cedula) => {
+      // VAL-CED-001: Validar cédulas ecuatorianas válidas
+      test.each(cedulasValidas)('VAL-CED-001: debería validar la cédula %s como válida', (cedula) => {
         expect(CedulaEcuatorianaValidator.isValid(cedula)).toBe(true);
       });
     });
@@ -36,7 +37,8 @@ describe('CedulaEcuatorianaValidator', () => {
         '1717777777', // Suma incorrecta
       ];
 
-      test.each(cedulasInvalidas)('debería validar la cédula %s como inválida', (cedula) => {
+      // VAL-CED-002: Rechazar cédulas ecuatorianas inválidas
+      test.each(cedulasInvalidas)('VAL-CED-002: debería validar la cédula %s como inválida', (cedula) => {
         expect(CedulaEcuatorianaValidator.isValid(cedula)).toBe(false);
       });
     });
@@ -55,54 +57,67 @@ describe('CedulaEcuatorianaValidator', () => {
         undefined, // Undefined
       ];
 
-      test.each(formatosInvalidos)('debería rechazar formato inválido: %s', (cedula) => {
+      // VAL-CED-003: Rechazar formatos inválidos
+      test.each(formatosInvalidos)('VAL-CED-003: debería rechazar formato inválido: %s', (cedula) => {
         expect(CedulaEcuatorianaValidator.isValid(cedula as string)).toBe(false);
       });
     });
 
     // Casos especiales de limpieza
     describe('limpieza de caracteres', () => {
-      test('debería validar cédula con espacios', () => {
+      // VAL-CED-004: Validar cédula con espacios
+      test('VAL-CED-004: debería validar cédula con espacios', () => {
         expect(CedulaEcuatorianaValidator.isValid(' 0402084040 ')).toBe(true);
       });
 
-      test('debería validar cédula con guiones', () => {
+      // VAL-CED-005: Validar cédula con guiones
+      test('VAL-CED-005: debería validar cédula con guiones', () => {
         expect(CedulaEcuatorianaValidator.isValid('040-208-4040')).toBe(true);
       });
 
-      test('debería validar cédula con puntos', () => {
+      // VAL-CED-006: Validar cédula con puntos
+      test('VAL-CED-006: debería validar cédula con puntos', () => {
         expect(CedulaEcuatorianaValidator.isValid('040.208.4040')).toBe(true);
       });
     });
 
     // Casos de códigos de provincia
     describe('códigos de provincia', () => {
-      test('debería rechazar código de provincia 00', () => {
+      // VAL-CED-007: Rechazar código de provincia 00
+      test('VAL-CED-007: debería rechazar código de provincia 00', () => {
         expect(CedulaEcuatorianaValidator.isValid('0012345678')).toBe(false);
       });
 
-      test('debería rechazar código de provincia mayor a 24', () => {
+      // VAL-CED-008: Rechazar código de provincia mayor a 24
+      test('VAL-CED-008: debería rechazar código de provincia mayor a 24', () => {
         expect(CedulaEcuatorianaValidator.isValid('2512345678')).toBe(false);
-      });      test('debería aceptar código de provincia 01', () => {
+      });
+
+      // VAL-CED-009: Aceptar código de provincia 01
+      test('VAL-CED-009: debería aceptar código de provincia 01', () => {
         expect(CedulaEcuatorianaValidator.isValid('0107197790')).toBe(true);
       });
 
-      test('debería aceptar código de provincia 24', () => {
+      // VAL-CED-010: Aceptar código de provincia 24
+      test('VAL-CED-010: debería aceptar código de provincia 24', () => {
         expect(CedulaEcuatorianaValidator.isValid('2450094657')).toBe(true);
       });
     });
 
     // Casos de tercer dígito
     describe('tercer dígito', () => {
-      test('debería rechazar tercer dígito 6', () => {
+      // VAL-CED-011: Rechazar tercer dígito 6
+      test('VAL-CED-011: debería rechazar tercer dígito 6', () => {
         expect(CedulaEcuatorianaValidator.isValid('0462084040')).toBe(false);
       });
 
-      test('debería rechazar tercer dígito mayor a 6', () => {
+      // VAL-CED-012: Rechazar tercer dígito mayor a 6
+      test('VAL-CED-012: debería rechazar tercer dígito mayor a 6', () => {
         expect(CedulaEcuatorianaValidator.isValid('0472084040')).toBe(false);
       });
 
-      test('debería aceptar tercer dígito 0-5', () => {
+      // VAL-CED-013: Aceptar tercer dígito 0-5
+      test('VAL-CED-013: debería aceptar tercer dígito 0-5', () => {
         expect(CedulaEcuatorianaValidator.isValid('0402084040')).toBe(true);
         expect(CedulaEcuatorianaValidator.isValid('0412084040')).toBe(false); // Este debe ser inválido por el dígito verificador
       });

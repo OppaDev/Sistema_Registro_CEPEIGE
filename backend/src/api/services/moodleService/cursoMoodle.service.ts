@@ -82,10 +82,7 @@ export class CursoMoodleService {
         formData.append('courses[0][enddate]', moodleCourse.enddate.toString());
       }
 
-      // Idioma
-      if (moodleCourse.lang) {
-        formData.append('courses[0][lang]', moodleCourse.lang);
-      }
+      // Idioma - removido para usar idioma por defecto del sitio
 
       logger.debug('FormData para crear curso en Moodle:', Array.from(formData.entries()));
       logger.debug('Datos del curso a crear:', {
@@ -334,7 +331,7 @@ export class CursoMoodleService {
       enddate: enddate, // Fecha de fin
       enablecompletion: 1, // Habilitar finalización del curso
       completionnotify: 0, // No notificar finalización
-      lang: 'es', // Idioma español
+      // lang: removido - usar idioma por defecto del sitio
       maxbytes: 0, // Sin límite de tamaño de archivo
       showreports: 0 // No mostrar reportes por defecto
     };

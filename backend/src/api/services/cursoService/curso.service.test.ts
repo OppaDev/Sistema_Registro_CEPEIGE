@@ -25,6 +25,29 @@ jest.mock('@/api/services/mappers/cursoMapper/curso.mapper', () => ({
   toCursoResponseDto: mockToCursoResponseDto,
 }));
 
+// Mock de los triggers
+const mockEjecutarPostCreacionMoodle = jest.fn();
+const mockEjecutarPostCreacionTelegram = jest.fn();
+const mockEjecutarPostActualizacionMoodle = jest.fn();
+const mockEjecutarPostActualizacionTelegram = jest.fn();
+const mockEjecutarPreEliminacionMoodle = jest.fn();
+const mockEjecutarPreEliminacionTelegram = jest.fn();
+
+jest.mock('@/triggers/cursoMoodle.trigger', () => ({
+  cursoMoodleTrigger: {
+    ejecutarPostCreacion: mockEjecutarPostCreacionMoodle,
+    ejecutarPostActualizacion: mockEjecutarPostActualizacionMoodle,
+    ejecutarPreEliminacion: mockEjecutarPreEliminacionMoodle,
+  },
+}));
+jest.mock('@/triggers/cursoTelegram.trigger', () => ({
+  cursoTelegramTrigger: {
+    ejecutarPostCreacion: mockEjecutarPostCreacionTelegram,
+    ejecutarPostActualizacion: mockEjecutarPostActualizacionTelegram,
+    ejecutarPreEliminacion: mockEjecutarPreEliminacionTelegram,
+  },
+}));
+
 import { CursoService } from './curso.service';
 import { CreateCursoDto, UpdateCursoDto } from '@/api/dtos/cursoDto/curso.dto';
 import { NotFoundError } from '@/utils/errorTypes';
@@ -48,6 +71,14 @@ describe('CursoService', () => {
       fechaInicioCurso: curso.fechaInicioCurso,
       fechaFinCurso: curso.fechaFinCurso,
     }));
+
+    // Mock por defecto de los triggers para que no ejecuten nada
+    mockEjecutarPostCreacionMoodle.mockResolvedValue(undefined);
+    mockEjecutarPostCreacionTelegram.mockResolvedValue(undefined);
+    mockEjecutarPostActualizacionMoodle.mockResolvedValue(undefined);
+    mockEjecutarPostActualizacionTelegram.mockResolvedValue(undefined);
+    mockEjecutarPreEliminacionMoodle.mockResolvedValue(undefined);
+    mockEjecutarPreEliminacionTelegram.mockResolvedValue(undefined);
   });
 
   describe('createCurso', () => {

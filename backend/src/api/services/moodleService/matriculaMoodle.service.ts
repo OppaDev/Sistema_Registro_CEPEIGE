@@ -75,10 +75,15 @@ export class MatriculaMoodleService {
       });
 
       // Validar respuesta
+      if (!response) {
+        logger.info('Matrícula exitosa - Moodle devolvió respuesta vacía (sin warnings)');
+        return true;
+      }
+
       const moodleResponse = response as MoodleEnrolmentResponse;
 
       // Verificar si hay warnings
-      if (moodleResponse.warnings && moodleResponse.warnings.length > 0) {
+      if (moodleResponse && moodleResponse.warnings && moodleResponse.warnings.length > 0) {
         const warningMessages = moodleResponse.warnings.map(w => `${w.warningcode}: ${w.message}`).join(', ');
         logger.warn('Advertencias al matricular en Moodle:', warningMessages);
         
