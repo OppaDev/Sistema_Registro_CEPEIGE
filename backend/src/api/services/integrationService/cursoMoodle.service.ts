@@ -13,7 +13,6 @@ import {
 } from "@/api/services/mappers/integrationMapper/cursoMoodle.mapper";
 import { logger } from "@/utils/logger";
 
-const prisma = new PrismaClient();
 
 interface GetAllCursosMoodleOptions {
   page: number;
@@ -24,17 +23,22 @@ interface GetAllCursosMoodleOptions {
 }
 
 export class CursoMoodleService {
+  private prisma: PrismaClient;
+
+  constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient ?? new PrismaClient();
+  }
 
   async createCursoMoodle(data: CreateCursoMoodleDto): Promise<CursoMoodleResponseDto> {
     try {
       // Validar que el curso exista
-      const curso = await prisma.curso.findUnique({ where: { idCurso: data.idCurso } });
+      const curso = await this.prisma.curso.findUnique({ where: { idCurso: data.idCurso } });
       if (!curso) {
         throw new NotFoundError(`Curso con ID ${data.idCurso}`);
       }
 
       // Verificar que no exista ya una integración con Moodle para este curso
-      const cursoMoodleExistente = await prisma.cursoMoodle.findUnique({
+      const cursoMoodleExistente = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso: data.idCurso }
       });
       if (cursoMoodleExistente) {
@@ -42,14 +46,14 @@ export class CursoMoodleService {
       }
 
       // Verificar que el ID de Moodle no esté en uso
-      const moodleIdEnUso = await prisma.cursoMoodle.findFirst({
+      const moodleIdEnUso = await this.prisma.cursoMoodle.findFirst({
         where: { moodleCursoId: data.moodleCursoId }
       });
       if (moodleIdEnUso) {
         throw new ConflictError(`El ID de curso en Moodle ${data.moodleCursoId} ya está en uso`);
       }
 
-      const cursoMoodle = await prisma.cursoMoodle.create({
+      const cursoMoodle = await this.prisma.cursoMoodle.create({
         data: {
           idCurso: data.idCurso,
           moodleCursoId: data.moodleCursoId,
@@ -78,7 +82,7 @@ export class CursoMoodleService {
   async updateCursoMoodle(idCurso: number, data: UpdateCursoMoodleDto): Promise<CursoMoodleResponseDto> {
     try {
       // Verificar que la integración Moodle exista
-      const cursoMoodleExistente = await prisma.cursoMoodle.findUnique({
+      const cursoMoodleExistente = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso }
       });
       if (!cursoMoodleExistente) {
@@ -87,7 +91,7 @@ export class CursoMoodleService {
 
       // Si se actualiza el ID de Moodle, verificar que no esté en uso
       if (data.moodleCursoId && data.moodleCursoId !== cursoMoodleExistente.moodleCursoId) {
-        const moodleIdEnUso = await prisma.cursoMoodle.findFirst({
+        const moodleIdEnUso = await this.prisma.cursoMoodle.findFirst({
           where: { 
             moodleCursoId: data.moodleCursoId,
             idCurso: { not: idCurso }
@@ -104,7 +108,7 @@ export class CursoMoodleService {
       if (data.nombreCortoMoodle !== undefined) updateData.nombreCortoMoodle = data.nombreCortoMoodle;
       if (data.activo !== undefined) updateData.activo = data.activo;
 
-      const cursoMoodleActualizado = await prisma.cursoMoodle.update({
+  const cursoMoodleActualizado = await this.prisma.cursoMoodle.update({
         where: { idCurso },
         data: updateData
       });
@@ -127,7 +131,7 @@ export class CursoMoodleService {
 
   async getCursoMoodleByIdCurso(idCurso: number): Promise<CursoMoodleWithCursoDto> {
     try {
-      const cursoMoodle = await prisma.cursoMoodle.findUnique({
+  const cursoMoodle = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso },
         include: { curso: true }
       });
@@ -155,14 +159,14 @@ export class CursoMoodleService {
       const whereCondition = incluirInactivos ? {} : { activo: true };
 
       const [cursosMoodle, total] = await Promise.all([
-        prisma.cursoMoodle.findMany({
+  this.prisma.cursoMoodle.findMany({
           skip,
           take: limit,
           where: whereCondition,
           orderBy: { [orderBy]: order },
           include: { curso: true }
         }),
-        prisma.cursoMoodle.count({ where: whereCondition }),
+  this.prisma.cursoMoodle.count({ where: whereCondition }),
       ]);
 
       return {
@@ -183,14 +187,14 @@ export class CursoMoodleService {
   async deleteCursoMoodle(idCurso: number): Promise<boolean> {
     try {
       // Verificar que la integración Moodle exista
-      const cursoMoodleExistente = await prisma.cursoMoodle.findUnique({
+  const cursoMoodleExistente = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso }
       });
       if (!cursoMoodleExistente) {
         throw new NotFoundError(`Integración Moodle para curso con ID ${idCurso}`);
       }
 
-      await prisma.cursoMoodle.delete({
+  await this.prisma.cursoMoodle.delete({
         where: { idCurso }
       });
 
@@ -211,7 +215,7 @@ export class CursoMoodleService {
 
   async existeIntegracionMoodle(idCurso: number): Promise<boolean> {
     try {
-      const cursoMoodle = await prisma.cursoMoodle.findUnique({
+  const cursoMoodle = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso, activo: true }
       });
       return cursoMoodle !== null;
@@ -223,7 +227,7 @@ export class CursoMoodleService {
 
   async obtenerMoodleCursoId(idCurso: number): Promise<number | null> {
     try {
-      const cursoMoodle = await prisma.cursoMoodle.findUnique({
+  const cursoMoodle = await this.prisma.cursoMoodle.findUnique({
         where: { idCurso, activo: true }
       });
       return cursoMoodle?.moodleCursoId || null;
