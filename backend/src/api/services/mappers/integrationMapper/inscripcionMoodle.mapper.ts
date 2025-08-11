@@ -23,7 +23,8 @@ export const toInscripcionMoodleResponseDto = (inscripcionMoodle: PrismaInscripc
     idInscripcion: inscripcionMoodle.idInscripcion,
     moodleUserId: inscripcionMoodle.moodleUserId,
     moodleUsername: inscripcionMoodle.moodleUsername,
-    estadoMatricula: inscripcionMoodle.estadoMatricula as EstadoMatriculaMoodle,
+  // Normalizar a minúsculas para alinear con los valores del enum
+  estadoMatricula: String(inscripcionMoodle.estadoMatricula).toLowerCase() as EstadoMatriculaMoodle,
     fechaMatricula: inscripcionMoodle.fechaMatricula,
     fechaActualizacion: inscripcionMoodle.fechaActualizacion,
     notas: inscripcionMoodle.notas,
@@ -36,7 +37,8 @@ export const toInscripcionMoodleWithInscripcionDto = (inscripcionMoodleConInscri
     idInscripcion: inscripcionMoodleConInscripcion.idInscripcion,
     moodleUserId: inscripcionMoodleConInscripcion.moodleUserId,
     moodleUsername: inscripcionMoodleConInscripcion.moodleUsername,
-    estadoMatricula: inscripcionMoodleConInscripcion.estadoMatricula as EstadoMatriculaMoodle,
+  // Normalizar a minúsculas para alinear con los valores del enum
+  estadoMatricula: String(inscripcionMoodleConInscripcion.estadoMatricula).toLowerCase() as EstadoMatriculaMoodle,
     fechaMatricula: inscripcionMoodleConInscripcion.fechaMatricula,
     fechaActualizacion: inscripcionMoodleConInscripcion.fechaActualizacion,
     notas: inscripcionMoodleConInscripcion.notas,

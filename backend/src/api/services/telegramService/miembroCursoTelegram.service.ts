@@ -64,8 +64,10 @@ class MiembroCursoTelegramService {
         apellido: inscripcion.persona.apellidos,
         nombreCurso: inscripcion.curso.nombreCurso,
         inviteLink: inviteLink,
-        fechaInicio:
-          inscripcion.curso.fechaInicioCurso.toLocaleDateString("es-ES"),
+        // Formatear en UTC para evitar desfases por zona horaria
+        fechaInicio: new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC' }).format(
+          inscripcion.curso.fechaInicioCurso
+        ),
       };
 
       // 5. Enviar correo con invitación
