@@ -4,7 +4,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoginForm } from './components/LoginForm';
+import { LoginForm } from './components/login/LoginForm';
 
 export default function LoginView() {
   const { login, isLoading, error } = useAuth();

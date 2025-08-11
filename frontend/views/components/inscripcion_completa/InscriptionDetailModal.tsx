@@ -1,11 +1,11 @@
 // views/components/InscriptionDetailModal.tsx
-import React from 'react';
-import { InscriptionData } from '@/models/inscription';
-import { inscriptionService } from '@/services/inscriptionService';
+import React, { useState } from 'react';
+import { InscriptionData } from '@/models/inscripcion_completa/inscription';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building } from 'lucide-react';
+import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface InscriptionDetailModalProps {
   inscription: InscriptionData | null;
@@ -20,7 +20,54 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
   onClose,
   userType
 }) => {
+  // ✅ Estado para feedback visual
+  const [downloadMessage, setDownloadMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   if (!isOpen || !inscription) return null;
+
+  // ✅ Función para ver comprobante (abrir en nueva pestaña)
+  const handleViewReceipt = () => {
+    if (!inscription.comprobante) {
+      setDownloadMessage({ type: 'error', text: 'No hay comprobante disponible' });
+      setTimeout(() => setDownloadMessage(null), 3000);
+      return;
+    }
+
+    try {
+      const comprobanteUrl = `/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+      window.open(comprobanteUrl, '_blank', 'noopener,noreferrer');
+      setDownloadMessage({ type: 'success', text: 'Comprobante abierto en nueva pestaña' });
+      setTimeout(() => setDownloadMessage(null), 2000);
+    } catch (error) {
+      setDownloadMessage({ type: 'error', text: 'Error al abrir el comprobante' });
+      setTimeout(() => setDownloadMessage(null), 3000);
+    }
+  };
+
+  // ✅ Función para descargar comprobante
+  const handleDownloadReceipt = () => {
+    if (!inscription.comprobante) {
+      setDownloadMessage({ type: 'error', text: 'No hay comprobante disponible' });
+      setTimeout(() => setDownloadMessage(null), 3000);
+      return;
+    }
+
+    try {
+      const comprobanteUrl = `/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+      const link = document.createElement('a');
+      link.href = comprobanteUrl;
+      link.download = `comprobante_${inscription.idInscripcion}_${inscription.comprobante.nombreArchivo}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setDownloadMessage({ type: 'success', text: 'Descarga iniciada correctamente' });
+      setTimeout(() => setDownloadMessage(null), 2000);
+    } catch (error) {
+      setDownloadMessage({ type: 'error', text: 'Error al descargar el comprobante' });
+      setTimeout(() => setDownloadMessage(null), 3000);
+    }
+  };
 
   const getStatusBadge = (estado: string) => {
     const { color, text, bgColor } = inscriptionService.getStatusBadge(estado);
@@ -56,6 +103,26 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
+          {/* ✅ Mensaje de feedback para descargas */}
+          {downloadMessage && (
+            <div className={`flex items-center p-3 rounded-lg ${
+              downloadMessage.type === 'success' 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              {downloadMessage.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+              )}
+              <span className={`text-sm ${
+                downloadMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {downloadMessage.text}
+              </span>
+            </div>
+          )}
+
           {/* Estado y fecha */}
           <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center space-x-4">
@@ -294,6 +361,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                         size="sm"
                         variant="outline"
                         className="flex items-center space-x-2 border-green-500 text-green-700 hover:bg-green-50"
+                        onClick={handleViewReceipt}
                       >
                         <Eye className="h-4 w-4" />
                         <span>Ver comprobante</span>
@@ -302,6 +370,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                         size="sm"
                         variant="outline"
                         className="flex items-center space-x-2 border-blue-500 text-blue-700 hover:bg-blue-50"
+                        onClick={handleDownloadReceipt}
                       >
                         <Download className="h-4 w-4" />
                         <span>Descargar</span>

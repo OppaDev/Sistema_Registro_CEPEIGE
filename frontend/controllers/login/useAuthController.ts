@@ -1,6 +1,6 @@
 // controllers/useAuthController.ts - NUEVO ARCHIVO
 import { useAuth } from '@/contexts/AuthContext';
-import { ROLE_ROUTES } from '@/models/auth';
+import { ROLE_ROUTES } from '@/models/login/auth';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 

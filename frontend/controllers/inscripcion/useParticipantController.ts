@@ -1,14 +1,14 @@
 // controllers/useParticipantController.ts - VERSIÓN COMPLETA ACTUALIZADA
 import { useState } from 'react';
-import { Participant, FormMessage, FieldErrors } from '@/models/participant';
-import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/billing';
-import { PaymentReceipt, paymentReceiptSchema, PaymentFormMessage, PaymentFieldErrors } from '@/models/payment';
-import { Course } from '@/models/course';
+import { Participant, FormMessage, FieldErrors } from '@/models/inscripcion/participant';
+import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/inscripcion/billing';
+import { PaymentReceipt, paymentReceiptSchema, PaymentFormMessage, PaymentFieldErrors } from '@/models/inscripcion/payment';
+import { Course } from '@/models/inscripcion/course';
 import { participantSchema } from '@/models/validation';
-import { participantService } from '@/services/participantService';
-import { billingService } from '@/services/billingService';
-import { paymentService } from '@/services/paymentService';
-import { inscriptionService } from '@/services/inscriptionService'; // 🆕 NUEVA IMPORTACIÓN
+import { participantService } from '@/services/inscripcion/participantService';
+import { billingService } from '@/services/inscripcion/billingService';
+import { paymentService } from '@/services/inscripcion/paymentService';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService'; // 🆕 NUEVA IMPORTACIÓN
 
 export type RegistrationStep = 'course' | 'personal' | 'billing' | 'payment' | 'summary';
 
@@ -118,13 +118,92 @@ export function useParticipantController() {
     }, 1000);
   };
 
+  // 🆕 Función para verificar inscripción duplicada
+  const checkForDuplicateEnrollment = async (ciPasaporte: string, courseId: number, courseName: string): Promise<boolean> => {
+    try {
+      console.log(`🔍 Verificando inscripción duplicada: CI=${ciPasaporte}, Curso=${courseId}`);
+      
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      const response = await fetch(`${API_BASE_URL}/inscripciones?page=1&limit=100&_t=${Date.now()}`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.log('⚠️ No se pudo verificar inscripciones, continuando...');
+        return false;
+      }
+
+      const data = await response.json();
+      if (!data.success || !data.data) {
+        console.log('✅ No hay inscripciones, puede proceder');
+        return false;
+      }
+
+      // Buscar inscripción duplicada
+      const duplicate = data.data.find((inscription: any) => 
+        inscription.datosPersonales.ciPasaporte === ciPasaporte && 
+        inscription.curso.idCurso === courseId
+      );
+
+      if (duplicate) {
+        console.log('❌ Inscripción duplicada encontrada:', duplicate);
+        
+        const errorMessage = `La persona con cédula/pasaporte "${ciPasaporte}" ya está inscrita en el curso: "${courseName}". ` +
+          `Su inscripción fue registrada el ${new Date(duplicate.fechaInscripcion).toLocaleDateString('es-ES')}. ` +
+          `Para inscribirse en un curso diferente, seleccione otro curso.`;
+        
+        setMessage({
+          text: errorMessage,
+          type: 'error'
+        });
+        
+        return true; // Duplicada encontrada
+      }
+
+      console.log('✅ No se encontró inscripción duplicada');
+      return false; // No duplicada
+    } catch (error) {
+      console.error('Error verificando inscripción:', error);
+      return false; // En caso de error, permitir continuar
+    }
+  };
+
   const submitPersonalData = async (): Promise<void> => {
+    console.log('🚀 === EJECUTANDO submitPersonalData ===');
     setIsSubmitting(true);
     setMessage(null);
 
     try {
       // Validar datos personales
       participantSchema.parse(formData);
+      
+      // 🆕 VALIDACIÓN DE INSCRIPCIÓN DUPLICADA - PASO 2
+      console.log('📋 Datos actuales:', {
+        selectedCourse: formData.selectedCourse,
+        ciPasaporte: formData.ciPasaporte
+      });
+      
+      if (formData.selectedCourse && formData.ciPasaporte.trim()) {
+        // Validar que la cédula tenga al menos 10 dígitos antes de buscar
+        if (formData.ciPasaporte.trim().length < 10) {
+          console.log('⚠️ Cédula muy corta, omitiendo validación de duplicados');
+        } else {
+          console.log('✅ Iniciando validación de inscripción duplicada...');
+          const isDuplicate = await checkForDuplicateEnrollment(
+            formData.ciPasaporte,
+            formData.selectedCourse.courseId,
+            formData.selectedCourse.courseName
+          );
+          
+          if (isDuplicate) {
+            setIsSubmitting(false);
+            return; // DETENER PROCESO AQUÍ
+          }
+        }
+      }
       
       // Enviar datos personales
       const response = await participantService.register(formData);
@@ -389,6 +468,79 @@ const createCompleteInscriptionDirect = async (
     setMessage(null);
   };
 
+  // 🆕 Función para autocompletado con consentimiento
+  const handleAutocomplete = async (hasConsent: boolean): Promise<void> => {
+    if (!formData.ciPasaporte.trim()) {
+      setMessage({
+        text: 'Debe ingresar un CI/Pasaporte para poder autocompletar los datos',
+        type: 'error'
+      });
+      return;
+    }
+
+    if (!hasConsent) {
+      setMessage({
+        text: 'Debe otorgar consentimiento explícito para autocompletar los datos',
+        type: 'error'
+      });
+      return;
+    }
+
+    try {
+      setMessage({ text: 'Buscando datos anteriores...', type: 'info' });
+      
+      const autocompleteResponse = await participantService.getDataForAutocomplete(
+        formData.ciPasaporte, 
+        hasConsent
+      );
+
+      if (autocompleteResponse.success && autocompleteResponse.data) {
+        const existingData = autocompleteResponse.data;
+        
+        // Llenar el formulario con los datos encontrados, pero mantener el correo actual si se cambió
+        const currentEmail = formData.correo.trim();
+        const shouldKeepCurrentEmail = currentEmail && currentEmail !== existingData.correo;
+        
+        setFormData(prev => ({
+          ...prev,
+          nombres: existingData.nombres || prev.nombres,
+          apellidos: existingData.apellidos || prev.apellidos,
+          numTelefono: existingData.numTelefono || prev.numTelefono,
+          // Lógica inteligente para el correo
+          correo: shouldKeepCurrentEmail ? currentEmail : (existingData.correo || prev.correo),
+          pais: existingData.pais || prev.pais,
+          provinciaEstado: existingData.provinciaEstado || prev.provinciaEstado,
+          ciudad: existingData.ciudad || prev.ciudad,
+          profesion: existingData.profesion || prev.profesion,
+          institucion: existingData.institucion || prev.institucion
+        }));
+
+        if (shouldKeepCurrentEmail) {
+          setMessage({
+            text: `✅ Datos autocompletados. Se mantuvo el correo actual (${currentEmail}) en lugar del registrado previamente (${existingData.correo})`,
+            type: 'success'
+          });
+        } else {
+          setMessage({
+            text: '✅ Datos autocompletados exitosamente desde registros anteriores',
+            type: 'success'
+          });
+        }
+      } else {
+        setMessage({
+          text: 'ℹ️ No se encontraron datos anteriores para este CI/Pasaporte. Complete el formulario manualmente.',
+          type: 'info'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error en autocompletado:', error);
+      setMessage({
+        text: 'Error al buscar datos anteriores. Complete el formulario manualmente.',
+        type: 'error'
+      });
+    }
+  };
+
   return {
     // Estado
     formData,
@@ -415,6 +567,7 @@ const createCompleteInscriptionDirect = async (
     submitBillingData,
     submitPaymentReceipt,
     resetForm,
-    goToStep
+    goToStep,
+    handleAutocomplete // 🆕 Nueva función exportada
   };
 }

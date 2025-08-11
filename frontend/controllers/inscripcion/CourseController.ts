@@ -1,7 +1,7 @@
 // controllers/CourseController.ts
 import { useState, useEffect } from 'react';
-import { Course } from '@/models/course';
-import { courseService } from '@/services/courseService';
+import { Course } from '@/models/inscripcion/course';
+import { courseService } from '@/services/inscripcion/courseService';
 
 export interface CourseControllerState {
   courses: Course[];

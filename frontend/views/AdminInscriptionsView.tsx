@@ -2,16 +2,16 @@
 "use client";
 
 import React from 'react';
-import { useInscriptionController } from '@/controllers/useInscriptionController';
-import { AdminLayout } from './components/AdminLayout';
-import { InscriptionTable } from './components/InscriptionTable';
-import { InscriptionDetailModal } from './components/InscriptionDetailModal';
+import { useInscriptionController } from '@/controllers/inscripcion_completa/useInscriptionController';
+import { AdminLayout } from './components/login/AdminLayout';
+import { InscriptionTable } from './components/inscripcion_completa/InscriptionTable';
+import { InscriptionDetailModal } from './components/inscripcion_completa/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Edit } from 'lucide-react';
-import { EditInscriptionModal } from './components/EditInscriptionModal';
-import { DeleteInscriptionModal } from './components/DeleteInscriptionModal';
-import { EditInscriptionRequest } from '@/models/inscription';
+import { EditInscriptionModal } from './components/inscripcion_completa/EditInscriptionModal';
+import { DeleteInscriptionModal } from './components/inscripcion_completa/DeleteInscriptionModal';
+import { EditInscriptionRequest } from '@/models/inscripcion_completa/inscription';
 
 
 export default function AdminInscriptionsView() {
@@ -53,33 +53,20 @@ export default function AdminInscriptionsView() {
     console.log('🔄 Tabla de admin refrescada manualmente');
   };
 
-  // 🆕 EFECTO PARA ACTUALIZAR KEY CUANDO CAMBIAN LAS INSCRIPCIONES
+  // EFECTO PARA RE-RENDERIZAR CUANDO CAMBIAN LAS INSCRIPCIONES
   React.useEffect(() => {
-    console.log('🔄 AdminView: Inscripciones cambiaron, actualizando renderKey');
+    console.log('AdminView: Inscripciones cambiaron, actualizando tabla');
     setForceRenderKey(prev => prev + 1);
-  }, [inscriptions, totalItems, inscriptions.length]);
-
-  // 🆕 EFECTO ADICIONAL PARA DETECTAR CAMBIOS PROFUNDOS EN INSCRIPCIONES
-  React.useEffect(() => {
-    const inscriptionIds = inscriptions.map(i => `${i.idInscripcion}-${i.updatedAt || ''}`).join(',');
-    setForceRenderKey(prev => prev + 1);
-  }, [inscriptions.map(i => `${i.idInscripcion}-${i.participante?.nombres}-${i.participante?.apellidos}-${i.facturacion?.ruc}-${i.facturacion?.razonSocial}`).join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inscriptions]);
 
   const handleUpdateInscription = React.useCallback(async (updateData: EditInscriptionRequest) => {
-    console.log('📝 AdminInscriptionsView: Procesando actualización...');
+    console.log('AdminInscriptionsView: Procesando actualización...');
     
     try {
-      // Actualizar usando el controlador
       await updateInscription(updateData);
-      
-      // Forzar actualización adicional de la vista después de un breve delay
-      setTimeout(() => {
-        console.log('🔄 Forzando re-render adicional en AdminView');
-        setForceRenderKey(prev => prev + 1);
-      }, 300);
-      
+      console.log('Actualización completada en AdminView');
     } catch (error) {
-      console.error('❌ Error en handleUpdateInscription (AdminView):', error);
+      console.error('Error en handleUpdateInscription (AdminView):', error);
     }
   }, [updateInscription]);
 
@@ -153,7 +140,7 @@ export default function AdminInscriptionsView() {
 
         {/* Tabla de inscripciones */}
           <InscriptionTable
-          key={`admin-inscriptions-${forceRenderKey}-${inscriptions.length}-${totalItems}-${currentPage}`}
+          key={`admin-inscriptions-${forceRenderKey}-${JSON.stringify(inscriptions.map(i => i.idInscripcion))}`}
           inscriptions={inscriptions}
           loading={loading}
           onViewDetails={viewInscriptionDetails}

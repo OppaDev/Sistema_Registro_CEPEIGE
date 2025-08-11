@@ -1,8 +1,8 @@
 // views/components/DeleteInscriptionModal.tsx - NUEVO ARCHIVO
 
 import React from 'react';
-import { InscriptionData } from '@/models/inscription';
-import { inscriptionService } from '@/services/inscriptionService';
+import { InscriptionData } from '@/models/inscripcion_completa/inscription';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';

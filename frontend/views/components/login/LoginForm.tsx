@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
-import { LoginFormErrors } from '@/models/auth';
+import { LoginFormErrors } from '@/models/login/auth';
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;

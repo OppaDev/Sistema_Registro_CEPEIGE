@@ -1,7 +1,7 @@
 // views/components/InscriptionTable.tsx
 import React from 'react';
-import { InscriptionData } from '@/models/inscription';
-import { inscriptionService } from '@/services/inscriptionService';
+import { InscriptionData } from '@/models/inscripcion_completa/inscription';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,10 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
   onDeleteInscription // 🆕 NUEVA PROP
 }) => {
   const tableKey = React.useMemo(() => {
-    return `table-${inscriptions.length}-${Date.now()}-${JSON.stringify(inscriptions.map(i => i.idInscripcion))}`;
+    const dataHash = inscriptions.map(i => 
+      `${i.idInscripcion}-${i.participante.nombres}-${i.participante.apellidos}-${i.facturacion.razonSocial}-${i.facturacion.identificacionTributaria}`
+    ).join('|');
+    return `table-${inscriptions.length}-${dataHash}`;
   }, [inscriptions]);
 
   const getStatusBadge = (estado: string) => {
@@ -100,29 +103,29 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+
+            {/* Vista de tabla para desktop */}
+            <div className="hidden lg:block overflow-x-auto">
              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow style={{ backgroundColor: '#02549E' }}>
-                   {/* <TableHead className="text-white font-semibold">ID</TableHead> */}
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Participante</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Nombre/correo</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">CI/Pasaporte</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Teléfono</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">País</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Profesión</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Curso</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Precio</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Fecha</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Estado</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap">Comprobante</TableHead>
-                    <TableHead className="text-white font-semibold text-xs lg:text-sm whitespace-nowrap text-center">Acciones</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">ID</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Participante</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">CI/Pasaporte</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">País</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Profesión</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Curso</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Precio</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Fecha</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Estado</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap">Comprobante</TableHead>
+                    <TableHead className="text-white font-semibold text-sm whitespace-nowrap text-center">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {inscriptions.map((inscription, index) => (
                     <TableRow 
-                      key={`inscription-${inscription.idInscripcion}-${inscription.fechaInscripcion}-${index}`}
+                      key={`inscription-${inscription.idInscripcion}-${inscription.participante.nombres}-${inscription.participante.apellidos}-${inscription.facturacion.razonSocial}`}
                       className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                     >
                       <TableCell className="font-medium">
@@ -130,22 +133,20 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 text-sm">
                             {inscription.participante.nombres} {inscription.participante.apellidos}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-500">
                             {inscription.participante.correo}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {inscription.participante.numTelefono}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <span className="font-mono text-sm">
                           {inscription.participante.ciPasaporte}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {inscription.participante.numTelefono}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -207,20 +208,6 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                         ) : (
                           <span className="text-gray-400 text-sm">Sin comprobante</span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => onViewDetails(inscription)}
-                            className="h-8 w-8 p-0 hover:bg-blue-50"
-                            style={{ color: '#0367A6' }}
-                            title="Ver detalles completos"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center space-x-2">
@@ -286,10 +273,120 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
               </Table>
             </div>
 
+            {/* Vista móvil - Cards */}
+            <div className="block lg:hidden">
+              <div className="p-4 space-y-4">
+                {inscriptions.map((inscription, index) => (
+                  <Card key={`mobile-${inscription.idInscripcion}`} className="border border-gray-200">
+                    <CardContent className="p-4">
+                  {/* Header con ID y Estado */}
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-sm font-medium text-gray-600">#{inscription.idInscripcion}</span>
+                    {getStatusBadge(inscription.estado)}
+                  </div>
+                  
+                  {/* Información principal */}
+                  <div className="space-y-2 mb-3">
+                    <h3 className="font-semibold text-gray-900 text-base">
+                      {inscription.participante.nombres} {inscription.participante.apellidos}
+                    </h3>
+                    <p className="text-sm text-gray-600">{inscription.participante.correo}</p>
+                    <p className="text-sm text-gray-600">CI: {inscription.participante.ciPasaporte}</p>
+                  </div>
+                  
+                  {/* Curso y precio */}
+                  <div className="bg-gray-50 rounded p-3 mb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 text-sm">{inscription.curso.nombreCurso}</p>
+                        <p className="text-xs text-gray-500">{inscription.curso.modalidad}</p>
+                      </div>
+                      <span className="font-semibold text-lg ml-2" style={{ color: '#F3762B' }}>
+                        ${inscription.curso.precio.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Información adicional */}
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
+                    <div>
+                      <span className="font-medium">País:</span> {inscription.participante.pais}
+                    </div>
+                    <div>
+                      <span className="font-medium">Fecha:</span> {inscriptionService.formatDate(inscription.fechaInscripcion)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Teléfono:</span> {inscription.participante.numTelefono}
+                    </div>
+                    <div>
+                      <span className="font-medium">Profesión:</span> {inscription.participante.profesion}
+                    </div>
+                  </div>
+                  
+                  {/* Acciones */}
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onViewDetails(inscription)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Ver
+                    </Button>
+                    
+                    {isEditable(inscription) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onEditInscription(inscription)}
+                        className="flex-1"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Editar
+                      </Button>
+                    )}
+                    
+                    {userType === 'admin' && inscriptionService.isInscriptionDeletable(inscription) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onDeleteInscription(inscription)}
+                        className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </Button>
+                    )}
+                    
+                    {inscription.comprobante && inscription.comprobante.nombreArchivo && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (inscription.comprobante?.nombreArchivo) {
+                            const link = document.createElement('a');
+                            link.href = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'}/comprobantes/download/${inscription.comprobante.nombreArchivo}`;
+                            link.download = inscription.comprobante.nombreArchivo;
+                            link.click();
+                          }
+                        }}
+                        title="Descargar comprobante"
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
+                    )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t">
-                <div className="text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t gap-3">
+                <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
                   Página {currentPage} de {totalPages} • Total: {totalItems} inscripciones
                 </div>
                 <div className="flex items-center space-x-2">

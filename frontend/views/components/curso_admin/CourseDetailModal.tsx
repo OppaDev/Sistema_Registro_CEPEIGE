@@ -1,8 +1,8 @@
 // views/components/CourseDetailModal.tsx - NUEVO ARCHIVO
 
 import React from 'react';
-import { Course } from '@/models/course';
-import { courseService } from '@/services/courseService';
+import { Course } from '@/models/inscripcion/course';
+import { courseService } from '@/services/inscripcion/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
