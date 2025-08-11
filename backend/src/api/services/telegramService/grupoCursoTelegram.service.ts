@@ -78,10 +78,7 @@ class GrupoCursoTelegramService {
   async crearGrupoParaCurso(curso: Curso): Promise<CreateGroupResponse> {
     try {
       await this.initializeClient();
-      
-      if (!this.client) {
-        throw new AppError('Cliente de Telegram no inicializado', 500);
-      }
+      const client = this.requireClient();
 
       logger.info(`Creando grupo de Telegram para curso: ${curso.nombreCortoCurso}`);
 
@@ -89,159 +86,31 @@ class GrupoCursoTelegramService {
       const groupTitle = this.generateGroupTitle(curso);
       const groupDescription = this.generateGroupDescription(curso);
 
-      // Create the group using Telegram Client API
-      // This allows creating actual groups/supergroups with user account
-      const result = await this.client.invoke(
-        new Api.messages.CreateChat({
-          title: groupTitle,
-          users: [], // Start with empty group
-        })
-      );
+      // Crear chat y extraer ID con lógica robusta
+      const { groupId, chat } = await this.crearChatYObtenerId(client, groupTitle);
 
-      // Basic logging for debugging
-      logger.debug('CreateChat completed, parsing response...');
-
-      let groupId: number;
-      let inviteLink: string = '';
-
-      // More flexible parsing - try different response structures
-      let chat: any = null;
-      
-      if ('chats' in result && Array.isArray(result.chats) && result.chats.length > 0) {
-        chat = result.chats[0];
-        groupId = Number(chat.id);
-      } else if ('updates' in result) {
-        const updatesObj = (result as any).updates;
-        
-        // Check if updates object has chats array (main target)
-        if ('chats' in updatesObj && Array.isArray(updatesObj.chats) && updatesObj.chats.length > 0) {
-          chat = updatesObj.chats[0];
-          groupId = Number(chat.id);
-        } 
-        // Fallback: Check if updates has an updates array
-        else if ('updates' in updatesObj && Array.isArray(updatesObj.updates)) {
-          const updates = updatesObj.updates;
-          
-          for (const update of updates) {
-            if ('message' in update && 'peerId' in update.message) {
-              const peerId = update.message.peerId;
-              if ('chatId' in peerId) {
-                groupId = Number(peerId.chatId);
-                break;
-              }
-            } else if ('participants' in update && 'chatId' in update.participants) {
-              groupId = Number(update.participants.chatId);
-              break;
-            } else if ('peer' in update && 'chatId' in update.peer) {
-              groupId = Number(update.peer.chatId);
-              break;
-            }
-          }
+      if (!groupId || isNaN(groupId)) {
+        // Fallback: intentar con chat.id si existe
+        if (chat && 'id' in chat) {
+          const fallbackId = Number(chat.id);
+          logger.info('Fallback: Found group ID in chat object:', fallbackId);
+          const inviteLink = await this.crearEnlazarDescripcionYLink(client, fallbackId, groupDescription, curso.nombreCortoCurso);
+          return { groupId: fallbackId, groupTitle, inviteLink };
         }
-      } else if ('peer' in result) {
-        // Direct peer response
-        const peer = (result as any).peer;
-        if ('chat_id' in peer) {
-          groupId = Number(peer.chat_id);
-        }
+        logger.error('No se pudo extraer group ID de la respuesta');
+        throw new AppError('Respuesta inválida al crear grupo de Telegram', 500);
       }
 
-      // If we have a groupId from any parsing method, proceed
-      if (groupId! && !isNaN(groupId)) {
-        logger.info('Successfully extracted group ID:', groupId);
+      // Establecer descripción y crear enlace de invitación de forma segura
+      const inviteLink = await this.crearEnlazarDescripcionYLink(client, groupId, groupDescription, curso.nombreCortoCurso);
 
-        // Set group description
-        try {
-          await this.client.invoke(
-            new Api.messages.EditChatAbout({
-              peer: new Api.InputPeerChat({
-                chatId: bigInt(groupId.toString())
-              }),
-              about: groupDescription
-            })
-          );
-        } catch (descError) {
-          logger.warn('No se pudo establecer la descripción del grupo:', descError);
-        }
+      logger.info(`Grupo de Telegram creado exitosamente para curso ${curso.nombreCortoCurso}`, {
+        groupId,
+        groupTitle,
+        inviteLink,
+      });
 
-        // Create invite link
-        try {
-          const linkResult = await this.client.invoke(
-            new Api.messages.ExportChatInvite({
-              peer: new Api.InputPeerChat({
-                chatId: bigInt(groupId.toString())
-              }),
-              title: `Invitación a ${curso.nombreCortoCurso}`,
-              usageLimit: 200
-            })
-          );
-          
-          if ('link' in linkResult) {
-            inviteLink = linkResult.link;
-          }
-        } catch (linkError) {
-          logger.warn('No se pudo crear enlace de invitación:', linkError);
-        }
-
-        logger.info(`Grupo de Telegram creado exitosamente para curso ${curso.nombreCortoCurso}`, {
-          groupId,
-          groupTitle,
-          inviteLink
-        });
-
-        return {
-          groupId,
-          groupTitle,
-          inviteLink
-        };
-      }
-
-      // Additional fallback - try to parse chat from the original logic
-      if (chat && 'id' in chat) {
-        groupId = Number(chat.id);
-        logger.info('Fallback: Found group ID in chat object:', groupId);
-        
-        // Same processing as above...
-        try {
-          await this.client.invoke(
-            new Api.messages.EditChatAbout({
-              peer: new Api.InputPeerChat({
-                chatId: bigInt(groupId.toString())
-              }),
-              about: groupDescription
-            })
-          );
-        } catch (descError) {
-          logger.warn('No se pudo establecer la descripción del grupo:', descError);
-        }
-
-        try {
-          const linkResult = await this.client.invoke(
-            new Api.messages.ExportChatInvite({
-              peer: new Api.InputPeerChat({
-                chatId: bigInt(groupId.toString())
-              }),
-              title: `Invitación a ${curso.nombreCortoCurso}`,
-              usageLimit: 200
-            })
-          );
-          
-          if ('link' in linkResult) {
-            inviteLink = linkResult.link;
-          }
-        } catch (linkError) {
-          logger.warn('No se pudo crear enlace de invitación:', linkError);
-        }
-
-        return {
-          groupId,
-          groupTitle,
-          inviteLink
-        };
-      }
-
-      logger.error('No se pudo extraer group ID de la respuesta');
-      throw new AppError('Respuesta inválida al crear grupo de Telegram', 500);
+      return { groupId, groupTitle, inviteLink };
 
     } catch (error) {
       logger.error('Error al crear grupo de Telegram:', {
@@ -257,6 +126,98 @@ class GrupoCursoTelegramService {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       throw new AppError(`Error al crear grupo de Telegram: ${errorMessage}`, 500);
     }
+  }
+
+  // Helpers privados para reducir complejidad
+  private requireClient(): TelegramClient {
+    if (!this.client) {
+      throw new AppError('Cliente de Telegram no inicializado', 500);
+    }
+    return this.client;
+  }
+
+  private async crearChatYObtenerId(client: TelegramClient, groupTitle: string): Promise<{ groupId?: number; chat?: any }> {
+    // Create the group using Telegram Client API
+    const result = await client.invoke(
+      new Api.messages.CreateChat({ title: groupTitle, users: [] })
+    );
+    logger.debug('CreateChat completed, parsing response...');
+    return this.parseGroupIdFromResult(result);
+  }
+
+  private parseGroupIdFromResult(result: any): { groupId?: number; chat?: any } {
+    let chat: any = null;
+    // Case 1: direct chats array
+    if ('chats' in result && Array.isArray(result.chats) && result.chats.length > 0) {
+      chat = result.chats[0];
+      return { groupId: Number(chat.id), chat };
+    }
+    // Case 2: updates object contains chats or nested updates
+    if ('updates' in result) {
+      const updatesObj = (result as any).updates;
+      if ('chats' in updatesObj && Array.isArray(updatesObj.chats) && updatesObj.chats.length > 0) {
+        chat = updatesObj.chats[0];
+        return { groupId: Number(chat.id), chat };
+      }
+      if ('updates' in updatesObj && Array.isArray(updatesObj.updates)) {
+        for (const update of updatesObj.updates) {
+          if ('message' in update && 'peerId' in update.message) {
+            const peerId = update.message.peerId;
+            if ('chatId' in peerId) return { groupId: Number(peerId.chatId) };
+          } else if ('participants' in update && 'chatId' in update.participants) {
+            return { groupId: Number(update.participants.chatId) };
+          } else if ('peer' in update && 'chatId' in update.peer) {
+            return { groupId: Number(update.peer.chatId) };
+          }
+        }
+      }
+    }
+    // Case 3: direct peer
+    if ('peer' in result) {
+      const peer = (result as any).peer;
+      if ('chat_id' in peer) return { groupId: Number(peer.chat_id) };
+    }
+    return { chat };
+  }
+
+  private async crearEnlazarDescripcionYLink(
+    client: TelegramClient,
+    groupId: number,
+    groupDescription: string,
+    nombreCortoCurso: string
+  ): Promise<string> {
+    await this.setGroupDescriptionSafe(client, groupId, groupDescription);
+    const inviteLink = await this.exportInviteLinkSafe(client, groupId, nombreCortoCurso);
+    return inviteLink;
+  }
+
+  private async setGroupDescriptionSafe(client: TelegramClient, groupId: number, description: string): Promise<void> {
+    try {
+      await client.invoke(
+        new Api.messages.EditChatAbout({
+          peer: new Api.InputPeerChat({ chatId: bigInt(groupId.toString()) }),
+          about: description,
+        })
+      );
+    } catch (e) {
+      logger.warn('No se pudo establecer la descripción del grupo:', e);
+    }
+  }
+
+  private async exportInviteLinkSafe(client: TelegramClient, groupId: number, nombreCortoCurso: string): Promise<string> {
+    try {
+      const linkResult = await client.invoke(
+        new Api.messages.ExportChatInvite({
+          peer: new Api.InputPeerChat({ chatId: bigInt(groupId.toString()) }),
+          title: `Invitación a ${nombreCortoCurso}`,
+          usageLimit: 200,
+        })
+      );
+      if ('link' in linkResult) return linkResult.link as string;
+    } catch (e) {
+      logger.warn('No se pudo crear enlace de invitación:', e);
+    }
+    return '';
   }
 
   async obtenerInfoGrupo(groupId: string | number): Promise<any> {

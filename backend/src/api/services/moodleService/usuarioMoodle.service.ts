@@ -60,58 +60,9 @@ export class UsuarioMoodleService {
       // 1. Mapear datos de Prisma a formato Moodle
       const moodleUser: MoodleUser = this.mapearDatosPersonalesToMoodle(datosPersonales);
 
-      // 2. Preparar datos para FormData (requerido por Moodle para arrays complejos)
-      const formData = new URLSearchParams();
-      formData.append('wsfunction', 'core_user_create_users');
-      formData.append('users[0][username]', moodleUser.username);
-      formData.append('users[0][firstname]', moodleUser.firstname);
-      formData.append('users[0][lastname]', moodleUser.lastname);
-      formData.append('users[0][email]', moodleUser.email);
-      formData.append('users[0][createpassword]', moodleUser.createpassword ? '1' : '0');
-
-      // Campos opcionales solo si tienen valor
-      if (moodleUser.country) {
-        formData.append('users[0][country]', moodleUser.country);
-      }
-      if (moodleUser.city) {
-        formData.append('users[0][city]', moodleUser.city);
-      }
-      if (moodleUser.phone1) {
-        formData.append('users[0][phone1]', moodleUser.phone1);
-      }
-      if (moodleUser.institution) {
-        formData.append('users[0][institution]', moodleUser.institution);
-      }
-      if (moodleUser.department) {
-        formData.append('users[0][department]', moodleUser.department);
-      }
-      // lang: removido - usar idioma por defecto del sitio
-      if (moodleUser.timezone) {
-        formData.append('users[0][timezone]', moodleUser.timezone);
-      }
-      if (moodleUser.auth) {
-        formData.append('users[0][auth]', moodleUser.auth);
-      }
-
-      // Preferencias
-      if (moodleUser.preferences && moodleUser.preferences.length > 0) {
-        moodleUser.preferences.forEach((pref, index) => {
-          formData.append(`users[0][preferences][${index}][type]`, pref.type);
-          formData.append(`users[0][preferences][${index}][value]`, pref.value.toString());
-        });
-      }
-
-      logger.debug('FormData completa para Moodle:', Array.from(formData.entries()));
-      logger.debug('Datos del usuario a crear:', { 
-        username: moodleUser.username, 
-        email: moodleUser.email,
-        firstname: moodleUser.firstname,
-        lastname: moodleUser.lastname,
-        createpassword: moodleUser.createpassword,
-        country: moodleUser.country,
-        city: moodleUser.city,
-        auth: moodleUser.auth
-      });
+  // 2. Preparar datos para FormData y logs
+  const formData = this.construirFormDataCrearUsuario(moodleUser);
+  this.logDatosCreacionUsuario(moodleUser, formData);
 
       // 3. Llamar a la API de Moodle usando POST con FormData
       const response = await moodleClient.post('', formData, {
@@ -120,16 +71,8 @@ export class UsuarioMoodleService {
         }
       });
 
-      // 4. Validar respuesta
-      if (!response || !Array.isArray(response) || response.length === 0) {
-        throw new AppError('Respuesta inválida de Moodle al crear usuario', 500);
-      }
-
-      const moodleUserResponse = response[0] as MoodleUserCreateResponse;
-
-      if (!moodleUserResponse.id) {
-        throw new AppError('Moodle no devolvió un ID de usuario válido', 500);
-      }
+  // 4. Validar respuesta
+  const moodleUserResponse = this.validarRespuestaCreacionUsuario(response);
 
       logger.info(`Usuario creado exitosamente en Moodle. ID: ${moodleUserResponse.id}, Username: ${moodleUserResponse.username}`);
       
@@ -152,6 +95,58 @@ export class UsuarioMoodleService {
         500
       );
     }
+  }
+
+  // Helpers para reducir complejidad en creación de usuario
+  private construirFormDataCrearUsuario(moodleUser: MoodleUser): URLSearchParams {
+    const formData = new URLSearchParams();
+    formData.append('wsfunction', 'core_user_create_users');
+    formData.append('users[0][username]', moodleUser.username);
+    formData.append('users[0][firstname]', moodleUser.firstname);
+    formData.append('users[0][lastname]', moodleUser.lastname);
+    formData.append('users[0][email]', moodleUser.email);
+    formData.append('users[0][createpassword]', moodleUser.createpassword ? '1' : '0');
+
+    if (moodleUser.country) formData.append('users[0][country]', moodleUser.country);
+    if (moodleUser.city) formData.append('users[0][city]', moodleUser.city);
+    if (moodleUser.phone1) formData.append('users[0][phone1]', moodleUser.phone1);
+    if (moodleUser.institution) formData.append('users[0][institution]', moodleUser.institution);
+    if (moodleUser.department) formData.append('users[0][department]', moodleUser.department);
+    if (moodleUser.timezone) formData.append('users[0][timezone]', moodleUser.timezone);
+    if (moodleUser.auth) formData.append('users[0][auth]', moodleUser.auth);
+
+    if (moodleUser.preferences && moodleUser.preferences.length > 0) {
+      moodleUser.preferences.forEach((pref, index) => {
+        formData.append(`users[0][preferences][${index}][type]`, pref.type);
+        formData.append(`users[0][preferences][${index}][value]`, pref.value.toString());
+      });
+    }
+    return formData;
+  }
+
+  private logDatosCreacionUsuario(moodleUser: MoodleUser, formData: URLSearchParams): void {
+    logger.debug('FormData completa para Moodle:', Array.from(formData.entries()));
+    logger.debug('Datos del usuario a crear:', {
+      username: moodleUser.username,
+      email: moodleUser.email,
+      firstname: moodleUser.firstname,
+      lastname: moodleUser.lastname,
+      createpassword: moodleUser.createpassword,
+      country: moodleUser.country,
+      city: moodleUser.city,
+      auth: moodleUser.auth,
+    });
+  }
+
+  private validarRespuestaCreacionUsuario(response: any): MoodleUserCreateResponse {
+    if (!response || !Array.isArray(response) || response.length === 0) {
+      throw new AppError('Respuesta inválida de Moodle al crear usuario', 500);
+    }
+    const resp = response[0] as MoodleUserCreateResponse;
+    if (!resp.id) {
+      throw new AppError('Moodle no devolvió un ID de usuario válido', 500);
+    }
+    return resp;
   }
 
   /**

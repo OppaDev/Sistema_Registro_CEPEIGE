@@ -39,33 +39,9 @@ export class MatriculaMoodleService {
     try {
       logger.info(`Iniciando matrícula en Moodle: Usuario ${moodleUserId} en Curso ${moodleCourseId}`);
 
-      // Preparar datos para FormData
-      const formData = new URLSearchParams();
-      formData.append('wsfunction', 'enrol_manual_enrol_users');
-      formData.append('enrolments[0][roleid]', this.DEFAULT_ROLE_ID.toString());
-      formData.append('enrolments[0][userid]', moodleUserId.toString());
-      formData.append('enrolments[0][courseid]', moodleCourseId.toString());
-      formData.append('enrolments[0][suspend]', '0'); // Usuario activo
-
-      // Fechas opcionales
-      if (startDate) {
-        const timestart = Math.floor(startDate.getTime() / 1000);
-        formData.append('enrolments[0][timestart]', timestart.toString());
-      }
-
-      if (endDate) {
-        const timeend = Math.floor(endDate.getTime() / 1000);
-        formData.append('enrolments[0][timeend]', timeend.toString());
-      }
-
-      logger.debug('FormData para matrícula en Moodle:', Array.from(formData.entries()));
-      logger.debug('Datos de matrícula:', {
-        roleid: this.DEFAULT_ROLE_ID,
-        userid: moodleUserId,
-        courseid: moodleCourseId,
-        startDate: startDate?.toISOString(),
-        endDate: endDate?.toISOString()
-      });
+  // Preparar datos y logs
+  const formData = this.construirFormDataMatricula(moodleUserId, moodleCourseId, startDate, endDate);
+  this.logDatosMatricula(moodleUserId, moodleCourseId, startDate, endDate, formData);
 
       // Llamar a la API de Moodle
       const response = await moodleClient.post('', formData, {
@@ -74,30 +50,8 @@ export class MatriculaMoodleService {
         }
       });
 
-      // Validar respuesta
-      if (!response) {
-        logger.info('Matrícula exitosa - Moodle devolvió respuesta vacía (sin warnings)');
-        return true;
-      }
-
-      const moodleResponse = response as MoodleEnrolmentResponse;
-
-      // Verificar si hay warnings
-      if (moodleResponse && moodleResponse.warnings && moodleResponse.warnings.length > 0) {
-        const warningMessages = moodleResponse.warnings.map(w => `${w.warningcode}: ${w.message}`).join(', ');
-        logger.warn('Advertencias al matricular en Moodle:', warningMessages);
-        
-        // Si hay errores críticos, lanzar excepción
-        const criticalWarnings = moodleResponse.warnings.filter(w => 
-          w.warningcode === 'usernotexist' || 
-          w.warningcode === 'coursenotexist' ||
-          w.warningcode === 'enrolnotpermitted'
-        );
-        
-        if (criticalWarnings.length > 0) {
-          throw new AppError(`Error crítico en matrícula: ${criticalWarnings.map(w => w.message).join(', ')}`, 400);
-        }
-      }
+  // Validar respuesta
+  this.validarRespuestaMatricula(response);
 
       logger.info(`Usuario matriculado exitosamente en Moodle`, {
         moodleUserId,
@@ -124,6 +78,65 @@ export class MatriculaMoodleService {
         `Error al matricular usuario en Moodle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         500
       );
+    }
+  }
+
+  // Helpers extraídos para reducir complejidad
+  private construirFormDataMatricula(
+    moodleUserId: number,
+    moodleCourseId: number,
+    startDate?: Date,
+    endDate?: Date
+  ): URLSearchParams {
+    const formData = new URLSearchParams();
+    formData.append('wsfunction', 'enrol_manual_enrol_users');
+    formData.append('enrolments[0][roleid]', this.DEFAULT_ROLE_ID.toString());
+    formData.append('enrolments[0][userid]', moodleUserId.toString());
+    formData.append('enrolments[0][courseid]', moodleCourseId.toString());
+    formData.append('enrolments[0][suspend]', '0');
+    if (startDate) {
+      const timestart = Math.floor(startDate.getTime() / 1000);
+      formData.append('enrolments[0][timestart]', timestart.toString());
+    }
+    if (endDate) {
+      const timeend = Math.floor(endDate.getTime() / 1000);
+      formData.append('enrolments[0][timeend]', timeend.toString());
+    }
+    return formData;
+  }
+
+  private logDatosMatricula(
+    moodleUserId: number,
+    moodleCourseId: number,
+    startDate: Date | undefined,
+    endDate: Date | undefined,
+    formData: URLSearchParams
+  ): void {
+    logger.debug('FormData para matrícula en Moodle:', Array.from(formData.entries()));
+    logger.debug('Datos de matrícula:', {
+      roleid: this.DEFAULT_ROLE_ID,
+      userid: moodleUserId,
+      courseid: moodleCourseId,
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    });
+  }
+
+  private validarRespuestaMatricula(response: any): void {
+    if (!response) {
+      logger.info('Matrícula exitosa - Moodle devolvió respuesta vacía (sin warnings)');
+      return;
+    }
+    const moodleResponse = response as MoodleEnrolmentResponse;
+    if (moodleResponse && moodleResponse.warnings && moodleResponse.warnings.length > 0) {
+      const warningMessages = moodleResponse.warnings.map((w) => `${w.warningcode}: ${w.message}`).join(', ');
+      logger.warn('Advertencias al matricular en Moodle:', warningMessages);
+      const criticalWarnings = moodleResponse.warnings.filter(
+        (w) => w.warningcode === 'usernotexist' || w.warningcode === 'coursenotexist' || w.warningcode === 'enrolnotpermitted'
+      );
+      if (criticalWarnings.length > 0) {
+        throw new AppError(`Error crítico en matrícula: ${criticalWarnings.map((w) => w.message).join(', ')}`, 400);
+      }
     }
   }
 

@@ -60,38 +60,9 @@ export class CursoMoodleService {
       // 1. Mapear datos de Prisma a formato Moodle
       const moodleCourse: MoodleCourse = this.mapearCursoToMoodle(curso);
 
-      // 2. Preparar datos para FormData
-      const formData = new URLSearchParams();
-      formData.append('wsfunction', 'core_course_create_courses');
-      formData.append('courses[0][fullname]', moodleCourse.fullname);
-      formData.append('courses[0][shortname]', moodleCourse.shortname);
-      formData.append('courses[0][summary]', moodleCourse.summary);
-      formData.append('courses[0][summaryformat]', (moodleCourse.summaryformat || 1).toString());
-      formData.append('courses[0][categoryid]', moodleCourse.categoryid.toString());
-      formData.append('courses[0][visible]', (moodleCourse.visible || 1).toString());
-      formData.append('courses[0][format]', moodleCourse.format || 'topics');
-      formData.append('courses[0][showgrades]', (moodleCourse.showgrades || 1).toString());
-      formData.append('courses[0][newsitems]', (moodleCourse.newsitems || 5).toString());
-      formData.append('courses[0][enablecompletion]', (moodleCourse.enablecompletion || 1).toString());
-
-      // Fechas (convertir a timestamp si están disponibles)
-      if (moodleCourse.startdate) {
-        formData.append('courses[0][startdate]', moodleCourse.startdate.toString());
-      }
-      if (moodleCourse.enddate) {
-        formData.append('courses[0][enddate]', moodleCourse.enddate.toString());
-      }
-
-      // Idioma - removido para usar idioma por defecto del sitio
-
-      logger.debug('FormData para crear curso en Moodle:', Array.from(formData.entries()));
-      logger.debug('Datos del curso a crear:', {
-        fullname: moodleCourse.fullname,
-        shortname: moodleCourse.shortname,
-        categoryid: moodleCourse.categoryid,
-        startdate: moodleCourse.startdate,
-        enddate: moodleCourse.enddate
-      });
+  // 2. Preparar datos para FormData y logs
+  const formData = this.construirFormDataCrearCurso(moodleCourse);
+  this.logDatosCreacionCurso(moodleCourse, formData);
 
       // 3. Llamar a la API de Moodle
       const response = await moodleClient.post('', formData, {
@@ -100,21 +71,8 @@ export class CursoMoodleService {
         }
       });
 
-      // 4. Validar respuesta
-      if (!response || !Array.isArray(response) || response.length === 0) {
-        throw new AppError('Respuesta inválida de Moodle al crear curso', 500);
-      }
-
-      const moodleCourseResponse = response[0] as MoodleCourseCreateResponse;
-
-      if (!moodleCourseResponse.id) {
-        // Verificar si hay warnings
-        if (moodleCourseResponse.warnings && moodleCourseResponse.warnings.length > 0) {
-          const warningMessages = moodleCourseResponse.warnings.map(w => w.message).join(', ');
-          throw new AppError(`Advertencias de Moodle al crear curso: ${warningMessages}`, 400);
-        }
-        throw new AppError('Moodle no devolvió un ID de curso válido', 500);
-      }
+  // 4. Validar respuesta
+  const moodleCourseResponse = this.validarRespuestaCreacion(response);
 
       logger.info(`Curso creado exitosamente en Moodle. ID: ${moodleCourseResponse.id}, Shortname: ${moodleCourseResponse.shortname}`);
       
@@ -138,6 +96,58 @@ export class CursoMoodleService {
         500
       );
     }
+  }
+
+  // Construye el payload para core_course_create_courses
+  private construirFormDataCrearCurso(moodleCourse: MoodleCourse): URLSearchParams {
+    const formData = new URLSearchParams();
+    formData.append('wsfunction', 'core_course_create_courses');
+    formData.append('courses[0][fullname]', moodleCourse.fullname);
+    formData.append('courses[0][shortname]', moodleCourse.shortname);
+    formData.append('courses[0][summary]', moodleCourse.summary);
+    formData.append('courses[0][summaryformat]', (moodleCourse.summaryformat || 1).toString());
+    formData.append('courses[0][categoryid]', moodleCourse.categoryid.toString());
+    formData.append('courses[0][visible]', (moodleCourse.visible || 1).toString());
+    formData.append('courses[0][format]', moodleCourse.format || 'topics');
+    formData.append('courses[0][showgrades]', (moodleCourse.showgrades || 1).toString());
+    formData.append('courses[0][newsitems]', (moodleCourse.newsitems || 5).toString());
+    formData.append('courses[0][enablecompletion]', (moodleCourse.enablecompletion || 1).toString());
+
+    if (moodleCourse.startdate) {
+      formData.append('courses[0][startdate]', moodleCourse.startdate.toString());
+    }
+    if (moodleCourse.enddate) {
+      formData.append('courses[0][enddate]', moodleCourse.enddate.toString());
+    }
+    return formData;
+  }
+
+  // Logs útiles para depurar creación de cursos
+  private logDatosCreacionCurso(moodleCourse: MoodleCourse, formData: URLSearchParams): void {
+    logger.debug('FormData para crear curso en Moodle:', Array.from(formData.entries()));
+    logger.debug('Datos del curso a crear:', {
+      fullname: moodleCourse.fullname,
+      shortname: moodleCourse.shortname,
+      categoryid: moodleCourse.categoryid,
+      startdate: moodleCourse.startdate,
+      enddate: moodleCourse.enddate,
+    });
+  }
+
+  // Valida y transforma la respuesta de Moodle al crear curso
+  private validarRespuestaCreacion(response: any): MoodleCourseCreateResponse {
+    if (!response || !Array.isArray(response) || response.length === 0) {
+      throw new AppError('Respuesta inválida de Moodle al crear curso', 500);
+    }
+    const courseResp = response[0] as MoodleCourseCreateResponse;
+    if (!courseResp.id) {
+      if (courseResp.warnings && courseResp.warnings.length > 0) {
+        const warningMessages = courseResp.warnings.map((w) => w.message).join(', ');
+        throw new AppError(`Advertencias de Moodle al crear curso: ${warningMessages}`, 400);
+      }
+      throw new AppError('Moodle no devolvió un ID de curso válido', 500);
+    }
+    return courseResp;
   }
 
   /**
