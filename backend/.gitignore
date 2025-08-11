@@ -6,3 +6,5 @@ uploads/
 coverage/ 
 *.tsbuildinfo 
 .vscode
+moodle-docker\.env
+reportes

@@ -27,39 +27,11 @@ export class FacturaService {
     facturaData: CreateFacturaDto
   ): Promise<FacturaResponseDto> {
     try {
-      // 1. Validar existencia de IDs referenciados
-      const inscripcionPromise = prisma.inscripcion.findUnique({
-        where: { idInscripcion: facturaData.idInscripcion },
-      });
-      const datosFacturacionPromise = prisma.datosFacturacion.findUnique({
-        where: { idFacturacion: facturaData.idFacturacion },
-      });
+  // 1. Validar existencia de IDs referenciados
+  await this.validarReferenciasFactura(facturaData);
 
-      const [inscripcion, datosFacturacion] = await Promise.all([
-        inscripcionPromise,
-        datosFacturacionPromise,
-      ]);
-
-      if (!inscripcion) {
-        throw new NotFoundError(
-          `Inscripción con ID ${facturaData.idInscripcion}`
-        );
-      }
-      if (!datosFacturacion) {
-        throw new NotFoundError(
-          `Datos de facturación con ID ${facturaData.idFacturacion}`
-        );
-      }
-
-      // 2. Verificar que no exista ya una factura para esta inscripción
-      const facturaExistente = await prisma.factura.findFirst({
-        where: { idInscripcion: facturaData.idInscripcion },
-      });
-      if (facturaExistente) {
-        throw new ConflictError(
-          `Ya existe una factura para la inscripción con ID ${facturaData.idInscripcion}`
-        );
-      }
+  // 2. Verificar que no exista ya una factura para esta inscripción
+  await this.asegurarFacturaNoExistente(facturaData.idInscripcion);
 
       // 3. Crear la factura
       const factura = await prisma.factura.create({
@@ -75,27 +47,7 @@ export class FacturaService {
 
       return toFacturaResponseDto(factura);
     } catch (error: any) {
-      // Manejar errores de unicidad de Prisma
-      if (error.code === "P2002") {
-        if (error.meta?.target?.includes("numeroIngreso")) {
-          throw new ConflictError(
-            `El número de ingreso ${facturaData.numeroIngreso} ya está en uso`
-          );
-        }
-        if (error.meta?.target?.includes("numeroFactura")) {
-          throw new ConflictError(
-            `El número de factura ${facturaData.numeroFactura} ya está en uso`
-          );
-        }
-      }
-
-      if (error instanceof AppError) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new AppError(`Error al crear la factura: ${error.message}`, 500);
-      }
-      throw new AppError("Error desconocido al crear la factura", 500);
+      this.manejarErroresCreacion(error, facturaData);
     }
   }
 
@@ -401,5 +353,68 @@ export class FacturaService {
       }
       throw new AppError("Error desconocido al eliminar la factura", 500);
     }
+  }
+
+  // Helpers privados para reducir complejidad sin cambiar el comportamiento
+  private async validarReferenciasFactura(
+    facturaData: CreateFacturaDto
+  ): Promise<void> {
+    const inscripcionPromise = prisma.inscripcion.findUnique({
+      where: { idInscripcion: facturaData.idInscripcion },
+    });
+    const datosFacturacionPromise = prisma.datosFacturacion.findUnique({
+      where: { idFacturacion: facturaData.idFacturacion },
+    });
+
+    const [inscripcion, datosFacturacion] = await Promise.all([
+      inscripcionPromise,
+      datosFacturacionPromise,
+    ]);
+
+    if (!inscripcion) {
+      throw new NotFoundError(
+        `Inscripción con ID ${facturaData.idInscripcion}`
+      );
+    }
+    if (!datosFacturacion) {
+      throw new NotFoundError(
+        `Datos de facturación con ID ${facturaData.idFacturacion}`
+      );
+    }
+  }
+
+  private async asegurarFacturaNoExistente(idInscripcion: number): Promise<void> {
+    const facturaExistente = await prisma.factura.findFirst({
+      where: { idInscripcion },
+    });
+    if (facturaExistente) {
+      throw new ConflictError(
+        `Ya existe una factura para la inscripción con ID ${idInscripcion}`
+      );
+    }
+  }
+
+  private manejarErroresCreacion(error: any, facturaData: CreateFacturaDto): never {
+    // Manejar errores de unicidad de Prisma
+    if (error?.code === "P2002") {
+      if (error.meta?.target?.includes("numeroIngreso")) {
+        throw new ConflictError(
+          `El número de ingreso ${facturaData.numeroIngreso} ya está en uso`
+        );
+      }
+      if (error.meta?.target?.includes("numeroFactura")) {
+        throw new ConflictError(
+          `El número de factura ${facturaData.numeroFactura} ya está en uso`
+        );
+      }
+    }
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      throw new AppError(`Error al crear la factura: ${error.message}`, 500);
+    }
+    throw new AppError("Error desconocido al crear la factura", 500);
   }
 }

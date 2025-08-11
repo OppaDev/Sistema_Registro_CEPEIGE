@@ -53,7 +53,8 @@ describe('AuthService', () => {
       password: 'password123'
     };
 
-    it('debe autenticar un usuario con credenciales válidas', async () => {
+    // SRV-AUT-001: Autenticar un usuario con credenciales válidas
+    it('SRV-AUT-001: debe autenticar un usuario con credenciales válidas', async () => {
       // Arrange
       const mockUser = {
         idUsuario: 1,
@@ -90,7 +91,8 @@ describe('AuthService', () => {
       });
     });
 
-    it('debe rechazar credenciales inválidas', async () => {
+    // SRV-AUT-002: Rechazar credenciales inválidas
+    it('SRV-AUT-002: debe rechazar credenciales inválidas', async () => {
       // Arrange
       mockPrisma.usuario.findUnique.mockResolvedValue(null);
 
@@ -98,7 +100,8 @@ describe('AuthService', () => {
       await expect(authService.login(loginDto)).rejects.toThrow('Email o contraseña incorrectos');
     });
 
-    it('debe rechazar usuario inactivo', async () => {
+    // SRV-AUT-003: Rechazar usuario inactivo
+    it('SRV-AUT-003: debe rechazar usuario inactivo', async () => {
       // Arrange
       const mockUser = {
         idUsuario: 1,
@@ -114,7 +117,8 @@ describe('AuthService', () => {
       await expect(authService.login(loginDto)).rejects.toThrow('Email o contraseña incorrectos');
     });
 
-    it('debe rechazar contraseña incorrecta', async () => {
+    // SRV-AUT-004: Rechazar contraseña incorrecta
+    it('SRV-AUT-004: debe rechazar contraseña incorrecta', async () => {
       // Arrange
       const mockUser = {
         idUsuario: 1,
@@ -133,7 +137,8 @@ describe('AuthService', () => {
   });
 
   describe('logout', () => {
-    it('debe cerrar sesión correctamente', async () => {
+    // SRV-AUT-005: Cerrar sesión correctamente
+    it('SRV-AUT-005: debe cerrar sesión correctamente', async () => {
       // Arrange
       const refreshToken = 'valid-refresh-token';
       mockPrisma.sesionUsuario.deleteMany.mockResolvedValue({ count: 1 });
@@ -147,7 +152,8 @@ describe('AuthService', () => {
       });
     });
 
-    it('debe manejar graciosamente tokens no encontrados', async () => {
+    // SRV-AUT-006: Manejar graciosamente tokens no encontrados
+    it('SRV-AUT-006: debe manejar graciosamente tokens no encontrados', async () => {
       // Arrange
       const refreshToken = 'invalid-refresh-token';
       mockPrisma.sesionUsuario.deleteMany.mockResolvedValue({ count: 0 });
@@ -162,7 +168,8 @@ describe('AuthService', () => {
       refreshToken: 'valid-refresh-token'
     };
 
-    it('debe renovar el access token con un refresh token válido', async () => {
+    // SRV-AUT-007: Renovar el access token con un refresh token válido
+    it('SRV-AUT-007: debe renovar el access token con un refresh token válido', async () => {
       // Arrange
       const mockPayload = { sub: 1 };
       const mockSesion = {

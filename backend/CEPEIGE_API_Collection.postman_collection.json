@@ -1,0 +1,1207 @@
+{
+	"info": {
+		"_postman_id": "cepeige-api-collection-v1",
+		"name": "CEPEIGE - Sistema de Registro API",
+		"description": "Colección completa de endpoints para el Sistema de Registro CEPEIGE Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "cepeige-dev"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticación",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@cepeige.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout"]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/verify",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "verify"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Sessions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/sessions",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "sessions"]
+						}
+					}
+				},
+				{
+					"name": "Logout All Sessions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout-all"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Gestión de Usuarios",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nuevo@cepeige.com\",\n  \"password\": \"password123\",\n  \"nombres\": \"Nuevo\",\n  \"apellidos\": \"Usuario\",\n  \"roles\": [\"USER\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/usuarios",
+							"host": ["{{base_url}}"],
+							"path": ["usuarios"]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/usuarios",
+							"host": ["{{base_url}}"],
+							"path": ["usuarios"]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/usuarios/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["usuarios", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombres\": \"Nombre Actualizado\",\n  \"apellidos\": \"Apellido Actualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/usuarios/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["usuarios", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/usuarios/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["usuarios", "{{user_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📚 Cursos",
+			"item": [
+				{
+					"name": "Create Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreCortoCurso\": \"PROG-JS-2024\",\n  \"nombreCurso\": \"Programación en JavaScript\",\n  \"modalidadCurso\": \"Virtual\",\n  \"descripcionCurso\": \"Curso completo de JavaScript desde cero\",\n  \"valorCurso\": 299.99,\n  \"fechaInicioCurso\": \"2024-02-01\",\n  \"fechaFinCurso\": \"2024-04-30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cursos",
+							"host": ["{{base_url}}"],
+							"path": ["cursos"]
+						}
+					}
+				},
+				{
+					"name": "Get All Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cursos",
+							"host": ["{{base_url}}"],
+							"path": ["cursos"]
+						}
+					}
+				},
+				{
+					"name": "Get Available Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cursos/disponibles",
+							"host": ["{{base_url}}"],
+							"path": ["cursos", "disponibles"]
+						}
+					}
+				},
+				{
+					"name": "Get Course by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cursos/{{course_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["cursos", "{{course_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Course",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreCurso\": \"Programación Avanzada en JavaScript\",\n  \"valorCurso\": 399.99\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cursos/{{course_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["cursos", "{{course_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Course",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cursos/{{course_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["cursos", "{{course_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 Datos Personales",
+			"item": [
+				{
+					"name": "Create Personal Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ciPasaporte\": \"1234567890\",\n  \"nombres\": \"Juan Carlos\",\n  \"apellidos\": \"Pérez López\",\n  \"numTelefono\": \"+593987654321\",\n  \"correo\": \"juan.perez@email.com\",\n  \"pais\": \"Ecuador\",\n  \"provinciaEstado\": \"Pichincha\",\n  \"ciudad\": \"Quito\",\n  \"profesion\": \"Ingeniero de Sistemas\",\n  \"institucion\": \"Universidad Central\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/datos-personales",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales"]
+						}
+					}
+				},
+				{
+					"name": "Get All Personal Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-personales",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales"]
+						}
+					}
+				},
+				{
+					"name": "Search by CI/Passport",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-personales/search?ciPasaporte={{ci_pasaporte}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales", "search"],
+							"query": [
+								{
+									"key": "ciPasaporte",
+									"value": "{{ci_pasaporte}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Personal Data by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-personales/{{personal_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales", "{{personal_data_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Personal Data",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numTelefono\": \"+593999888777\",\n  \"correo\": \"nuevo.correo@email.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/datos-personales/{{personal_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales", "{{personal_data_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Personal Data",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-personales/{{personal_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-personales", "{{personal_data_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🧾 Datos de Facturación",
+			"item": [
+				{
+					"name": "Create Billing Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razonSocial\": \"Empresa ABC S.A.\",\n  \"identificacionTributaria\": \"1234567890001\",\n  \"telefono\": \"+593987654321\",\n  \"correoFactura\": \"facturacion@empresa.com\",\n  \"direccion\": \"Av. Principal 123, Quito, Ecuador\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/datos-facturacion",
+							"host": ["{{base_url}}"],
+							"path": ["datos-facturacion"]
+						}
+					}
+				},
+				{
+					"name": "Get All Billing Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-facturacion",
+							"host": ["{{base_url}}"],
+							"path": ["datos-facturacion"]
+						}
+					}
+				},
+				{
+					"name": "Get Billing Data by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-facturacion/{{billing_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-facturacion", "{{billing_data_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Billing Data",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"telefono\": \"+593999888777\",\n  \"correoFactura\": \"nueva.facturacion@empresa.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/datos-facturacion/{{billing_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-facturacion", "{{billing_data_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Billing Data",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/datos-facturacion/{{billing_data_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["datos-facturacion", "{{billing_data_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📄 Comprobantes",
+			"item": [
+				{
+					"name": "Upload Payment Voucher",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "comprobanteFile",
+									"type": "file",
+									"src": "/path/to/voucher.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/comprobantes",
+							"host": ["{{base_url}}"],
+							"path": ["comprobantes"]
+						}
+					}
+				},
+				{
+					"name": "Get All Vouchers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/comprobantes?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["comprobantes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Voucher by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/comprobantes/{{voucher_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["comprobantes", "{{voucher_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Voucher",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/comprobantes/{{voucher_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["comprobantes", "{{voucher_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📝 Inscripciones",
+			"item": [
+				{
+					"name": "Create Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idCurso\": 1,\n  \"idPersona\": 1,\n  \"idFacturacion\": 1,\n  \"idComprobante\": 1,\n  \"idDescuento\": null,\n  \"matricula\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/inscripciones",
+							"host": ["{{base_url}}"],
+							"path": ["inscripciones"]
+						}
+					}
+				},
+				{
+					"name": "Get All Registrations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/inscripciones",
+							"host": ["{{base_url}}"],
+							"path": ["inscripciones"]
+						}
+					}
+				},
+				{
+					"name": "Get Registration by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/inscripciones/{{registration_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["inscripciones", "{{registration_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Registration",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"matricula\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/inscripciones/{{registration_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["inscripciones", "{{registration_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Registration",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/inscripciones/{{registration_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["inscripciones", "{{registration_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "💰 Descuentos",
+			"item": [
+				{
+					"name": "Create Discount",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoDescuento\": \"Estudiante\",\n  \"valorDescuento\": 50.00,\n  \"porcentajeDescuento\": 15.00,\n  \"descripcionDescuento\": \"Descuento para estudiantes universitarios\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/descuentos",
+							"host": ["{{base_url}}"],
+							"path": ["descuentos"]
+						}
+					}
+				},
+				{
+					"name": "Get All Discounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/descuentos",
+							"host": ["{{base_url}}"],
+							"path": ["descuentos"]
+						}
+					}
+				},
+				{
+					"name": "Get Discount by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/descuentos/{{discount_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["descuentos", "{{discount_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Discount",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"valorDescuento\": 75.00,\n  \"porcentajeDescuento\": 20.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/descuentos/{{discount_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["descuentos", "{{discount_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Discount",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/descuentos/{{discount_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["descuentos", "{{discount_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🧾 Facturas",
+			"item": [
+				{
+					"name": "Create Invoice",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idInscripcion\": 1,\n  \"idFacturacion\": 1,\n  \"valorPagado\": 299.99,\n  \"numeroIngreso\": \"ING-2024-001\",\n  \"numeroFactura\": \"FAC-2024-001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/facturas",
+							"host": ["{{base_url}}"],
+							"path": ["facturas"]
+						}
+					}
+				},
+				{
+					"name": "Get All Invoices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas?page=1&limit=10&includeRelations=true",
+							"host": ["{{base_url}}"],
+							"path": ["facturas"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "includeRelations",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Invoice by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/{{invoice_id}}?includeRelations=true",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "{{invoice_id}}"],
+							"query": [
+								{
+									"key": "includeRelations",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Invoice by Number",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/numero-factura/{{invoice_number}}",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "numero-factura", "{{invoice_number}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Invoice by Entry Number",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/numero-ingreso/{{entry_number}}",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "numero-ingreso", "{{entry_number}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Invoices by Registration ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/inscripcion/{{registration_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "inscripcion", "{{registration_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Invoice",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"verificacionPago\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/facturas/{{invoice_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "{{invoice_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Verify Payment",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/{{invoice_id}}/verificar-pago",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "{{invoice_id}}", "verificar-pago"]
+						}
+					}
+				},
+				{
+					"name": "Delete Invoice",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/facturas/{{invoice_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["facturas", "{{invoice_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Informes",
+			"item": [
+				{
+					"name": "Get Report Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/informes/tipos",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "tipos"]
+						}
+					}
+				},
+				{
+					"name": "Get Available Courses for Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/informes/cursos",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "cursos"]
+						}
+					}
+				},
+				{
+					"name": "Get Report Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/informes/estadisticas?fechaInicio={{fecha_inicio}}&fechaFin={{fecha_fin}}&idCurso={{course_id}}&matricula={{matricula_filter}}&verificacionPago={{payment_filter}}",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "estadisticas"],
+							"query": [
+								{
+									"key": "fechaInicio",
+									"value": "{{fecha_inicio}}",
+									"description": "Fecha inicio (YYYY-MM-DD)"
+								},
+								{
+									"key": "fechaFin",
+									"value": "{{fecha_fin}}",
+									"description": "Fecha fin (YYYY-MM-DD)"
+								},
+								{
+									"key": "idCurso",
+									"value": "{{course_id}}",
+									"description": "ID del curso"
+								},
+								{
+									"key": "matricula",
+									"value": "{{matricula_filter}}",
+									"description": "true/false"
+								},
+								{
+									"key": "verificacionPago",
+									"value": "{{payment_filter}}",
+									"description": "true/false"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Report Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/informes/datos?fechaInicio={{fecha_inicio}}&fechaFin={{fecha_fin}}&idCurso={{course_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "datos"],
+							"query": [
+								{
+									"key": "fechaInicio",
+									"value": "{{fecha_inicio}}",
+									"description": "Fecha inicio (YYYY-MM-DD)"
+								},
+								{
+									"key": "fechaFin",
+									"value": "{{fecha_fin}}",
+									"description": "Fecha fin (YYYY-MM-DD)"
+								},
+								{
+									"key": "idCurso",
+									"value": "{{course_id}}",
+									"description": "ID del curso"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Generate Report (Excel/PDF)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoInforme\": \"inscripciones\",\n  \"formato\": \"excel\",\n  \"fechaInicio\": \"2024-01-01\",\n  \"fechaFin\": \"2024-12-31\",\n  \"idCurso\": 1,\n  \"matricula\": true,\n  \"verificacionPago\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/informes/generar",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "generar"]
+						}
+					}
+				},
+				{
+					"name": "Generate Excel Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoInforme\": \"matriculados\",\n  \"fechaInicio\": \"2024-01-01\",\n  \"fechaFin\": \"2024-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/informes/excel",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "excel"]
+						}
+					}
+				},
+				{
+					"name": "Generate PDF Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoInforme\": \"pagados\",\n  \"fechaInicio\": \"2024-01-01\",\n  \"fechaFin\": \"2024-12-31\",\n  \"verificacionPago\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/informes/pdf",
+							"host": ["{{base_url}}"],
+							"path": ["informes", "pdf"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🏥 Health Check",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ping",
+							"host": ["{{base_url}}"],
+							"path": ["ping"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "course_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "personal_data_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "billing_data_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "voucher_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "registration_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "discount_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "invoice_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "ci_pasaporte",
+			"value": "1234567890",
+			"type": "string"
+		},
+		{
+			"key": "invoice_number",
+			"value": "FAC-2024-001",
+			"type": "string"
+		},
+		{
+			"key": "entry_number",
+			"value": "ING-2024-001",
+			"type": "string"
+		},
+		{
+			"key": "fecha_inicio",
+			"value": "2024-01-01",
+			"type": "string"
+		},
+		{
+			"key": "fecha_fin",
+			"value": "2024-12-31",
+			"type": "string"
+		},
+		{
+			"key": "matricula_filter",
+			"value": "true",
+			"type": "string"
+		},
+		{
+			"key": "payment_filter",
+			"value": "true",
+			"type": "string"
+		}
+	]
+}

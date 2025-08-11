@@ -12,8 +12,12 @@ import {
   type PrismaInscripcionConRelaciones,
   type PrismaInscripcionAdminConRelaciones 
 } from "@/api/services/mappers/inscripcionMapper/inscripcion.mapper";
+import { inscripcionMoodleTrigger } from "@/triggers/inscripcionMoodle.trigger";
+import { inscripcionTelegramTrigger } from "@/triggers/inscripcionTelegram.trigger";
+import { FacturaService } from "@/api/services/validarPagoService/factura.service";
 
 const prisma = new PrismaClient();
+const facturaService = new FacturaService();
 
 interface GetAllInscripcionesOptions {
   page: number;
@@ -89,27 +93,21 @@ export class InscripcionService {
 
   // Actualizar una inscripción
   async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionAdminResponseDto> {
-    // Verificar que la inscripción exista
-    const inscripcionExistente = await prisma.inscripcion.findUnique({
-      where: { idInscripcion }
-    });
-    if (!inscripcionExistente) {
-      throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+    // 1) Obtener y validar inscripción
+    const inscripcionExistente = await this.obtenerInscripcionConPersona(idInscripcion);
+
+    // 2) Validar descuento si aplica
+    await this.validarDescuentoSiAplica(data.idDescuento);
+
+    // 3) Verificar si hay cambio a matriculado y validar pago
+    const cambioAMatriculado = this.esCambioAMatriculado(data, inscripcionExistente);
+    if (cambioAMatriculado) {
+      await this.validarPagoParaMatricula(idInscripcion);
     }
 
-    // Validar existencia de idDescuento si se provee
-    if (data.idDescuento) {
-      const descuento = await prisma.descuento.findUnique({ where: { idDescuento: data.idDescuento }});
-      if (!descuento) throw new NotFoundError(`Descuento con ID ${data.idDescuento}`);
-    }    try {
-      // Construir el objeto data solo con propiedades definidas
-      const updateData: any = {};
-      if (data.idDescuento !== undefined) {
-        updateData.idDescuento = data.idDescuento;
-      }
-      if (data.matricula !== undefined) {
-        updateData.matricula = data.matricula;
-      }
+    try {
+      // 4) Actualizar datos
+      const updateData = this.construirUpdateData(data);
 
       const inscripcionActualizada = await prisma.inscripcion.update({
         where: { idInscripcion },
@@ -120,8 +118,12 @@ export class InscripcionService {
           datosFacturacion: true,
           comprobante: true,
           descuento: true,
-        }
+        },
       });
+
+      // 5) Ejecutar triggers si corresponde
+      await this.ejecutarTriggersMatriculaSiNecesario(cambioAMatriculado, idInscripcion, inscripcionActualizada);
+
       return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -130,6 +132,56 @@ export class InscripcionService {
       }
       throw new AppError("Error desconocido al actualizar la inscripción", 500);
     }
+  }
+
+  // Helpers extraídos para reducir complejidad cognitiva
+  private async obtenerInscripcionConPersona(idInscripcion: number) {
+    const inscripcion = await prisma.inscripcion.findUnique({
+      where: { idInscripcion },
+      include: { persona: true },
+    });
+    if (!inscripcion) {
+      throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+    }
+    return inscripcion;
+  }
+
+  private async validarDescuentoSiAplica(idDescuento?: number): Promise<void> {
+    if (!idDescuento) return;
+    const descuento = await prisma.descuento.findUnique({ where: { idDescuento } });
+    if (!descuento) throw new NotFoundError(`Descuento con ID ${idDescuento}`);
+  }
+
+  private esCambioAMatriculado(data: UpdateInscripcionDto, existente: any): boolean {
+    return data.matricula === true && existente.matricula === false;
+  }
+
+  private async validarPagoParaMatricula(idInscripcion: number): Promise<void> {
+    const facturas = await facturaService.getFacturasByInscripcionId(idInscripcion);
+    if (facturas.length === 0) {
+      throw new ConflictError(`No se puede matricular: No existe factura para la inscripción ID ${idInscripcion}`);
+    }
+    const pagoVerificado = facturas.some((f) => f.verificacionPago === true);
+    if (!pagoVerificado) {
+      throw new ConflictError(`No se puede matricular: El pago no ha sido verificado para la inscripción ID ${idInscripcion}`);
+    }
+  }
+
+  private construirUpdateData(data: UpdateInscripcionDto): Record<string, unknown> {
+    const updateData: any = {};
+    if (data.idDescuento !== undefined) updateData.idDescuento = data.idDescuento;
+    if (data.matricula !== undefined) updateData.matricula = data.matricula;
+    return updateData;
+  }
+
+  private async ejecutarTriggersMatriculaSiNecesario(
+    cambioAMatriculado: boolean,
+    idInscripcion: number,
+    inscripcionActualizada: any
+  ): Promise<void> {
+    if (!cambioAMatriculado) return;
+    await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
+    await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
   }
   
   // Obtener todas las inscripciones con información completa para administradores
@@ -209,6 +261,9 @@ export class InscripcionService {
         throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
       }
 
+      // Ejecutar trigger pre-eliminación
+      await inscripcionMoodleTrigger.ejecutarPreEliminacion(idInscripcion);
+
       await prisma.inscripcion.delete({
         where: { idInscripcion }
       });
@@ -222,5 +277,6 @@ export class InscripcionService {
       throw new AppError("Error desconocido al eliminar la inscripción", 500);
     }
   }
+
     
 }

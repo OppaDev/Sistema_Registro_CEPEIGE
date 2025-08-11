@@ -43,7 +43,8 @@ describe('Usuario Mapper', () => {
   };
 
   describe('toUsuarioResponseDto', () => {
-    it('should map PrismaUsuarioConRoles to UsuarioResponseDto correctly', () => {
+    // MAP-AUT-001: Mapear PrismaUsuarioConRoles a UsuarioResponseDto correctamente
+    it('MAP-AUT-001: should map PrismaUsuarioConRoles to UsuarioResponseDto correctly', () => {
       const result = toUsuarioResponseDto(mockUsuario);
 
       expect(result).toEqual({

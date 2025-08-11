@@ -5,8 +5,10 @@ import {
   CursoResponseDto,
   CursosDisponiblesDto,
 } from "@/api/dtos/cursoDto/curso.dto";
-import { NotFoundError } from "@/utils/errorTypes";
+import { NotFoundError, AppError } from "@/utils/errorTypes";
 import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
+import { cursoMoodleTrigger } from "@/triggers/cursoMoodle.trigger";
+import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +22,8 @@ interface GetAllCursosOptions {
 // Crear un nuevo curso
 export class CursoService {  
   async createCurso(cursoData: CreateCursoDto): Promise<CursoResponseDto> {
-    try {      // Validar que la fecha de inicio no sea mayor que la fecha de fin
+    try {      
+      // Validar que la fecha de inicio no sea mayor que la fecha de fin
       // Para strings en formato YYYY-MM-DD, usar la zona horaria local
       const datePartsInicio = cursoData.fechaInicioCurso.split('-');
       const fechaInicioLocal = new Date(parseInt(datePartsInicio[0]), parseInt(datePartsInicio[1]) - 1, parseInt(datePartsInicio[2]));
@@ -42,6 +45,7 @@ export class CursoService {
         throw new Error('La fecha de inicio no puede ser posterior a la fecha de fin');
       }
 
+      // Crear el curso en la base de datos
       const curso = await prisma.curso.create({
         data: {
           nombreCortoCurso: cursoData.nombreCortoCurso,
@@ -50,10 +54,18 @@ export class CursoService {
           descripcionCurso: cursoData.descripcionCurso,
           valorCurso: cursoData.valorCurso,
           fechaInicioCurso: fechaInicioLocal,
-          fechaFinCurso: fechaFinLocal,        },
+          fechaFinCurso: fechaFinLocal,
+        },
       });
+
+      // Ejecutar triggers post-creación
+      await cursoMoodleTrigger.ejecutarPostCreacion(curso);
+      await cursoTelegramTrigger.ejecutarPostCreacion(curso);
+
       return toCursoResponseDto(curso);
+      
     } catch (error) {
+      if (error instanceof AppError) throw error;
       if (error instanceof Error) {
         throw new Error(`Error al crear el curso: ${error.message}`);
       }
@@ -105,8 +117,14 @@ export class CursoService {
       }
 
       const curso = await prisma.curso.update({
-        where: { idCurso: id },        data: datosActualizados,
+        where: { idCurso: id },
+        data: datosActualizados,
       });
+
+      // Ejecutar triggers post-actualización
+      await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
+      await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
+
       return toCursoResponseDto(curso);    } catch (error) {
       if (error instanceof NotFoundError) {
         throw error; // Re-lanzar NotFoundError sin modificar
@@ -212,9 +230,14 @@ export class CursoService {
         throw new NotFoundError('Curso');
       }
 
+      // Ejecutar triggers pre-eliminación
+      await cursoMoodleTrigger.ejecutarPreEliminacion(id);
+      await cursoTelegramTrigger.ejecutarPreEliminacion(id);
+
       // Eliminar el curso
       const cursoEliminado = await prisma.curso.delete({
-        where: { idCurso: id },      });
+        where: { idCurso: id },
+      });
 
       return toCursoResponseDto(cursoEliminado);    } catch (error) {
       if (error instanceof NotFoundError) {
