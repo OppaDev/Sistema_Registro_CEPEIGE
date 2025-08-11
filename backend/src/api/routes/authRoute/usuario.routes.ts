@@ -1,41 +1,46 @@
 import { Router } from 'express';
 import { UsuarioController } from '@/api/controllers/authController/usuario.controller';
 import { validateDto } from '@/api/middlewares/validate.dto';
-import { authenticate, checkPermissions } from '@/api/middlewares/auth.middleware';
+import { authenticate } from '@/api/middlewares/auth.middleware';
+import { roleMiddleware } from '@/api/middlewares/role.middleware';
+import { ROLE_PERMISSIONS } from '@/config/roles';
 import { CreateUsuarioDto, UpdateUsuarioDto } from '@/api/dtos/authDto/usuario.dto';
 
 const router = Router();
 const usuarioController = new UsuarioController();
 
-// Todas las rutas requieren autenticación
-router.use(authenticate);
+// === GESTIÓN DE USUARIOS - Solo Super-Admin según árbol de permisos ===
 
 // Crear usuario - Solo Super-Admin
 router.post(
   '/',
-  checkPermissions(['crear:usuario']),
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.USERS_MANAGEMENT),
   validateDto(CreateUsuarioDto),
   usuarioController.create
 );
 
-// Obtener todos los usuarios - Super-Admin y Admin pueden ver usuarios
+// Obtener todos los usuarios - Solo Super-Admin
 router.get(
   '/',
-  checkPermissions(['leer:usuarios']),
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.USERS_MANAGEMENT),
   usuarioController.getAll
 );
 
-// Obtener usuario por ID - Super-Admin y Admin pueden ver usuarios
+// Obtener usuario por ID - Solo Super-Admin
 router.get(
   '/:id',
-  checkPermissions(['leer:usuarios']),
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.USERS_MANAGEMENT),
   usuarioController.getById
 );
 
 // Actualizar usuario - Solo Super-Admin
 router.put(
   '/:id',
-  checkPermissions(['actualizar:usuario']),
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.USERS_MANAGEMENT),
   validateDto(UpdateUsuarioDto),
   usuarioController.update
 );
@@ -43,7 +48,8 @@ router.put(
 // Eliminar usuario - Solo Super-Admin
 router.delete(
   '/:id',
-  checkPermissions(['eliminar:usuario']),
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.USERS_MANAGEMENT),
   usuarioController.delete
 );
 

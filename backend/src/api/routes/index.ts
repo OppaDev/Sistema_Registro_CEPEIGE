@@ -1,4 +1,4 @@
-import { Application, Router, Request, Response } from 'express';
+import { Application, Router } from 'express';
 import cursoRoutes from './cursoRoute/curso.routes';
 import datosPersonalesRoutes from './inscripcionRoute/datosPersonales.routes';
 import datosFacturacionRoutes from './inscripcionRoute/datosFacturacion.routes';
@@ -34,11 +34,6 @@ export const configureRoutes = (app: Application): void => {
   apiRouter.use('/facturas', facturaRoutes);
   // Rutas de informes
   apiRouter.use('/informes', informeRoutes);
-
-  // Una ruta de prueba simple para verificar que el router funciona
-  apiRouter.get('/ping', (_: Request, res: Response) => {
-    res.status(200).json({ message: 'pong!' });
-  });
 
   // Montar el router principal bajo el prefijo /api/v1 (o el que prefieras)
   app.use('/api/v1', apiRouter);

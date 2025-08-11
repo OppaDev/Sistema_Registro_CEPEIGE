@@ -1,0 +1,82 @@
+/**
+ * Configuración de roles y permisos del sistema CEPEIGE
+ * 
+ * NOTA IMPORTANTE: El rol "PUBLIC" es solo conceptual para rutas abiertas.
+ * NO debe emitirse en tokens JWT ni almacenarse como rol de usuario.
+ * Únicamente indica endpoints accesibles sin autenticación.
+ */
+
+export const ROLES = {
+  SUPER_ADMIN: 'super-admin',
+  ADMIN: 'admin', 
+  CONTADOR: 'contador',
+  PUBLIC: 'public' // Acceso público (sin autenticación)
+} as const;
+
+export type Role = typeof ROLES[keyof typeof ROLES];
+
+export const ROLE_PERMISSIONS = {
+  // Todos los usuarios autenticados
+  ALL_AUTHENTICATED: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR],
+  
+  // Solo administrativos
+  ADMIN_ROLES: [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+  
+  // Roles financieros (Super-Admin y Contador)
+  FINANCIAL_ROLES: [ROLES.SUPER_ADMIN, ROLES.CONTADOR],
+  
+  // Acceso a informes (todos los roles administrativos)
+  REPORTS_ACCESS: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR],
+  
+  // Solo Super-Admin
+  SUPER_ADMIN_ONLY: [ROLES.SUPER_ADMIN],
+  
+  // Acceso público (sin autenticación requerida)
+  PUBLIC_ACCESS: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR, ROLES.PUBLIC],
+
+  // === PERMISOS ESPECÍFICOS POR CATEGORÍA ===
+  
+  // GESTIÓN DE USUARIOS - Solo Super-Admin
+  USERS_MANAGEMENT: [ROLES.SUPER_ADMIN],
+  
+  // GESTIÓN DE CURSOS (según árbol corregido final)
+  COURSES_READ_ALL: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR], // GET /cursos
+  COURSES_READ_DETAIL: [ROLES.SUPER_ADMIN, ROLES.ADMIN], // GET /cursos/:id
+  COURSES_WRITE: [ROLES.SUPER_ADMIN, ROLES.ADMIN], // POST, PUT /cursos
+  COURSES_DELETE: [ROLES.SUPER_ADMIN], // DELETE /cursos/:id
+  
+  // DATOS PERSONALES
+  PERSONAL_DATA_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR, ROLES.PUBLIC], // GET endpoints
+  PERSONAL_DATA_CREATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.PUBLIC], // POST: público para inscripción
+  PERSONAL_DATA_UPDATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN], // PUT: NO público
+  PERSONAL_DATA_DELETE: [ROLES.SUPER_ADMIN], // DELETE
+  
+  // DATOS DE FACTURACIÓN (según árbol corregido)
+  BILLING_DATA_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR, ROLES.PUBLIC],
+  BILLING_DATA_CREATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.PUBLIC], // Crear: público para inscripción
+  BILLING_DATA_UPDATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR], // Actualizar: NO público
+  BILLING_DATA_DELETE: [ROLES.SUPER_ADMIN],
+  
+  // COMPROBANTES (según árbol corregido)
+  VOUCHERS_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR, ROLES.PUBLIC],
+  VOUCHERS_CREATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.PUBLIC], // Crear: público para inscripción
+  VOUCHERS_DELETE: [ROLES.SUPER_ADMIN],
+  
+  // INSCRIPCIONES
+  INSCRIPTIONS_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR, ROLES.PUBLIC],
+  INSCRIPTIONS_CREATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.PUBLIC], // Crear: público para inscripción
+  INSCRIPTIONS_UPDATE: [ROLES.SUPER_ADMIN, ROLES.ADMIN], // PUT (matricular): NO público
+  INSCRIPTIONS_DELETE: [ROLES.SUPER_ADMIN],
+  
+  // DESCUENTOS
+  DISCOUNTS_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR],
+  DISCOUNTS_WRITE: [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+  DISCOUNTS_DELETE: [ROLES.SUPER_ADMIN],
+  
+  // FACTURAS
+  INVOICES_READ: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.CONTADOR],
+  INVOICES_WRITE: [ROLES.SUPER_ADMIN, ROLES.CONTADOR],
+  INVOICES_DELETE: [ROLES.SUPER_ADMIN],
+  INVOICES_VERIFY: [ROLES.SUPER_ADMIN, ROLES.CONTADOR] // PATCH verificar pago
+  
+} as const;

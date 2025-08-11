@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { InformeController } from '@/api/controllers/informeController/informe.controller';
 import { rateLimit } from 'express-rate-limit';
+import { authenticate } from '@/api/middlewares/auth.middleware';
+import { roleMiddleware } from '@/api/middlewares/role.middleware';
+import { ROLE_PERMISSIONS } from '@/config/roles';
 
 const router = Router();
 const informeController = new InformeController();
@@ -31,106 +34,104 @@ const consultaRateLimit = rateLimit({
     legacyHeaders: false,
 });
 
-// TODO: Agregar middleware de autenticación y autorización cuando esté implementado
-// router.use(authMiddleware);
-// router.use(roleMiddleware(['superadmin', 'admin', 'contador']));
+// === INFORMES - Solo roles administrativos (Super-Admin, Admin, Contador) ===
 
 /**
  * @route GET /api/informes/tipos
  * @desc Obtener tipos de informe y formatos disponibles
- * @access Admin, SuperAdmin, Contador
+ * @access Super-Admin, Admin, Contador
  */
-router.get('/tipos', consultaRateLimit, (req, res) => {
-    informeController.obtenerTiposInforme(req, res);
-});
+router.get('/tipos', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    consultaRateLimit, 
+    (req, res) => {
+        informeController.obtenerTiposInforme(req, res);
+    }
+);
 
 /**
  * @route GET /api/informes/cursos
  * @desc Obtener lista de cursos disponibles para filtros
- * @access Admin, SuperAdmin, Contador
+ * @access Super-Admin, Admin, Contador
  */
-router.get('/cursos', consultaRateLimit, (req, res) => {
-    informeController.obtenerCursosDisponibles(req, res);
-});
+router.get('/cursos', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    consultaRateLimit, 
+    (req, res) => {
+        informeController.obtenerCursosDisponibles(req, res);
+    }
+);
 
 /**
  * @route GET /api/informes/estadisticas
  * @desc Obtener estadísticas del informe sin generar archivo
- * @access Admin, SuperAdmin, Contador
- * @query fechaInicio?: string (YYYY-MM-DD)
- * @query fechaFin?: string (YYYY-MM-DD)
- * @query idCurso?: number
- * @query matricula?: boolean
- * @query verificacionPago?: boolean
+ * @access Super-Admin, Admin, Contador
  */
-router.get('/estadisticas', consultaRateLimit, (req, res) => {
-    informeController.obtenerEstadisticas(req, res);
-});
+router.get('/estadisticas', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    consultaRateLimit, 
+    (req, res) => {
+        informeController.obtenerEstadisticas(req, res);
+    }
+);
 
 /**
  * @route GET /api/informes/datos
  * @desc Obtener datos completos del informe sin generar archivo
- * @access Admin, SuperAdmin, Contador
- * @query fechaInicio?: string (YYYY-MM-DD)
- * @query fechaFin?: string (YYYY-MM-DD)
- * @query idCurso?: number
- * @query matricula?: boolean
- * @query verificacionPago?: boolean
+ * @access Super-Admin, Admin, Contador
  */
-router.get('/datos', consultaRateLimit, (req, res) => {
-    informeController.obtenerDatosInforme(req, res);
-});
+router.get('/datos', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    consultaRateLimit, 
+    (req, res) => {
+        informeController.obtenerDatosInforme(req, res);
+    }
+);
 
 /**
  * @route POST /api/informes/generar
  * @desc Generar y descargar informe en formato Excel o PDF
- * @access Admin, SuperAdmin, Contador
- * @body {
- *   tipoInforme: 'inscripciones' | 'pagados' | 'matriculados' | 'pendientes',
- *   formato: 'excel' | 'pdf',
- *   fechaInicio?: string,
- *   fechaFin?: string,
- *   idCurso?: number,
- *   matricula?: boolean,
- *   verificacionPago?: boolean
- * }
+ * @access Super-Admin, Admin, Contador
  */
-router.post('/generar', informeRateLimit, (req, res) => {
-    informeController.generarInforme(req, res);
-});
+router.post('/generar', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    informeRateLimit, 
+    (req, res) => {
+        informeController.generarInforme(req, res);
+    }
+);
 
 /**
  * @route POST /api/informes/excel
- * @desc Generar y descargar informe en formato Excel (endpoint específico)
- * @access Admin, SuperAdmin, Contador
- * @body {
- *   tipoInforme: 'inscripciones' | 'pagados' | 'matriculados' | 'pendientes',
- *   fechaInicio?: string,
- *   fechaFin?: string,
- *   idCurso?: number,
- *   matricula?: boolean,
- *   verificacionPago?: boolean
- * }
+ * @desc Generar y descargar informe en formato Excel
+ * @access Super-Admin, Admin, Contador
  */
-router.post('/excel', informeRateLimit, (req, res) => {
-    informeController.generarExcel(req, res);
-});
+router.post('/excel', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    informeRateLimit, 
+    (req, res) => {
+        informeController.generarExcel(req, res);
+    }
+);
 
 /**
  * @route POST /api/informes/pdf
- * @desc Generar y descargar informe en formato PDF (endpoint específico)
- * @access Admin, SuperAdmin, Contador
- * @body {
- *   tipoInforme: 'inscripciones' | 'pagados' | 'matriculados' | 'pendientes',
- *   fechaInicio?: string,
- *   fechaFin?: string,
- *   idCurso?: number,
- *   matricula?: boolean,
- *   verificacionPago?: boolean
- * }
+ * @desc Generar y descargar informe en formato PDF
+ * @access Super-Admin, Admin, Contador
  */
-router.post('/pdf', informeRateLimit, (req, res) => {
-    informeController.generarPDF(req, res);
-});
+router.post('/pdf', 
+    authenticate,
+    roleMiddleware(ROLE_PERMISSIONS.REPORTS_ACCESS),
+    informeRateLimit, 
+    (req, res) => {
+        informeController.generarPDF(req, res);
+    }
+);
 
 export default router;

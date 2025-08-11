@@ -6,11 +6,22 @@ module.exports = {
         '^@/(.*)$': '<rootDir>/src/$1',
     },
 
-    testMatch: ['**/src/**/*.test.ts'],
+    // Match both unit tests (.test.ts) and integration tests (.integration.ts)
+    testMatch: ['**/src/**/*.test.ts', '**/src/**/*.integration.ts'],
+    
     collectCoverage: true,
     coverageDirectory: 'coverage',
     coverageReporters: ['json', 'lcov', 'text', 'clover', 'cobertura'],
     clearMocks: true,
+    
+    // Setup files to run before tests
+    setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
+    
+    // Test timeout for integration tests (30 seconds)
+    testTimeout: 30000,
+
+    // Run integration tests in band to avoid database conflicts
+    runner: process.env.NODE_ENV === 'test' ? 'jest-runner' : undefined,
 
     // 📌 Reporteros adicionales
     reporters: [
