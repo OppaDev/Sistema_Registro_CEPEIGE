@@ -3,8 +3,8 @@ import React, { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PaymentReceipt, PaymentFieldErrors, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/models/payment';
-import { paymentService } from '@/services/paymentService';
+import { PaymentReceipt, PaymentFieldErrors, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/models/inscripcion/payment';
+import { paymentService } from '@/services/inscripcion/paymentService';
 import { Upload, FileText, Image, X, CheckCircle } from 'lucide-react';
 
 interface PaymentReceiptUploadProps {
@@ -102,30 +102,30 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Información de pago */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <h4 className="font-semibold text-blue-800 mb-2 flex items-center">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4">
+            <h4 className="font-semibold text-blue-800 mb-3 flex items-center text-sm sm:text-base">
               💳 Información de Pago
             </h4>
-            <ul className="text-sm text-blue-700 space-y-1 list-disc pl-5">
-              <li>
-                <span className="font-medium">Transferencias bancarias:</span>
-                <ul className="list-disc pl-5">
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <span className="font-medium text-blue-800 text-sm sm:text-base">Transferencias bancarias:</span>
+                <ul className="text-xs sm:text-sm text-blue-700 space-y-1 list-disc pl-4 mt-1">
                   <li>Revisa la imagen donde se muestra la cuenta bancaria a la que deberás realizar la transferencia.</li>
                   <li>Asegúrate de confirmar que los datos (número de cuenta, banco, etc.) sean correctos.</li>
                   <li>Una vez realizada la transferencia, adjunta el comprobante de pago.</li>
                 </ul>
-              </li>
-              <li className="mt-2">
-                <span className="font-medium">Pago con tarjeta de Crédito:</span>
-                <ul className="list-disc pl-5">
+              </div>
+              <div>
+                <span className="font-medium text-blue-800 text-sm sm:text-base">Pago con tarjeta de Crédito:</span>
+                <ul className="text-xs sm:text-sm text-blue-700 space-y-1 list-disc pl-4 mt-1">
                   <li>Si deseas pagar con tarjeta de crédito, solicita el enlace de pago <span className="text-blue-600 font-semibold underline cursor-pointer">AQUÍ</span>.</li>
                   <li>Espera la respuesta del Jefe Académico, ya que se te enviará un enlace de pago seguro.</li>
                   <li>Realiza el Pago.</li>
                   <li>Guarda el comprobante digital o la captura de la pantalla que indique que el pago se ha realizado correctamente.</li>
                   <li>Adjunta el Comprobante en el Formulario de Inscripción.</li>
                 </ul>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
           {/* Área de carga de archivo */}
           <div className="space-y-4">
@@ -135,7 +135,7 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
             
             {!paymentData.file ? (
               <div
-                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-8 text-center transition-colors ${
                   dragActive
                     ? 'border-green-400 bg-green-50'
                     : paymentErrors.file
@@ -155,13 +155,13 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex justify-center">
-                    <Upload className={`h-12 w-12 ${dragActive ? 'text-green-500' : 'text-gray-400'}`} />
+                    <Upload className={`h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 ${dragActive ? 'text-green-500' : 'text-gray-400'}`} />
                   </div>
                   
                   <div>
-                    <p className="text-lg font-medium text-gray-700">
+                    <p className="text-base sm:text-lg font-medium text-gray-700">
                       {dragActive ? 'Suelta el archivo aquí' : 'Arrastra tu comprobante aquí'}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
@@ -176,7 +176,7 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
                     </p>
                   </div>
                   
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs sm:text-sm text-gray-500 space-y-1">
                     <p>Formatos permitidos: PNG, JPG, JPEG, PDF</p>
                     <p>Tamaño máximo: 5MB</p>
                   </div>

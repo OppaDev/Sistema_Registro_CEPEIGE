@@ -2,8 +2,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthState, getUserType, UserType } from '@/models/auth';
-import { authService } from '@/services/authService';
+import { User, AuthState, getUserType, UserType } from '@/models/login/auth';
+import { authService } from '@/services/login/authService';
 import { TokenManager } from '@/lib/tokenManager';
 
 interface AuthContextType extends AuthState {

@@ -1,6 +1,6 @@
 // services/inscriptionService.ts
-import { api } from './api';
-import { EditInscriptionRequest, InscriptionData } from '@/models/inscription';
+import { api } from '../api';
+import { EditInscriptionRequest, InscriptionData } from '@/models/inscripcion_completa/inscription';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -288,26 +288,85 @@ class InscriptionService {
       currency: 'USD'
     }).format(price);
   }
-    async updateInscription(updateData: EditInscriptionRequest): Promise<InscriptionDetailResponse> {
+  async updateInscription(updateData: EditInscriptionRequest): Promise<InscriptionDetailResponse> {
     try {
-      console.log('🚀 Actualizando inscripción:', updateData);
-
-      const response = await fetch(`${API_BASE_URL}/inscripciones/${updateData.idInscripcion}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      const data = await response.json();
-      console.log('📥 Respuesta actualización:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al actualizar inscripción');
+      console.log('🚀 Actualizando inscripción con múltiples endpoints:', updateData);
+      
+      // Obtener los IDs necesarios de la inscripción actual
+      const inscriptionResponse = await this.getInscriptionById(updateData.idInscripcion);
+      if (!inscriptionResponse.success) {
+        throw new Error('No se pudo obtener la inscripción para actualizar');
       }
-
-      return data;
+      
+      const inscription = inscriptionResponse.data;
+      const idPersona = inscription.datosPersonales.idPersona;
+      const idFacturacion = inscription.datosFacturacion.idFacturacion;
+      
+      const updatePromises: Promise<any>[] = [];
+      
+      // 1. Actualizar datos personales si se proporcionaron
+      if (updateData.datosPersonales && Object.keys(updateData.datosPersonales).length > 0) {
+        console.log('📝 Actualizando datos personales...');
+        const personalDataPromise = fetch(`${API_BASE_URL}/datos-personales/${idPersona}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData.datosPersonales)
+        });
+        updatePromises.push(personalDataPromise);
+      }
+      
+      // 2. Actualizar datos de facturación si se proporcionaron
+      if (updateData.datosFacturacion && Object.keys(updateData.datosFacturacion).length > 0) {
+        console.log('💰 Actualizando datos de facturación...');
+        const billingDataPromise = fetch(`${API_BASE_URL}/datos-facturacion/${idFacturacion}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData.datosFacturacion)
+        });
+        updatePromises.push(billingDataPromise);
+      }
+      
+      // 3. Actualizar curso si se proporcionó (solo admin)
+      if (updateData.nuevoCurso !== undefined && updateData.nuevoCurso !== null) {
+        console.log('📚 Actualizando curso...', { 
+          inscripcionId: updateData.idInscripcion,
+          nuevoCursoId: updateData.nuevoCurso,
+          cursoAnterior: inscription.curso.idCurso
+        });
+        const courseUpdatePromise = fetch(`${API_BASE_URL}/inscripciones/${updateData.idInscripcion}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idCurso: updateData.nuevoCurso })
+        });
+        updatePromises.push(courseUpdatePromise);
+      }
+      
+      // Ejecutar todas las actualizaciones en paralelo
+      const responses = await Promise.all(updatePromises);
+      
+      // Verificar que todas las respuestas sean exitosas
+      for (const response of responses) {
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error en una de las actualizaciones');
+        }
+      }
+      
+      console.log('✅ Todas las actualizaciones completadas exitosamente');
+      
+      // Retornar una respuesta simulada de éxito (el controlador recargará los datos)
+      return {
+        success: true,
+        data: inscription, // Los datos se recargarán desde el servidor
+        message: 'Inscripción actualizada exitosamente'
+      };
+      
     } catch (error: any) {
       console.error('❌ Error updating inscription:', error);
       throw new Error(
@@ -398,6 +457,43 @@ class InscriptionService {
     }
 
     return commonFields; // Contador no puede cambiar curso
+  }
+
+  // Método para obtener archivo de comprobante de pago
+  async getReceiptFile(rutaComprobante: string): Promise<string> {
+    try {
+      console.log('🚀 Obteniendo archivo de comprobante:', rutaComprobante);
+      
+      // Si es una URL completa, devolverla directamente
+      if (rutaComprobante.startsWith('http')) {
+        return rutaComprobante;
+      }
+      
+      // Normalizar la ruta del archivo
+      // Convertir barras invertidas a barras normales
+      let normalizedPath = rutaComprobante.replace(/\\/g, '/');
+      
+      // Si la ruta incluye 'uploads/comprobantes/', extraer solo el nombre del archivo
+      if (normalizedPath.includes('uploads/comprobantes/')) {
+        normalizedPath = normalizedPath.split('uploads/comprobantes/').pop() || normalizedPath;
+      }
+      
+      // Construir URL del archivo
+      const fileUrl = `${API_BASE_URL}/files/comprobantes/${normalizedPath}`;
+      console.log('📁 URL construida:', fileUrl);
+      
+      // Verificar que el archivo existe
+      const response = await fetch(fileUrl, { method: 'HEAD' });
+      if (!response.ok) {
+        console.error(`❌ Archivo no encontrado. Status: ${response.status}, URL: ${fileUrl}`);
+        throw new Error(`Archivo no encontrado: ${response.status}`);
+      }
+      
+      return fileUrl;
+    } catch (error) {
+      console.error('❌ Error al obtener archivo de comprobante:', error);
+      throw new Error('No se pudo cargar el archivo del comprobante');
+    }
   }
 }
 

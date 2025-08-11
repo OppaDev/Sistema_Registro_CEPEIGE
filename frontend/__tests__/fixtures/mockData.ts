@@ -2,33 +2,24 @@
 export const mockCourses = [
   { 
     idCurso: 1, 
-    nombreCortoCurso: 'PYTHON-BAS', 
-    nombreCurso: 'Curso de Python - Nivel Básico',
-    descripcionCurso: 'Curso básico de Python',
-    modalidadCurso: 'Virtual',
-    valorCurso: 150.00,
-    fechaInicioCurso: new Date('2024-01-01'),
-    fechaFinCurso: new Date('2024-02-01'),
+    nombreCorto: 'PYTHON-BAS', 
+    nombreLargo: 'Curso de Python - Nivel Básico',
+    costoTotal: 100,
+    activo: true
   },
   { 
     idCurso: 2, 
-    nombreCortoCurso: 'JAVA-ADV', 
-    nombreCurso: 'Curso de Java - Nivel Avanzado',
-    descripcionCurso: 'Curso avanzado de Java',
-    modalidadCurso: 'Presencial',
-    valorCurso: 250.00,
-    fechaInicioCurso: new Date('2024-02-01'),
-    fechaFinCurso: new Date('2024-04-01'),
+    nombreCorto: 'JAVA-ADV', 
+    nombreLargo: 'Curso de Java - Nivel Avanzado',
+    costoTotal: 150,
+    activo: true
   },
   { 
     idCurso: 3, 
-    nombreCortoCurso: 'REACT-INT', 
-    nombreCurso: 'Curso de React - Nivel Intermedio',
-    descripcionCurso: 'Curso intermedio de React',
-    modalidadCurso: 'Virtual',
-    valorCurso: 200.00,
-    fechaInicioCurso: new Date('2024-03-01'),
-    fechaFinCurso: new Date('2024-05-01'),
+    nombreCorto: 'REACT-INT', 
+    nombreLargo: 'Curso de React - Nivel Intermedio',
+    costoTotal: 120,
+    activo: true
   }
 ];
 
@@ -58,11 +49,31 @@ export const mockBillingData = {
 // Inscripción completa de prueba
 export const mockInscription = {
   idInscripcion: 1,
-  participante: mockPersonalData,
-  facturacion: mockBillingData,
-  curso: mockCourses[0],
-  fechaInscripcion: '2024-01-15',
-  estadoPago: 'pendiente'
+  fechaInscripcion: new Date('2024-01-15'),
+  estado: 'PENDIENTE' as const,
+  participante: {
+    idParticipante: 1,
+    ...mockPersonalData
+  },
+  facturacion: {
+    idFacturacion: 1,
+    ...mockBillingData
+  },
+  curso: {
+    idCurso: mockCourses[0].idCurso,
+    nombreCurso: mockCourses[0].nombreLargo,
+    precio: mockCourses[0].costoTotal,
+    fechaInicio: new Date('2024-02-01'),
+    fechaFin: new Date('2024-02-28'),
+    modalidad: 'Presencial'
+  },
+  comprobante: {
+    idComprobante: 1,
+    fechaSubida: new Date('2024-01-16'),
+    rutaComprobante: 'uploads/comprobantes/comprobante_123.jpg',
+    tipoArchivo: 'image/jpeg',
+    nombreArchivo: 'comprobante_pago_ana.jpg'
+  }
 };
 
 // Archivo de prueba válido (PREF-004)

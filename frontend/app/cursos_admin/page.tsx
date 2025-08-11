@@ -2,7 +2,7 @@
 // app/cursos_admin/page.tsx - CREAR ARCHIVO
 
 import CourseAdminView from '@/views/CourseAdminView';
-import { AuthGuard } from '@/views/components/AuthGuard';
+import { AuthGuard } from '@/views/components/login/AuthGuard';
 
 export default function CourseAdminPage() {
  return (

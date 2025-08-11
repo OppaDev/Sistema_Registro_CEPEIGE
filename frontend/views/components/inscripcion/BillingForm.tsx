@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FormInput } from './FormInput';
-import { BillingData, BillingFieldErrors } from '@/models/billing';
+import { BillingData, BillingFieldErrors } from '@/models/inscripcion/billing';
 import { Receipt, Building2 } from 'lucide-react';
 
 interface BillingFormProps {

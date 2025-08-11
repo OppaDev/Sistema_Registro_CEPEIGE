@@ -1,11 +1,11 @@
 // views/CourseView.tsx
 import React from 'react';
-import { Course } from '@/models/course';
+import { Course } from '@/models/inscripcion/course';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from './components/LoadingSpinner';
-import { useCourseController } from '@/controllers/CourseController';
+import { LoadingSpinner } from './components/inscripcion/LoadingSpinner';
+import { useCourseController } from '@/controllers/inscripcion/CourseController';
 
 interface CourseViewProps {
   onCourseSelect?: (course: Course) => void;
@@ -86,16 +86,16 @@ export function CourseView({
 
   return (
     <Card>
-      <CardHeader className="bg-orange-500 text-white">
-        <CardTitle className="text-center text-xl">
+      <CardHeader className="bg-orange-500 text-white p-4 sm:p-6">
+        <CardTitle className="text-center text-lg sm:text-xl">
           📚 Seleccionar Curso
         </CardTitle>
-        <p className="text-center text-orange-100 mt-2">
+        <p className="text-center text-orange-100 mt-2 text-sm sm:text-base">
           Elige el curso que más te interese
         </p>
       </CardHeader>
       
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         {courses.length === 0 ? (
           <Alert className="border-yellow-500 bg-yellow-50 text-yellow-800">
             <AlertDescription className="flex items-center">
@@ -126,9 +126,9 @@ export function CourseView({
                     onClick={() => isAvailable && handleCourseSelect(course)}
                   >
                     {/* Header del curso */}
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-gray-800 mb-1">
+                        <h3 className="font-semibold text-base sm:text-lg text-gray-800 mb-1">
                           {course.nombreCurso}
                         </h3>
                         {!isAvailable && (
@@ -137,8 +137,8 @@ export function CourseView({
                           </span>
                         )}
                       </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold text-orange-600">
+                      <div className="text-left sm:text-right">
+                        <span className="text-xl sm:text-2xl font-bold text-orange-600">
                           {new Intl.NumberFormat('es-EC', {
                           style: 'currency',
                           currency: 'USD'
@@ -155,7 +155,7 @@ export function CourseView({
                     )}
                     
                     {/* Información del curso */}
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-sm text-gray-500 mb-3">
                       <div className="flex items-center">
                         <span className="mr-1">📅</span>
                         <span>Inicio: {formatDate(course.fechaInicioCurso)}</span>

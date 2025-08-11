@@ -1,7 +1,7 @@
 // views/components/CreateEditCourseModal.tsx - NUEVO ARCHIVO
 
 import React, { useState, useEffect } from 'react';
-import { Course, CreateCourseData, UpdateCourseData, MODALIDADES_CURSO } from '@/models/course';
+import { Course, CreateCourseData, UpdateCourseData, MODALIDADES_CURSO } from '@/models/inscripcion/course';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

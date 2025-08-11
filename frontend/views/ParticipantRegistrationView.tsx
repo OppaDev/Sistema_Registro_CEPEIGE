@@ -1,13 +1,13 @@
 // views/ParticipantRegistrationView.tsx - VERSIÓN COMPLETA ACTUALIZADA
 "use client";
 
-import { useParticipantController } from '@/controllers/useParticipantController';
+import { useParticipantController } from '@/controllers/inscripcion/useParticipantController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FormInput } from './components/FormInput';
-import { BillingForm } from './components/BillingForm';
-import { PaymentReceiptUpload } from './components/PaymentReceiptUpload';
+import { FormInput } from './components/inscripcion/FormInput';
+import { BillingForm } from './components/inscripcion/BillingForm';
+import { PaymentReceiptUpload } from './components/inscripcion/PaymentReceiptUpload';
 import CourseView from './CourseView';
 
 export default function ParticipantRegistrationView() {
@@ -31,7 +31,8 @@ export default function ParticipantRegistrationView() {
     submitBillingData,
     submitPaymentReceipt,
     goToStep,
-    resetForm
+    resetForm,
+    handleAutocomplete
   } = useParticipantController();
 
   const handlePersonalSubmit = async (e: React.FormEvent) => {
@@ -85,13 +86,13 @@ export default function ParticipantRegistrationView() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <img src="/logo__cepeige.png" alt="Logo CEPEIGE" className="h-24" />
+            <img src="/logo__cepeige.png" alt="Logo CEPEIGE" className="h-16 sm:h-20 lg:h-24" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 px-4">
               Sistema de Registro CEPEIGE
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600 px-4">
               Complete el proceso de inscripción paso a paso
             </p>
           </div>
@@ -167,6 +168,19 @@ export default function ParticipantRegistrationView() {
             <AlertDescription className="font-medium text-center">
               {message.text}
             </AlertDescription>
+            {/* 🆕 Botón para regresar a selección de curso si hay error de inscripción duplicada */}
+            {message.type === 'error' && (message.text.includes('ya está inscrita en el curso') || message.text.includes('ya está inscrito en el curso')) && (
+              <div className="mt-3 flex justify-center">
+                <Button
+                  onClick={() => goToStep('course')}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-300 text-red-700 hover:bg-red-50"
+                >
+                  ← Seleccionar Otro Curso
+                </Button>
+              </div>
+            )}
           </Alert>
         )}
 
@@ -202,6 +216,69 @@ export default function ParticipantRegistrationView() {
                 </CardHeader>
                 
                 <CardContent className="p-6 bg-blue-50">
+                  {/* Mensaje legal de protección de datos */}
+                  <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <div className="text-yellow-600 mt-0.5">⚖️</div>
+                      <div>
+                        <h4 className="font-semibold text-yellow-800 mb-2">
+                          Protección de Datos Personales
+                        </h4>
+                        <p className="text-sm text-yellow-700 leading-relaxed">
+                          En conformidad con lo establecido en la <strong>Ley Orgánica de Protección de Datos Personales</strong> (en adelante, "LOPD") 
+                          y demás normativa pertinente, se recopilarán y procesarán los siguientes datos personales, 
+                          los cuales han sido proporcionados voluntariamente, tal como se detalla a continuación:
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-2 font-medium">
+                          <strong>Datos personales:</strong> Si ya tiene registros previos, puede autocompletar los datos o actualizarlos manualmente. 
+                          Los cambios en la información se aplicarán a su registro para futuras inscripciones.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Funcionalidad de autocompletado con consentimiento */}
+                  {formData.ciPasaporte && (
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="consentimiento-datos"
+                          className="mt-1 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="consentimiento-datos" className="text-sm text-blue-800">
+                          <strong>Autorizo el uso de mis datos personales previos:</strong> Al marcar esta casilla, 
+                          doy mi consentimiento explícito e informado para que se recuperen y utilicen mis datos 
+                          personales de registros anteriores con el propósito de autocompletar este formulario. 
+                          Entiendo que esta acción es voluntaria y puedo completar el formulario manualmente.
+                        </label>
+                      </div>
+                      <div className="mt-3 flex justify-end">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const checkbox = document.getElementById('consentimiento-datos') as HTMLInputElement;
+                            const hasConsent = checkbox?.checked || false;
+                            handleAutocomplete(hasConsent);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                              <span>Buscando...</span>
+                            </div>
+                          ) : (
+                            '🔄 Autocompletar Datos'
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FormInput
                       label="Cédula o Pasaporte *"

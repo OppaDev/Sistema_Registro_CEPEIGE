@@ -1,8 +1,8 @@
 // views/components/CourseTable.tsx - NUEVO ARCHIVO
 
 import React from 'react';
-import { Course } from '@/models/course';
-import { courseService } from '@/services/courseService';
+import { Course } from '@/models/inscripcion/course';
+import { courseService } from '@/services/inscripcion/courseService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,19 +103,94 @@ export const CourseTable: React.FC<CourseTableProps> = ({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Vista móvil - Cards */}
+            <div className="block lg:hidden">
+              <div className="p-4 space-y-4">
+                {courses.map((course, index) => (
+                  <Card key={course.idCurso} className="border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        {/* Header del curso */}
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-sm">{course.nombreCurso}</h3>
+                            <p className="text-xs text-gray-500">#{course.idCurso} • {course.nombreCortoCurso}</p>
+                          </div>
+                          {getModalidadBadge(course.modalidadCurso)}
+                        </div>
+                        
+                        {/* Precio y fechas */}
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs text-gray-500">Precio</p>
+                            <p className="font-semibold" style={{ color: '#F3762B' }}>
+                              {courseService.formatPrice(course.valorCurso)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Duración</p>
+                            <p className="text-gray-700">
+                              {courseService.calculateDuration(course.fechaInicioCurso, course.fechaFinCurso)} días
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Fechas */}
+                        <div className="text-xs text-gray-500">
+                          <p>Del {courseService.formatDate(course.fechaInicioCurso)} al {courseService.formatDate(course.fechaFinCurso)}</p>
+                        </div>
+                        
+                        {/* Acciones */}
+                        <div className="flex space-x-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onViewDetails(course)}
+                            className="flex-1 text-xs"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Ver
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onEditCourse(course)}
+                            className="flex-1 text-xs"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDeleteCourse(course)}
+                            className="flex-1 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Vista desktop - Tabla */}
+            <div className="hidden lg:block overflow-x-auto">
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow style={{ backgroundColor: '#02549E' }}>
-                    <TableHead className="text-white font-semibold">ID</TableHead>
-                    <TableHead className="text-white font-semibold">Nombre Corto</TableHead>
-                    <TableHead className="text-white font-semibold">Nombre Completo</TableHead>
-                    <TableHead className="text-white font-semibold">Modalidad</TableHead>
-                    <TableHead className="text-white font-semibold">Precio</TableHead>
-                    <TableHead className="text-white font-semibold">Fecha Inicio</TableHead>
-                    <TableHead className="text-white font-semibold">Fecha Fin</TableHead>
-                    <TableHead className="text-white font-semibold">Duración</TableHead>
-                    <TableHead className="text-white font-semibold text-center">Acciones</TableHead> 
+                    <TableHead className="text-white font-semibold text-sm">ID</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Nombre Corto</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Nombre Completo</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Modalidad</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Precio</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Fecha Inicio</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Fecha Fin</TableHead>
+                    <TableHead className="text-white font-semibold text-sm">Duración</TableHead>
+                    <TableHead className="text-white font-semibold text-sm text-center">Acciones</TableHead> 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -219,11 +294,11 @@ export const CourseTable: React.FC<CourseTableProps> = ({
 
             {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <div className="text-sm text-gray-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 space-y-3 sm:space-y-0">
+                <div className="text-xs sm:text-sm text-gray-700 order-2 sm:order-1">
                   Mostrando {startItem} - {endItem} de {totalItems} cursos
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 sm:space-x-2 order-1 sm:order-2">
                   <Button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage <= 1}

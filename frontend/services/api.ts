@@ -1,6 +1,6 @@
 // services/api.ts - ACTUALIZAR PARA INCLUIR AUTH
 import axios from 'axios';
-import { authService } from './authService'; // 🆕 IMPORTAR
+import { authService } from './login/authService'; // 🆕 IMPORTAR
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 

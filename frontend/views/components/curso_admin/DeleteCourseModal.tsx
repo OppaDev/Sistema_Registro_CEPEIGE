@@ -1,8 +1,8 @@
 // views/components/DeleteCourseModal.tsx - NUEVO ARCHIVO
 
 import React from 'react';
-import { Course } from '@/models/course';
-import { courseService } from '@/services/courseService';
+import { Course } from '@/models/inscripcion/course';
+import { courseService } from '@/services/inscripcion/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -33,18 +33,18 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-red-50">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-red-50">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
-              <Trash2 className="h-6 w-6 text-red-600" />
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full">
+              <Trash2 className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-red-900">
+              <h3 className="text-base sm:text-lg font-bold text-red-900">
                 Eliminar Curso
               </h3>
-              <p className="text-red-700 text-sm">
+              <p className="text-red-700 text-xs sm:text-sm">
                 Esta acción no se puede deshacer
               </p>
             </div>
@@ -61,7 +61,7 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Información del curso */}
           <Card className="mb-4">
             <CardHeader className="pb-2">
@@ -113,33 +113,33 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
             </AlertDescription>
           </Alert>
 
-          {!canDelete && (
+          {/* Información adicional para cursos ya pasados */}
+          {course.fechaInicioCurso < new Date() && (
             <Alert className="border-amber-200 bg-amber-50 mb-4">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                <strong>No se puede eliminar:</strong> Este curso ya ha iniciado o está en progreso.
-                Para eliminarlo, debe esperar a que termine o cambiar las fechas.
+                <strong>Curso finalizado:</strong> Este curso ya ha terminado. 
+                Al eliminarlo se perderá todo el historial y las inscripciones asociadas.
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Confirmación */}
-          {canDelete && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-700 mb-2">
-                Para confirmar la eliminación, tenga en cuenta que:
-              </p>
-              <ul className="text-xs text-gray-600 space-y-1">
-                <li>• Esta acción es <strong>irreversible</strong></li>
-                <li>• Se eliminará toda la información relacionada</li>
-                <li>• Los reportes históricos pueden verse afectados</li>
-              </ul>
-            </div>
-          )}
+          {/* Confirmación - siempre mostrar ya que todos los cursos se pueden eliminar */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-700 mb-2">
+              Para confirmar la eliminación, tenga en cuenta que:
+            </p>
+            <ul className="text-xs text-gray-600 space-y-1">
+              <li>• Esta acción es <strong>irreversible</strong></li>
+              <li>• Se eliminará toda la información relacionada</li>
+              <li>• Los reportes históricos pueden verse afectados</li>
+              <li>• Las inscripciones asociadas también se eliminarán</li>
+            </ul>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
           <Button
             onClick={onCancel}
             variant="outline"
@@ -150,7 +150,7 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isDeleting || !canDelete}
+            disabled={isDeleting}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeleting ? (

@@ -3,16 +3,16 @@
 "use client";
 
 import React from 'react';
-import { useCourseAdminController } from '@/controllers/useCourseAdminController';
-import { AdminLayout } from './components/AdminLayout';
-import { CourseTable } from './components/CourseTable';
-import { CourseDetailModal } from './components/CourseDetailModal';
-import { CreateEditCourseModal } from './components/CreateEditCourseModal';
-import { DeleteCourseModal } from './components/DeleteCourseModal';
+import { useCourseAdminController } from '@/controllers/login/useCourseAdminController';
+import { AdminLayout } from './components/login/AdminLayout';
+import { CourseTable } from './components/curso_admin/CourseTable';
+import { CourseDetailModal } from './components/curso_admin/CourseDetailModal';
+import { CreateEditCourseModal } from './components/inscripcion_completa/CreateEditCourseModal';
+import { DeleteCourseModal } from './components/curso_admin/DeleteCourseModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, BookOpen, TrendingUp, Calendar, DollarSign } from 'lucide-react';
-import { CreateCourseData, UpdateCourseData } from '@/models/course';
+import { CreateCourseData, UpdateCourseData } from '@/models/inscripcion/course';
 
 export default function CourseAdminView() {
   const {

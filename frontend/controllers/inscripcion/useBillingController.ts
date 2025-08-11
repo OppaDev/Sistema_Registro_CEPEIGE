@@ -1,7 +1,7 @@
 // controllers/useBillingController.ts
 import { useState, useCallback } from 'react';
-import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/billing';
-import { billingService } from '@/services/billingService';
+import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/inscripcion/billing';
+import { billingService } from '@/services/inscripcion/billingService';
 
 const initialBillingData: BillingData = {
   razonSocial: '',

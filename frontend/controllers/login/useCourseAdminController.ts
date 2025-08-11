@@ -1,8 +1,8 @@
 // controllers/useCourseAdminController.ts - NUEVO ARCHIVO
 
 import { useState, useEffect, useCallback } from 'react';
-import { Course, CreateCourseData, UpdateCourseData, CourseFilters } from '@/models/course';
-import { courseService } from '@/services/courseService';
+import { Course, CreateCourseData, UpdateCourseData, CourseFilters } from '@/models/inscripcion/course';
+import { courseService } from '@/services/inscripcion/courseService';
 
 interface UseCourseAdminControllerReturn {
   // Estado
