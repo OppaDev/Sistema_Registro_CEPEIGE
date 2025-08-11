@@ -146,38 +146,70 @@ class GrupoCursoTelegramService {
   }
 
   private parseGroupIdFromResult(result: any): { groupId?: number; chat?: any } {
-    let chat: any = null;
-    // Case 1: direct chats array
+    // 1) Intentar extraer desde un array de chats directo
+    const fromChats = this.extractFromChatsArray(result);
+    if (fromChats.groupId || fromChats.chat) return fromChats;
+
+    // 2) Intentar extraer desde el objeto updates
+    const fromUpdates = this.extractFromUpdates(result);
+    if (fromUpdates.groupId || fromUpdates.chat) return fromUpdates;
+
+    // 3) Intentar extraer desde un peer plano
+    const fromPeer = this.extractFromPeer(result);
+    if (fromPeer.groupId) return fromPeer;
+
+    // 4) Si nada funcionó, devolver chat si existe para posibles fallbacks del caller
+    return { chat: (result && (result as any).chats && (result as any).chats[0]) || undefined };
+  }
+
+  private extractFromChatsArray(result: any): { groupId?: number; chat?: any } {
     if ('chats' in result && Array.isArray(result.chats) && result.chats.length > 0) {
-      chat = result.chats[0];
+      const chat = result.chats[0];
       return { groupId: Number(chat.id), chat };
     }
-    // Case 2: updates object contains chats or nested updates
-    if ('updates' in result) {
-      const updatesObj = (result as any).updates;
-      if ('chats' in updatesObj && Array.isArray(updatesObj.chats) && updatesObj.chats.length > 0) {
-        chat = updatesObj.chats[0];
-        return { groupId: Number(chat.id), chat };
+    return {};
+  }
+
+  private extractFromUpdates(result: any): { groupId?: number; chat?: any } {
+    if (!('updates' in result)) return {};
+    const updatesObj = (result as any).updates;
+
+    // updates.chats
+    if ('chats' in updatesObj && Array.isArray(updatesObj.chats) && updatesObj.chats.length > 0) {
+      const chat = updatesObj.chats[0];
+      return { groupId: Number(chat.id), chat };
+    }
+
+    // updates.updates
+    if ('updates' in updatesObj && Array.isArray(updatesObj.updates)) {
+      const id = this.extractGroupIdFromUpdatesArray(updatesObj.updates);
+      if (id) return { groupId: id };
+    }
+    return {};
+  }
+
+  private extractGroupIdFromUpdatesArray(updates: any[]): number | undefined {
+    for (const update of updates) {
+      if ('message' in update && 'peerId' in update.message) {
+        const peerId = update.message.peerId;
+        if ('chatId' in peerId) return Number(peerId.chatId);
       }
-      if ('updates' in updatesObj && Array.isArray(updatesObj.updates)) {
-        for (const update of updatesObj.updates) {
-          if ('message' in update && 'peerId' in update.message) {
-            const peerId = update.message.peerId;
-            if ('chatId' in peerId) return { groupId: Number(peerId.chatId) };
-          } else if ('participants' in update && 'chatId' in update.participants) {
-            return { groupId: Number(update.participants.chatId) };
-          } else if ('peer' in update && 'chatId' in update.peer) {
-            return { groupId: Number(update.peer.chatId) };
-          }
-        }
+      if ('participants' in update && 'chatId' in update.participants) {
+        return Number(update.participants.chatId);
+      }
+      if ('peer' in update && 'chatId' in update.peer) {
+        return Number(update.peer.chatId);
       }
     }
-    // Case 3: direct peer
+    return undefined;
+  }
+
+  private extractFromPeer(result: any): { groupId?: number } {
     if ('peer' in result) {
       const peer = (result as any).peer;
       if ('chat_id' in peer) return { groupId: Number(peer.chat_id) };
     }
-    return { chat };
+    return {};
   }
 
   private async crearEnlazarDescripcionYLink(
