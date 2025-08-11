@@ -93,52 +93,22 @@ export class InscripcionService {
 
   // Actualizar una inscripción
   async updateInscripcion(idInscripcion: number, data: UpdateInscripcionDto): Promise<InscripcionAdminResponseDto> {
-    // Verificar que la inscripción exista
-    const inscripcionExistente = await prisma.inscripcion.findUnique({
-      where: { idInscripcion },
-      include: {
-        persona: true // Incluir datos personales para Moodle
-      }
-    });
-    if (!inscripcionExistente) {
-      throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
-    }
+    // 1) Obtener y validar inscripción
+    const inscripcionExistente = await this.obtenerInscripcionConPersona(idInscripcion);
 
-    // Validar existencia de idDescuento si se provee
-    if (data.idDescuento) {
-      const descuento = await prisma.descuento.findUnique({ where: { idDescuento: data.idDescuento }});
-      if (!descuento) throw new NotFoundError(`Descuento con ID ${data.idDescuento}`);
-    }
+    // 2) Validar descuento si aplica
+    await this.validarDescuentoSiAplica(data.idDescuento);
 
-    // Detectar si se está cambiando el estado de matrícula de false a true
-    const cambioAMatriculado = data.matricula === true && inscripcionExistente.matricula === false;
-
-    // Validar que el pago esté verificado antes de permitir el cambio a matriculado
+    // 3) Verificar si hay cambio a matriculado y validar pago
+    const cambioAMatriculado = this.esCambioAMatriculado(data, inscripcionExistente);
     if (cambioAMatriculado) {
-      const facturas = await facturaService.getFacturasByInscripcionId(idInscripcion);
-      
-      if (facturas.length === 0) {
-        throw new ConflictError(`No se puede matricular: No existe factura para la inscripción ID ${idInscripcion}`);
-      }
-
-      const pagoVerificado = facturas.some(factura => factura.verificacionPago === true);
-      
-      if (!pagoVerificado) {
-        throw new ConflictError(`No se puede matricular: El pago no ha sido verificado para la inscripción ID ${idInscripcion}`);
-      }
+      await this.validarPagoParaMatricula(idInscripcion);
     }
 
     try {
-      // Construir el objeto data solo con propiedades definidas
-      const updateData: any = {};
-      if (data.idDescuento !== undefined) {
-        updateData.idDescuento = data.idDescuento;
-      }
-      if (data.matricula !== undefined) {
-        updateData.matricula = data.matricula;
-      }
+      // 4) Actualizar datos
+      const updateData = this.construirUpdateData(data);
 
-      // Actualizar la inscripción en la base de datos
       const inscripcionActualizada = await prisma.inscripcion.update({
         where: { idInscripcion },
         data: updateData,
@@ -148,20 +118,13 @@ export class InscripcionService {
           datosFacturacion: true,
           comprobante: true,
           descuento: true,
-        }
+        },
       });
 
-      // TRIGGERS: Si se cambió a matriculado, ejecutar triggers de matrícula
-      if (cambioAMatriculado) {
-        // Trigger de matrícula en Moodle (crítico - puede revertir matrícula)
-        await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
-        
-        // Trigger de invitación a Telegram (no crítico - no revierte matrícula)
-        await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
-      }
+      // 5) Ejecutar triggers si corresponde
+      await this.ejecutarTriggersMatriculaSiNecesario(cambioAMatriculado, idInscripcion, inscripcionActualizada);
 
       return toInscripcionAdminResponseDto(inscripcionActualizada as PrismaInscripcionAdminConRelaciones);
-
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error instanceof Error) {
@@ -169,6 +132,56 @@ export class InscripcionService {
       }
       throw new AppError("Error desconocido al actualizar la inscripción", 500);
     }
+  }
+
+  // Helpers extraídos para reducir complejidad cognitiva
+  private async obtenerInscripcionConPersona(idInscripcion: number) {
+    const inscripcion = await prisma.inscripcion.findUnique({
+      where: { idInscripcion },
+      include: { persona: true },
+    });
+    if (!inscripcion) {
+      throw new NotFoundError(`Inscripción con ID ${idInscripcion}`);
+    }
+    return inscripcion;
+  }
+
+  private async validarDescuentoSiAplica(idDescuento?: number): Promise<void> {
+    if (!idDescuento) return;
+    const descuento = await prisma.descuento.findUnique({ where: { idDescuento } });
+    if (!descuento) throw new NotFoundError(`Descuento con ID ${idDescuento}`);
+  }
+
+  private esCambioAMatriculado(data: UpdateInscripcionDto, existente: any): boolean {
+    return data.matricula === true && existente.matricula === false;
+  }
+
+  private async validarPagoParaMatricula(idInscripcion: number): Promise<void> {
+    const facturas = await facturaService.getFacturasByInscripcionId(idInscripcion);
+    if (facturas.length === 0) {
+      throw new ConflictError(`No se puede matricular: No existe factura para la inscripción ID ${idInscripcion}`);
+    }
+    const pagoVerificado = facturas.some((f) => f.verificacionPago === true);
+    if (!pagoVerificado) {
+      throw new ConflictError(`No se puede matricular: El pago no ha sido verificado para la inscripción ID ${idInscripcion}`);
+    }
+  }
+
+  private construirUpdateData(data: UpdateInscripcionDto): Record<string, unknown> {
+    const updateData: any = {};
+    if (data.idDescuento !== undefined) updateData.idDescuento = data.idDescuento;
+    if (data.matricula !== undefined) updateData.matricula = data.matricula;
+    return updateData;
+  }
+
+  private async ejecutarTriggersMatriculaSiNecesario(
+    cambioAMatriculado: boolean,
+    idInscripcion: number,
+    inscripcionActualizada: any
+  ): Promise<void> {
+    if (!cambioAMatriculado) return;
+    await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
+    await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
   }
   
   // Obtener todas las inscripciones con información completa para administradores
