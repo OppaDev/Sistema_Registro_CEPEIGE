@@ -1,7 +1,28 @@
-import { CursoMoodleTrigger, cursoMoodleTrigger } from './cursoMoodle.trigger';
-import { Curso } from '@prisma/client';
-import { logger } from '@/utils/logger';
-import { Decimal } from '@prisma/client/runtime/library';
+// Mock de moodleClient para evitar validación de variables de entorno
+jest.mock('@/config/moodleClient', () => ({
+  moodleClient: {
+    post: jest.fn(),
+    get: jest.fn(),
+  },
+}));
+
+// Mock del servicio de Moodle
+jest.mock('@/api/services/moodleService/cursoMoodle.service', () => ({
+  cursoMoodleService: {
+    crearCursoEnMoodle: jest.fn(),
+    obtenerMoodleCourseIdPorShortname: jest.fn(),
+  },
+}));
+
+// Mock del servicio de persistencia
+jest.mock('@/api/services/integrationService/cursoMoodle.service', () => ({
+  CursoMoodleService: jest.fn().mockImplementation(() => ({
+    createCursoMoodle: jest.fn(),
+    existeIntegracionMoodle: jest.fn(),
+    deleteCursoMoodle: jest.fn(),
+    obtenerMoodleCursoId: jest.fn(),
+  })),
+}));
 
 // Mock del logger
 jest.mock('@/utils/logger', () => ({
@@ -11,6 +32,11 @@ jest.mock('@/utils/logger', () => ({
     warn: jest.fn(),
   },
 }));
+
+import { CursoMoodleTrigger, cursoMoodleTrigger } from './cursoMoodle.trigger';
+import { Curso } from '@prisma/client';
+import { logger } from '@/utils/logger';
+import { Decimal } from '@prisma/client/runtime/library';
 
 describe('CursoMoodleTrigger', () => {
   let trigger: CursoMoodleTrigger;
