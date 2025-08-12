@@ -11,9 +11,9 @@ const correoService = new CorreoService();
 
 class MiembroCursoTelegramService {
   /**
-   * Enviar invitaci�n por correo al grupo de Telegram cuando se matricula un usuario
-   * @param inscripcionId - ID de la inscripci�n
-   * @param inscripcion - Datos completos de la inscripci�n
+   * Enviar invitacion por correo al grupo de Telegram cuando se matricula un usuario
+   * @param inscripcionId - ID de la inscripcion
+   * @param inscripcion - Datos completos de la inscripcion
    * @returns Promise<void>
    */
   async enviarInvitacionGrupo(
@@ -37,22 +37,22 @@ class MiembroCursoTelegramService {
         return;
       }
 
-      // 2. Obtener enlace de invitación del grupo desde la BD
+      // 2. Obtener enlace de invitacion del grupo desde la BD
       const inviteLink = await grupoTelegramService.obtenerEnlaceInvitacion(
         inscripcion.idCurso
       );
 
       if (!inviteLink) {
         logger.warn(
-          `No se encontró enlace de invitación para el curso ${inscripcion.idCurso}. Saltando envío.`
+          `No se encontro enlace de invitacion para el curso ${inscripcion.idCurso}. Saltando envio.`
         );
         return;
       }
 
-      // 3. Verificar configuración del servicio de correo
+      // 3. Verificar configuracion del servicio de correo
       if (!correoService.verificarConfiguracion()) {
         logger.warn(
-          `Servicio de correo no configurado correctamente. Saltando envío de invitación Telegram.`
+          `Servicio de correo no configurado correctamente. Saltando envio de invitacion Telegram.`
         );
         return;
       }
@@ -70,13 +70,13 @@ class MiembroCursoTelegramService {
         ),
       };
 
-      // 5. Enviar correo con invitación
+      // 5. Enviar correo con invitacion
       const emailEnviado = await correoService.enviarInvitacionTelegram(
         invitacionData
       );
 
       if (emailEnviado) {
-        logger.info(`Invitación de grupo Telegram enviada exitosamente`, {
+        logger.info(`invitacion de grupo Telegram enviada exitosamente`, {
           inscripcionId,
           email: invitacionData.email,
           cursoId: inscripcion.idCurso,
@@ -84,7 +84,7 @@ class MiembroCursoTelegramService {
           inviteLink: inviteLink,
         });
       } else {
-        logger.warn(`No se pudo enviar la invitación de Telegram por correo`, {
+        logger.warn(`No se pudo enviar la invitacion de Telegram por correo`, {
           inscripcionId,
           email: invitacionData.email,
           cursoId: inscripcion.idCurso,
@@ -92,7 +92,7 @@ class MiembroCursoTelegramService {
       }
     } catch (error) {
       logger.error(
-        `Error al enviar invitación de grupo Telegram para inscripción ${inscripcionId}:`,
+        `Error al enviar invitacion de grupo Telegram para inscripcion ${inscripcionId}:`,
         {
           error: error instanceof Error ? error.message : "Error desconocido",
           inscripcionId,
@@ -100,7 +100,7 @@ class MiembroCursoTelegramService {
         }
       );
 
-      // No lanzamos error para no bloquear el proceso de matrícula
+      // No lanzamos error para no bloquear el proceso de matricula
       // Solo registramos el error para monitoreo
     }
   }
@@ -123,16 +123,16 @@ class MiembroCursoTelegramService {
   }
 
   /**
-   * Obtener enlace de invitación de un curso
+   * Obtener enlace de invitacion de un curso
    * @param cursoId - ID del curso
-   * @returns Promise<string | null> - Enlace de invitación o null
+   * @returns Promise<string | null> - Enlace de invitacion o null
    */
   async obtenerEnlaceInvitacion(cursoId: number): Promise<string | null> {
     try {
       return await grupoTelegramService.obtenerEnlaceInvitacion(cursoId);
     } catch (error) {
       logger.error(
-        `Error al obtener enlace de invitación para curso ${cursoId}:`,
+        `Error al obtener enlace de invitacion para curso ${cursoId}:`,
         error
       );
       return null;

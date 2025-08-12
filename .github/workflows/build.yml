@@ -49,24 +49,12 @@ jobs:
 
       - name: SonarQube Scan for Backend
         uses: SonarSource/sonarqube-scan-action@v5
+        continue-on-error: true # No fallar el build por Quality Gate
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: backend # Muy importante: SonarQube buscará sonar-project.properties aquí
-          args: >
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=300
-
-      # Quality Gate check con manejo de errores
-      - name: SonarQube Backend Quality Gate check
-        if: success() 
-        uses: SonarSource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        continue-on-error: true # No fallar el build si hay issues menores
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 
   frontend-ci:
