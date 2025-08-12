@@ -45,7 +45,7 @@ jobs:
         run: npm run build
 
       - name: Run backend unit tests
-        run: npm test -- --coverage # El --coverage es para que Jest genere los reportes
+        run: npm test:unit -- --coverage # El --coverage es para que Jest genere los reportes
 
       - name: SonarQube Scan for Backend
         uses: SonarSource/sonarqube-scan-action@v5
