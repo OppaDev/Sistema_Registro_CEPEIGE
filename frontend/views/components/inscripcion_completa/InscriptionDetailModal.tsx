@@ -1,14 +1,13 @@
 // views/components/InscriptionDetailModal.tsx
 import React, { useState } from 'react';
-import { InscriptionData, FiscalInformationRequest } from '@/models/inscripcion_completa/inscription';
+import { InscriptionData } from '@/models/inscripcion_completa/inscription';
 import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building, CheckCircle, AlertCircle, ExternalLink, DollarSign, Receipt } from 'lucide-react';
+import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building, CheckCircle, AlertCircle, Receipt } from 'lucide-react';
+import { PaymentValidationFlow } from '@/views/components/validarPago/PaymentValidationFlow';
 
 interface InscriptionDetailModalProps {
   inscription: InscriptionData | null;
@@ -25,19 +24,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
   userType,
   onPaymentValidated
 }) => {
-  const [isValidating, setIsValidating] = useState(false);
   const [validationMessage, setValidationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [showFiscalForm, setShowFiscalForm] = useState(false);
-  const [isSavingFiscal, setIsSavingFiscal] = useState(false);
-  
-  // 🆕 ESTADOS PARA INFORMACIÓN FISCAL
-  const [fiscalData, setFiscalData] = useState({
-    valorPagado: inscription?.valorPagado || 0,
-    numeroIngreso: inscription?.numeroIngreso || '',
-    numeroFactura: inscription?.numeroFactura || '',
-    numeroEstudiantes: inscription?.descuento?.numeroEstudiantes || 0,
-    cantidadDescuento: inscription?.descuento?.cantidadDescuento || 0
-  });
 
   if (!isOpen || !inscription) return null;
 
@@ -50,71 +37,14 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     );
   };
 
-  // 🆕 MANEJAR VALIDACIÓN DE PAGO (Solo validación)
-  const handlePaymentValidation = async () => {
-    try {
-      setIsValidating(true);
-      setValidationMessage(null);
-      
-      await inscriptionService.validatePayment(inscription.idInscripcion);
-      
-      setValidationMessage({
-        type: 'success',
-        text: 'Pago validado exitosamente'
-      });
-      
-      // Mostrar formulario fiscal después de validar
-      setShowFiscalForm(true);
-      
-      // Notificar al componente padre para refrescar
-      if (onPaymentValidated) {
-        onPaymentValidated();
-      }
-      
-    } catch (error: any) {
-      setValidationMessage({
-        type: 'error',
-        text: error.message || 'Error al validar el pago'
-      });
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
-  // 🆕 MANEJAR GUARDADO DE INFORMACIÓN FISCAL
-  const handleSaveFiscalInfo = async () => {
-    try {
-      setIsSavingFiscal(true);
-      setValidationMessage(null);
-      
-      const fiscalRequest: FiscalInformationRequest = {
-        idInscripcion: inscription.idInscripcion,
-        valorPagado: fiscalData.valorPagado,
-        numeroIngreso: fiscalData.numeroIngreso,
-        numeroFactura: fiscalData.numeroFactura,
-        numeroEstudiantes: fiscalData.numeroEstudiantes > 0 ? fiscalData.numeroEstudiantes : undefined,
-        cantidadDescuento: fiscalData.cantidadDescuento > 0 ? fiscalData.cantidadDescuento : undefined
-      };
-      
-      await inscriptionService.saveFiscalInformation(fiscalRequest);
-      
-      setValidationMessage({
-        type: 'success',
-        text: 'Información fiscal guardada exitosamente'
-      });
-      
-      // Cerrar modal después de guardar
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-      
-    } catch (error: any) {
-      setValidationMessage({
-        type: 'error',
-        text: error.message || 'Error al guardar información fiscal'
-      });
-    } finally {
-      setIsSavingFiscal(false);
+  const handlePaymentValidationSuccess = () => {
+    setValidationMessage({
+      type: 'success',
+      text: 'Proceso de validación completado exitosamente'
+    });
+    
+    if (onPaymentValidated) {
+      onPaymentValidated();
     }
   };
 
@@ -129,7 +59,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     }
     
     // Crear enlace de descarga directa
-    const directUrl = `http://localhost:3000/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
     const link = document.createElement('a');
     link.href = directUrl;
     link.download = inscription.comprobante.nombreArchivo;
@@ -152,7 +82,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     }
     
     // Construir URL directa y abrir inmediatamente
-    const directUrl = `http://localhost:3000/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
     window.open(directUrl, '_blank');
   };
 
@@ -418,17 +348,18 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
               </CardContent>
             </Card>
 
-            {/* Comprobante de pago */}
+            {/* Comprobante de pago y validación */}
             <Card>
               <CardHeader className="bg-green-50">
                 <CardTitle className="flex items-center text-lg text-green-700">
                   <CreditCard className="h-5 w-5 mr-2" />
-                  Comprobante de Pago
+                  Comprobante y Validación de Pago
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 {inscription.comprobante ? (
                   <div className="space-y-4">
+                    {/* Información del comprobante */}
                     <div className="flex items-center space-x-4 p-3 bg-green-50 rounded-lg">
                       <div className="text-4xl">
                         {inscription.comprobante.tipoArchivo.startsWith('image/') ? '🖼️' : '📄'}
@@ -446,6 +377,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                       </div>
                     </div>
                     
+                    {/* Botones de acción del comprobante */}
                     <div className="flex space-x-2">
                       <Button
                         onClick={handleViewReceipt}
@@ -465,140 +397,14 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                       </Button>
                     </div>
                     
-                    {/* 🆕 SECCIÓN DE VALIDACIÓN DE PAGO */}
-                    {canValidatePayment && (
-                      <div className="border-t pt-4 mt-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-2" />
-                            Validación de Pago - {userType === 'admin' ? 'Administrador' : 'Contador'}
-                          </h4>
-                          <p className="text-sm text-blue-700 mb-4">
-                            Como {userType === 'admin' ? 'administrador' : 'contador'}, puedes validar o rechazar este pago después de revisar el comprobante.
-                          </p>
-                          
-                          <div className="flex justify-center">
-                            <Button
-                              onClick={handlePaymentValidation}
-                              disabled={isValidating}
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              <span>{isValidating ? 'Validando...' : 'Validar Pago'}</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* 🆕 FORMULARIO DE INFORMACIÓN FISCAL */}
-                    {(showFiscalForm || inscription.estado === 'VALIDADO') && (
-                      <div className="border-t pt-4 mt-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-blue-900 mb-4 flex items-center">
-                            <Receipt className="h-4 w-4 mr-2" />
-                            Información Fiscal para Facturación
-                          </h4>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <Label htmlFor="valorPagado" className="text-sm font-medium text-gray-700">
-                                Valor Pagado (USD) *
-                              </Label>
-                              <Input
-                                id="valorPagado"
-                                type="number"
-                                step="0.01"
-                                value={fiscalData.valorPagado}
-                                onChange={(e) => setFiscalData(prev => ({...prev, valorPagado: parseFloat(e.target.value) || 0}))}
-                                placeholder="0.00"
-                                className="mt-1"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="numeroIngreso" className="text-sm font-medium text-gray-700">
-                                Número de Ingreso *
-                              </Label>
-                              <Input
-                                id="numeroIngreso"
-                                type="text"
-                                value={fiscalData.numeroIngreso}
-                                onChange={(e) => setFiscalData(prev => ({...prev, numeroIngreso: e.target.value}))}
-                                placeholder="Ej: ING-001"
-                                className="mt-1"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="numeroFactura" className="text-sm font-medium text-gray-700">
-                                Número de Factura *
-                              </Label>
-                              <Input
-                                id="numeroFactura"
-                                type="text"
-                                value={fiscalData.numeroFactura}
-                                onChange={(e) => setFiscalData(prev => ({...prev, numeroFactura: e.target.value}))}
-                                placeholder="Ej: FAC-001"
-                                className="mt-1"
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Descuentos (solo para admin) */}
-                          {userType === 'admin' && (
-                            <div className="border-t pt-4 mt-4">
-                              <h5 className="font-medium text-gray-700 mb-3 flex items-center">
-                                <DollarSign className="h-4 w-4 mr-2" />
-                                Descuentos (Opcional)
-                              </h5>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="numeroEstudiantes" className="text-sm font-medium text-gray-700">
-                                    Número de Estudiantes
-                                  </Label>
-                                  <Input
-                                    id="numeroEstudiantes"
-                                    type="number"
-                                    value={fiscalData.numeroEstudiantes}
-                                    onChange={(e) => setFiscalData(prev => ({...prev, numeroEstudiantes: parseInt(e.target.value) || 0}))}
-                                    placeholder="0"
-                                    className="mt-1"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <Label htmlFor="cantidadDescuento" className="text-sm font-medium text-gray-700">
-                                    Cantidad de Descuento (USD)
-                                  </Label>
-                                  <Input
-                                    id="cantidadDescuento"
-                                    type="number"
-                                    step="0.01"
-                                    value={fiscalData.cantidadDescuento}
-                                    onChange={(e) => setFiscalData(prev => ({...prev, cantidadDescuento: parseFloat(e.target.value) || 0}))}
-                                    placeholder="0.00"
-                                    className="mt-1"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex justify-center mt-6">
-                            <Button
-                              onClick={handleSaveFiscalInfo}
-                              disabled={isSavingFiscal || !fiscalData.valorPagado || !fiscalData.numeroIngreso || !fiscalData.numeroFactura}
-                              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2"
-                            >
-                              <Receipt className="h-4 w-4" />
-                              <span>{isSavingFiscal ? 'Guardando...' : 'Guardar Información Fiscal'}</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    {/* Flujo de validación de pago integrado */}
+                    <div className="border-t pt-4">
+                      <PaymentValidationFlow
+                        inscription={inscription}
+                        userType={userType}
+                        onValidationSuccess={handlePaymentValidationSuccess}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -611,14 +417,12 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                     <p className="text-gray-500 mb-4">
                       El participante no ha subido comprobante de pago
                     </p>
-                    {canValidatePayment && (
-                      <Alert className="border-orange-200 bg-orange-50">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription className="text-orange-800">
-                          No se puede validar el pago sin comprobante. Contacta al participante para que suba su comprobante.
-                        </AlertDescription>
-                      </Alert>
-                    )}
+                    <Alert className="border-orange-200 bg-orange-50">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-orange-800">
+                        No se puede procesar el pago sin comprobante. Contacta al participante para que suba su comprobante.
+                      </AlertDescription>
+                    </Alert>
                   </div>
                 )}
               </CardContent>
@@ -643,7 +447,6 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
               variant="outline"
               className="flex items-center space-x-2 px-8 py-2"
               style={{ borderColor: '#0367A6', color: '#0367A6' }}
-              disabled={isValidating}
             >
               <X className="h-4 w-4" />
               <span>Cerrar</span>

@@ -1,6 +1,7 @@
 // services/inscriptionService.ts
 import { api } from '../api';
 import { EditInscriptionRequest, InscriptionData, FiscalInformationRequest } from '@/models/inscripcion_completa/inscription';
+import { authService } from '@/services/login/authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -292,6 +293,9 @@ class InscriptionService {
     try {
       console.log('🚀 Actualizando inscripción con múltiples endpoints:', updateData);
       
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+      
       // Obtener los IDs necesarios de la inscripción actual
       const inscriptionResponse = await this.getInscriptionById(updateData.idInscripcion);
       if (!inscriptionResponse.success) {
@@ -311,6 +315,7 @@ class InscriptionService {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            ...authHeaders
           },
           body: JSON.stringify(updateData.datosPersonales)
         });
@@ -324,6 +329,7 @@ class InscriptionService {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            ...authHeaders
           },
           body: JSON.stringify(updateData.datosFacturacion)
         });
@@ -341,6 +347,7 @@ class InscriptionService {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            ...authHeaders
           },
           body: JSON.stringify({ idCurso: updateData.nuevoCurso })
         });
@@ -378,10 +385,14 @@ class InscriptionService {
     try {
       console.log('🗑️ Eliminando inscripción:', inscriptionId);
 
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+
       const response = await fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders
         },
       });
 
@@ -410,10 +421,14 @@ class InscriptionService {
   // Obtener cursos disponibles para cambio (solo admin)
   async getAvailableCoursesForChange(): Promise<{ id: number; nombre: string; precio: number }[]> {
     try {
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+
       const response = await fetch(`${API_BASE_URL}/cursos/disponibles`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders
         },
       });
 
@@ -436,16 +451,20 @@ class InscriptionService {
     return inscription.estado === 'PENDIENTE';
   }
 
-  // 🆕 VALIDAR PAGO - Usando endpoint correcto
-  async validatePayment(inscriptionId: number): Promise<InscriptionDetailResponse> {
+  // 🆕 MATRICULAR INSCRIPCIÓN - Actualizar solo matrícula después de validación de pago
+  async matricularInscripcion(inscriptionId: number): Promise<InscriptionDetailResponse> {
     try {
-      console.log('🔍 Validando pago para inscripción:', inscriptionId);
+      console.log('🎓 Matriculando inscripción:', inscriptionId);
 
-      // Primero actualizar matrícula en la inscripción
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+
+      // Actualizar matrícula en la inscripción
       const response = await fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders
         },
         body: JSON.stringify({ 
           matricula: true
@@ -453,82 +472,21 @@ class InscriptionService {
       });
 
       const data = await response.json();
-      console.log('📥 Respuesta validación:', data);
+      console.log('📥 Respuesta matriculación:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al validar pago');
+        throw new Error(data.message || 'Error al matricular inscripción');
       }
 
       return data;
     } catch (error: any) {
-      console.error('❌ Error validating payment:', error);
+      console.error('❌ Error matriculating inscription:', error);
       throw new Error(
-        error.message || 'Error al validar el pago'
+        error.message || 'Error al matricular la inscripción'
       );
     }
   }
 
-  // 🆕 GUARDAR INFORMACIÓN FISCAL - Usando endpoints correctos
-  async saveFiscalInformation(fiscalData: FiscalInformationRequest): Promise<InscriptionDetailResponse> {
-    try {
-      console.log('💰 Guardando información fiscal:', fiscalData);
-
-      // Primero obtener la inscripción para conseguir el ID de facturación
-      const inscriptionResponse = await this.getInscriptionById(fiscalData.idInscripcion);
-      if (!inscriptionResponse.success) {
-        throw new Error('No se pudo obtener la inscripción');
-      }
-
-      const inscription = inscriptionResponse.data;
-      const idFacturacion = inscription.datosFacturacion.idFacturacion;
-
-      // Actualizar datos de facturación con nueva información
-      const response = await fetch(`${API_BASE_URL}/datos-facturacion/${idFacturacion}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          // Mantener los datos existentes y agregar nuevos campos personalizados
-          razonSocial: inscription.datosFacturacion.razonSocial,
-          identificacionTributaria: inscription.datosFacturacion.identificacionTributaria,
-          telefono: inscription.datosFacturacion.telefono,
-          correoFactura: inscription.datosFacturacion.correoFactura,
-          direccion: inscription.datosFacturacion.direccion,
-          // Campos adicionales (si el backend los soporta en el futuro)
-          valorPagado: fiscalData.valorPagado,
-          numeroIngreso: fiscalData.numeroIngreso,
-          numeroFactura: fiscalData.numeroFactura,
-          numeroEstudiantes: fiscalData.numeroEstudiantes,
-          cantidadDescuento: fiscalData.cantidadDescuento
-        })
-      });
-
-      const data = await response.json();
-      console.log('📥 Respuesta información fiscal:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al guardar información fiscal');
-      }
-
-      // Si hay descuentos, también actualizar la inscripción (si se implementa descuentos en backend)
-      if (fiscalData.cantidadDescuento && fiscalData.cantidadDescuento > 0) {
-        console.log('🏷️ Aplicando descuentos...'); 
-        // Por ahora solo log, el backend necesitará soporte para descuentos
-      }
-
-      return {
-        success: true,
-        data: inscription,
-        message: 'Información fiscal guardada exitosamente'
-      };
-    } catch (error: any) {
-      console.error('❌ Error saving fiscal information:', error);
-      throw new Error(
-        error.message || 'Error al guardar la información fiscal'
-      );
-    }
-  }
 
 
   // 🆕 DESCARGAR COMPROBANTE
