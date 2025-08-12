@@ -1,6 +1,6 @@
 // services/inscriptionService.ts
 import { api } from '../api';
-import { EditInscriptionRequest, InscriptionData } from '@/models/inscripcion_completa/inscription';
+import { EditInscriptionRequest, InscriptionData, FiscalInformationRequest } from '@/models/inscripcion_completa/inscription';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -244,30 +244,30 @@ class InscriptionService {
 }
   // Funciones auxiliares para la UI
   getStatusBadge(estado: string) {
-    switch (estado) {
-      case 'pendiente':
+    switch (estado.toUpperCase()) {
+      case 'PENDIENTE':
         return {
           color: 'text-yellow-800',
           bgColor: 'bg-yellow-100',
-          text: 'Pendiente'
+          text: 'Pendiente de Validación'
         };
-      case 'validada':
+      case 'VALIDADO':
         return {
           color: 'text-green-800',
           bgColor: 'bg-green-100',
-          text: 'Validada'
+          text: 'Pago Validado'
         };
-      case 'rechazada':
+      case 'RECHAZADO':
         return {
           color: 'text-red-800',
           bgColor: 'bg-red-100',
-          text: 'Rechazada'
+          text: 'Pago Rechazado'
         };
       default:
         return {
           color: 'text-gray-800',
           bgColor: 'bg-gray-100',
-          text: 'Sin estado'
+          text: 'Sin Estado'
         };
     }
   }
@@ -436,6 +436,146 @@ class InscriptionService {
     return inscription.estado === 'PENDIENTE';
   }
 
+  // 🆕 VALIDAR PAGO - Usando endpoint correcto
+  async validatePayment(inscriptionId: number): Promise<InscriptionDetailResponse> {
+    try {
+      console.log('🔍 Validando pago para inscripción:', inscriptionId);
+
+      // Primero actualizar matrícula en la inscripción
+      const response = await fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          matricula: true
+        })
+      });
+
+      const data = await response.json();
+      console.log('📥 Respuesta validación:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al validar pago');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error validating payment:', error);
+      throw new Error(
+        error.message || 'Error al validar el pago'
+      );
+    }
+  }
+
+  // 🆕 GUARDAR INFORMACIÓN FISCAL - Usando endpoints correctos
+  async saveFiscalInformation(fiscalData: FiscalInformationRequest): Promise<InscriptionDetailResponse> {
+    try {
+      console.log('💰 Guardando información fiscal:', fiscalData);
+
+      // Primero obtener la inscripción para conseguir el ID de facturación
+      const inscriptionResponse = await this.getInscriptionById(fiscalData.idInscripcion);
+      if (!inscriptionResponse.success) {
+        throw new Error('No se pudo obtener la inscripción');
+      }
+
+      const inscription = inscriptionResponse.data;
+      const idFacturacion = inscription.datosFacturacion.idFacturacion;
+
+      // Actualizar datos de facturación con nueva información
+      const response = await fetch(`${API_BASE_URL}/datos-facturacion/${idFacturacion}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // Mantener los datos existentes y agregar nuevos campos personalizados
+          razonSocial: inscription.datosFacturacion.razonSocial,
+          identificacionTributaria: inscription.datosFacturacion.identificacionTributaria,
+          telefono: inscription.datosFacturacion.telefono,
+          correoFactura: inscription.datosFacturacion.correoFactura,
+          direccion: inscription.datosFacturacion.direccion,
+          // Campos adicionales (si el backend los soporta en el futuro)
+          valorPagado: fiscalData.valorPagado,
+          numeroIngreso: fiscalData.numeroIngreso,
+          numeroFactura: fiscalData.numeroFactura,
+          numeroEstudiantes: fiscalData.numeroEstudiantes,
+          cantidadDescuento: fiscalData.cantidadDescuento
+        })
+      });
+
+      const data = await response.json();
+      console.log('📥 Respuesta información fiscal:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al guardar información fiscal');
+      }
+
+      // Si hay descuentos, también actualizar la inscripción (si se implementa descuentos en backend)
+      if (fiscalData.cantidadDescuento && fiscalData.cantidadDescuento > 0) {
+        console.log('🏷️ Aplicando descuentos...'); 
+        // Por ahora solo log, el backend necesitará soporte para descuentos
+      }
+
+      return {
+        success: true,
+        data: inscription,
+        message: 'Información fiscal guardada exitosamente'
+      };
+    } catch (error: any) {
+      console.error('❌ Error saving fiscal information:', error);
+      throw new Error(
+        error.message || 'Error al guardar la información fiscal'
+      );
+    }
+  }
+
+
+  // 🆕 DESCARGAR COMPROBANTE
+  async downloadReceipt(inscription: InscriptionData): Promise<Blob> {
+    try {
+      if (!inscription.comprobante) {
+        throw new Error('No hay comprobante disponible');
+      }
+
+      console.log('📥 Descargando comprobante:', inscription.comprobante.nombreArchivo);
+
+      const response = await fetch(`${API_BASE_URL}/comprobantes/${inscription.comprobante.idComprobante}/download`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al descargar comprobante');
+      }
+
+      return await response.blob();
+    } catch (error: any) {
+      console.error('❌ Error downloading receipt:', error);
+      throw new Error(
+        error.message || 'Error al descargar el comprobante'
+      );
+    }
+  }
+
+  // 🆕 OBTENER URL DE COMPROBANTE PARA VISUALIZACIÓN
+  getReceiptViewUrl(inscription: InscriptionData): string {
+    if (!inscription.comprobante) {
+      return '';
+    }
+    return `${API_BASE_URL}/comprobantes/${inscription.comprobante.idComprobante}/view`;
+  }
+
+  // 🆕 VERIFICAR SI EL CONTADOR PUEDE VALIDAR
+  canValidatePayment(inscription: InscriptionData, userType: 'admin' | 'accountant'): boolean {
+    // Solo contador y admin pueden validar
+    // Solo se pueden validar inscripciones PENDIENTES
+    return (userType === 'accountant' || userType === 'admin') && inscription.estado === 'PENDIENTE';
+  }
+
   // Obtener campos editables según rol
   getEditableFields(userType: 'admin' | 'accountant') {
     const commonFields = {
@@ -457,43 +597,6 @@ class InscriptionService {
     }
 
     return commonFields; // Contador no puede cambiar curso
-  }
-
-  // Método para obtener archivo de comprobante de pago
-  async getReceiptFile(rutaComprobante: string): Promise<string> {
-    try {
-      console.log('🚀 Obteniendo archivo de comprobante:', rutaComprobante);
-      
-      // Si es una URL completa, devolverla directamente
-      if (rutaComprobante.startsWith('http')) {
-        return rutaComprobante;
-      }
-      
-      // Normalizar la ruta del archivo
-      // Convertir barras invertidas a barras normales
-      let normalizedPath = rutaComprobante.replace(/\\/g, '/');
-      
-      // Si la ruta incluye 'uploads/comprobantes/', extraer solo el nombre del archivo
-      if (normalizedPath.includes('uploads/comprobantes/')) {
-        normalizedPath = normalizedPath.split('uploads/comprobantes/').pop() || normalizedPath;
-      }
-      
-      // Construir URL del archivo
-      const fileUrl = `${API_BASE_URL}/files/comprobantes/${normalizedPath}`;
-      console.log('📁 URL construida:', fileUrl);
-      
-      // Verificar que el archivo existe
-      const response = await fetch(fileUrl, { method: 'HEAD' });
-      if (!response.ok) {
-        console.error(`❌ Archivo no encontrado. Status: ${response.status}, URL: ${fileUrl}`);
-        throw new Error(`Archivo no encontrado: ${response.status}`);
-      }
-      
-      return fileUrl;
-    } catch (error) {
-      console.error('❌ Error al obtener archivo de comprobante:', error);
-      throw new Error('No se pudo cargar el archivo del comprobante');
-    }
   }
 }
 
