@@ -177,21 +177,23 @@ class MiembroCursoTelegramService {
   async reenviarInvitacion(inscripcionId: number): Promise<boolean> {
     try {
       // Obtener datos de la inscripci�n
-      // Nota: Aqu� necesitar�as acceso al servicio de inscripciones para obtener los datos completos
+      // Nota: Aqui se necesitaria acceso al servicio de inscripciones para obtener los datos completos
       // Por simplicidad, asumo que se puede hacer la consulta directamente
       logger.info(
-        `Reenviando invitaci�n de Telegram para inscripci�n ${inscripcionId}`
+        `Reenviando invitacion de Telegram para inscripcion ${inscripcionId}`
       );
 
-      // TODO: Implementar l�gica de reenv�o
-      // 1. Obtener datos completos de la inscripci�n
-      // 2. Verificar que est� matriculada
+      // NOTA: Implementacion de logica de reenvio pendiente
+      // 1. Obtener datos completos de la inscripcion
+      // 2. Verificar que este matriculada
       // 3. Llamar a enviarInvitacionGrupo
+      
+      throw new Error('Funcion de reenvio de invitacion no implementada');
 
       return true;
     } catch (error) {
       logger.error(
-        `Error al reenviar invitaci�n para inscripci�n ${inscripcionId}:`,
+        `Error al reenviar invitacion para inscripcion ${inscripcionId}:`,
         error
       );
       return false;
