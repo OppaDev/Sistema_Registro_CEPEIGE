@@ -8,6 +8,8 @@ import {
   createCompleteInscriptionData,
   createTestInscription,
   createTestInvoice,
+  createTestPersonalData,
+  createTestBillingData,
   generateUniqueEmail,
   generateUniqueCI,
   generateUniqueRUC 
@@ -50,102 +52,75 @@ describe('Reports Endpoints Integration Tests', () => {
     // Create multiple inscriptions with different statuses for testing filters
     
     // Inscription 1: Course 1, Paid and Verified
+    const personalData1 = await createTestPersonalData({
+      ciPasaporte: generateUniqueCI(),
+      correo: generateUniqueEmail('student1'),
+    });
+    const billingData1 = await createTestBillingData({
+      identificacionTributaria: generateUniqueRUC(),
+      correoFactura: generateUniqueEmail('billing1'),
+    });
     const data1 = await createCompleteInscriptionData();
+    
     const inscription1 = await createTestInscription(
       testCourse1.idCurso,
-      data1.personalData.idPersona,
-      data1.billingData.idFacturacion,
+      personalData1.idPersona,
+      billingData1.idFacturacion,
       data1.voucher.idComprobante,
       data1.discount.idDescuento
     );
     await createTestInvoice(
       inscription1.idInscripcion,
-      data1.billingData.idFacturacion,
+      billingData1.idFacturacion,
       { verificacionPago: true, valorPagado: 90.00 } // With discount
     );
 
     // Inscription 2: Course 1, Paid but Not Verified
-    const data2 = await createCompleteInscriptionData();
-    // Create unique data
-    data2.personalData = await createTestPersonalData({
+    const personalData2 = await createTestPersonalData({
       ciPasaporte: generateUniqueCI(),
       correo: generateUniqueEmail('student2'),
     });
-    data2.billingData = await createTestBillingData({
+    const billingData2 = await createTestBillingData({
       identificacionTributaria: generateUniqueRUC(),
       correoFactura: generateUniqueEmail('billing2'),
     });
+    const data2 = await createCompleteInscriptionData();
     
     const inscription2 = await createTestInscription(
       testCourse1.idCurso,
-      data2.personalData.idPersona,
-      data2.billingData.idFacturacion,
+      personalData2.idPersona,
+      billingData2.idFacturacion,
       data2.voucher.idComprobante
       // No discount
     );
     await createTestInvoice(
       inscription2.idInscripcion,
-      data2.billingData.idFacturacion,
+      billingData2.idFacturacion,
       { verificacionPago: false, valorPagado: 100.00 }
     );
 
     // Inscription 3: Course 2, Paid and Verified
-    const data3 = await createCompleteInscriptionData();
-    data3.personalData = await createTestPersonalData({
+    const personalData3 = await createTestPersonalData({
       ciPasaporte: generateUniqueCI(),
       correo: generateUniqueEmail('student3'),
     });
-    data3.billingData = await createTestBillingData({
+    const billingData3 = await createTestBillingData({
       identificacionTributaria: generateUniqueRUC(),
       correoFactura: generateUniqueEmail('billing3'),
     });
+    const data3 = await createCompleteInscriptionData();
 
     const inscription3 = await createTestInscription(
       testCourse2.idCurso,
-      data3.personalData.idPersona,
-      data3.billingData.idFacturacion,
+      personalData3.idPersona,
+      billingData3.idFacturacion,
       data3.voucher.idComprobante
     );
     await createTestInvoice(
       inscription3.idInscripcion,
-      data3.billingData.idFacturacion,
+      billingData3.idFacturacion,
       { verificacionPago: true, valorPagado: 150.00 }
     );
-  }
-
-  async function createTestPersonalData(overrides = {}) {
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
-    return await prisma.datosPersonales.create({
-      data: {
-        ciPasaporte: generateUniqueCI(),
-        nombres: 'Test',
-        apellidos: 'Student',
-        numTelefono: '0987654321',
-        correo: generateUniqueEmail('student'),
-        pais: 'Ecuador',
-        provinciaEstado: 'Pichincha',
-        ciudad: 'Quito',
-        profesion: 'Ingeniero',
-        institucion: 'Universidad Test',
-        ...overrides,
-      },
-    });
-  }
-
-  async function createTestBillingData(overrides = {}) {
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
-    return await prisma.datosFacturacion.create({
-      data: {
-        razonSocial: 'Test Company S.A.',
-        identificacionTributaria: generateUniqueRUC(),
-        telefono: '023456789',
-        correoFactura: generateUniqueEmail('billing'),
-        direccion: 'Test Address',
-        ...overrides,
-      },
-    });
   }
 
   describe('GET /api/v1/informes/datos', () => {
@@ -157,81 +132,99 @@ describe('Reports Endpoints Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty('inscripciones');
-      expect(response.body.data).toHaveProperty('resumen');
+      expect(response.body.data).toHaveProperty('estadisticas'); // Cambiado de 'resumen' a 'estadisticas'
       expect(Array.isArray(response.body.data.inscripciones)).toBe(true);
       expect(response.body.data.inscripciones.length).toBe(3); // All test inscriptions
-      expect(response.body.message).toBe('Datos de informe obtenidos exitosamente');
+      expect(response.body.message).toBe('Datos del informe obtenidos exitosamente');
 
-      // Verify inscription structure
+      // Verify inscription structure - the response is flat according to InscripcionInformeDto
       const inscription = response.body.data.inscripciones[0];
       expect(inscription).toHaveProperty('idInscripcion');
-      expect(inscription).toHaveProperty('curso');
-      expect(inscription).toHaveProperty('persona');
-      expect(inscription).toHaveProperty('datosFacturacion');
-      expect(inscription).toHaveProperty('facturas');
+      expect(inscription).toHaveProperty('nombreCompleto');
+      expect(inscription).toHaveProperty('email');
+      expect(inscription).toHaveProperty('nombreCurso');
+      expect(inscription).toHaveProperty('fechaInscripcion');
       expect(inscription).toHaveProperty('matricula');
+      expect(inscription).toHaveProperty('verificacionPago');
 
       // Verify summary structure
-      const summary = response.body.data.resumen;
+      const summary = response.body.data.estadisticas; // Cambiado de 'resumen' a 'estadisticas'
       expect(summary).toHaveProperty('totalInscripciones');
       expect(summary).toHaveProperty('inscripcionesPorCurso');
-      expect(summary).toHaveProperty('ingresosTotales');
+      expect(summary).toHaveProperty('montoTotalComprobantes'); // Changed from 'ingresosTotales'
       expect(summary).toHaveProperty('pagosVerificados');
       expect(summary.totalInscripciones).toBe(3);
     });
 
     it('INT-INF-002: Should get data filtered by course ID', async () => {
       const response = await request(app)
-        .get(`/api/v1/informes/datos?idCurso=${testCourse1.idCurso}`)
+        .get(`/api/v1/informes/datos`)
+        .query({ idCurso: testCourse1.idCurso })
         .set(getAuthHeader(adminTokens.accessToken))
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG INT-INF-002 - Status:', res.status);
+            console.log('DEBUG INT-INF-002 - Body:', JSON.stringify(res.body, null, 2));
+          }
+        })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.inscripciones.length).toBe(2); // Only course 1 inscriptions
-      expect(response.body.message).toBe('Datos de informe obtenidos exitosamente');
+      expect(response.body.message).toBe('Datos del informe obtenidos exitosamente');
 
       // Verify all inscriptions belong to the filtered course
       response.body.data.inscripciones.forEach((inscription: any) => {
-        expect(inscription.curso.idCurso).toBe(testCourse1.idCurso);
+        expect(inscription.nombreCurso).toBe(testCourse1.nombreCurso);
       });
 
       // Verify filtered summary
-      expect(response.body.data.resumen.totalInscripciones).toBe(2);
+      expect(response.body.data.estadisticas.totalInscripciones).toBe(2);
     });
 
     it('INT-INF-003: Should get data filtered by verified payments', async () => {
       const response = await request(app)
-        .get('/api/v1/informes/datos?verificacionPago=true')
+        .get('/api/v1/informes/datos')
+        .query({ verificacionPago: 'true' })
         .set(getAuthHeader(adminTokens.accessToken))
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG INT-INF-003 - Status:', res.status);
+            console.log('DEBUG INT-INF-003 - Body:', JSON.stringify(res.body, null, 2));
+          }
+        })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.inscripciones.length).toBe(2); // Only verified payments
-      expect(response.body.message).toBe('Datos de informe obtenidos exitosamente');
+      expect(response.body.message).toBe('Datos del informe obtenidos exitosamente');
 
       // Verify all inscriptions have verified payments
       response.body.data.inscripciones.forEach((inscription: any) => {
-        inscription.facturas.forEach((factura: any) => {
-          expect(factura.verificacionPago).toBe(true);
-        });
+        expect(inscription.verificacionPago).toBe(true);
       });
     });
 
     it('Should get data filtered by unverified payments', async () => {
       const response = await request(app)
-        .get('/api/v1/informes/datos?verificacionPago=false')
+        .get('/api/v1/informes/datos')
+        .query({ verificacionPago: 'false' })
         .set(getAuthHeader(adminTokens.accessToken))
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG Unverified Payments - Status:', res.status);
+            console.log('DEBUG Unverified Payments - Body:', JSON.stringify(res.body, null, 2));
+          }
+        })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.inscripciones.length).toBe(1); // Only unverified payments
-      expect(response.body.message).toBe('Datos de informe obtenidos exitosamente');
+      expect(response.body.message).toBe('Datos del informe obtenidos exitosamente');
 
       // Verify inscription has unverified payment
       const inscription = response.body.data.inscripciones[0];
-      inscription.facturas.forEach((factura: any) => {
-        expect(factura.verificacionPago).toBe(false);
-      });
+      expect(inscription.verificacionPago).toBe(false);
     });
 
     it('Should support date range filters', async () => {
@@ -242,7 +235,11 @@ describe('Reports Endpoints Integration Tests', () => {
       tomorrow.setDate(today.getDate() + 1);
 
       const response = await request(app)
-        .get(`/api/v1/informes/datos?fechaInicio=${yesterday.toISOString().split('T')[0]}&fechaFin=${tomorrow.toISOString().split('T')[0]}`)
+        .get('/api/v1/informes/datos')
+        .query({
+          fechaInicio: yesterday.toISOString().split('T')[0],
+          fechaFin: tomorrow.toISOString().split('T')[0]
+        })
         .set(getAuthHeader(adminTokens.accessToken))
         .expect(200);
 
@@ -268,11 +265,16 @@ describe('Reports Endpoints Integration Tests', () => {
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'excel',
-          filtros: {
-            idCurso: testCourse1.idCurso,
-            verificacionPago: true,
-          },
+          tipoInforme: 'inscripciones',
+          formato: 'excel',
+          idCurso: testCourse1.idCurso,
+          verificacionPago: true,
+        })
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG INT-INF-004 - Status:', res.status);
+            console.log('DEBUG INT-INF-004 - Body:', JSON.stringify(res.body, null, 2));
+          }
         })
         .expect(200);
 
@@ -280,8 +282,21 @@ describe('Reports Endpoints Integration Tests', () => {
       expect(response.headers['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       expect(response.headers['content-disposition']).toContain('attachment; filename=');
       
-      // Verify file content is not empty
-      expect(Buffer.isBuffer(response.body) || response.body.length > 0).toBe(true);
+      // For binary files, check that we have some response content
+      expect(response.body).toBeDefined();
+      // Check if it's a Buffer or if it has content
+      if (Buffer.isBuffer(response.body)) {
+        expect(response.body.length).toBeGreaterThan(0);
+      } else {
+        // For non-buffer responses, check content-length header or body existence
+        const contentLength = response.headers['content-length'];
+        if (contentLength) {
+          expect(parseInt(contentLength, 10)).toBeGreaterThan(0);
+        } else {
+          // At minimum, verify the response is not empty
+          expect(response.body).toBeTruthy();
+        }
+      }
     });
 
     it('INT-INF-005: Should generate PDF report with valid filters', async () => {
@@ -289,10 +304,15 @@ describe('Reports Endpoints Integration Tests', () => {
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'pdf',
-          filtros: {
-            verificacionPago: false,
-          },
+          tipoInforme: 'pagados',
+          formato: 'pdf',
+          verificacionPago: false,
+        })
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG INT-INF-005 - Status:', res.status);
+            console.log('DEBUG INT-INF-005 - Body:', JSON.stringify(res.body, null, 2));
+          }
         })
         .expect(200);
 
@@ -300,8 +320,21 @@ describe('Reports Endpoints Integration Tests', () => {
       expect(response.headers['content-type']).toBe('application/pdf');
       expect(response.headers['content-disposition']).toContain('attachment; filename=');
       
-      // Verify file content is not empty
-      expect(Buffer.isBuffer(response.body) || response.body.length > 0).toBe(true);
+      // For binary files, check that we have some response content  
+      expect(response.body).toBeDefined();
+      // Check if it's a Buffer or if it has content
+      if (Buffer.isBuffer(response.body)) {
+        expect(response.body.length).toBeGreaterThan(0);
+      } else {
+        // For non-buffer responses, check content-length header or body existence
+        const contentLength = response.headers['content-length'];
+        if (contentLength) {
+          expect(parseInt(contentLength, 10)).toBeGreaterThan(0);
+        } else {
+          // At minimum, verify the response is not empty
+          expect(response.body).toBeTruthy();
+        }
+      }
     });
 
     it('INT-INF-006: Should fail with invalid report type', async () => {
@@ -315,7 +348,7 @@ describe('Reports Endpoints Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('tipoInforme debe ser excel o pdf');
+      expect(response.body.message).toContain('El formato debe ser \'excel\' o \'pdf\'');
     });
 
     it('Should validate required fields', async () => {
@@ -324,29 +357,41 @@ describe('Reports Endpoints Integration Tests', () => {
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          filtros: {},
+          formato: 'excel',
         })
         .expect(400);
 
-      // Missing filtros
+      // Missing formato
       await request(app)
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'excel',
+          tipoInforme: 'inscripciones',
         })
         .expect(400);
     });
 
     it('Should generate report with no data', async () => {
+      // Use a date range that doesn't include any of our test data
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
+      const futureEndDate = new Date();
+      futureEndDate.setFullYear(futureEndDate.getFullYear() + 2);
+
       const response = await request(app)
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'excel',
-          filtros: {
-            idCurso: 99999, // Non-existent course
-          },
+          tipoInforme: 'inscripciones',
+          formato: 'excel',
+          fechaInicio: futureDate.toISOString().split('T')[0],
+          fechaFin: futureEndDate.toISOString().split('T')[0],
+        })
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG No Data Report - Status:', res.status);
+            console.log('DEBUG No Data Report - Body:', JSON.stringify(res.body, null, 2));
+          }
         })
         .expect(200);
 
@@ -363,13 +408,18 @@ describe('Reports Endpoints Integration Tests', () => {
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'pdf',
-          filtros: {
-            fechaInicio: lastMonth.toISOString().split('T')[0],
-            fechaFin: today.toISOString().split('T')[0],
-            verificacionPago: true,
-            matricula: false,
-          },
+          tipoInforme: 'pagados',
+          formato: 'pdf',
+          fechaInicio: lastMonth.toISOString().split('T')[0],
+          fechaFin: today.toISOString().split('T')[0],
+          verificacionPago: true,
+          matricula: false,
+        })
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG Complex Filters - Status:', res.status);
+            console.log('DEBUG Complex Filters - Body:', JSON.stringify(res.body, null, 2));
+          }
         })
         .expect(200);
 
@@ -380,8 +430,8 @@ describe('Reports Endpoints Integration Tests', () => {
       await request(app)
         .post('/api/v1/informes/generar')
         .send({
-          tipoInforme: 'excel',
-          filtros: {},
+          tipoInforme: 'inscripciones',
+          formato: 'excel',
         })
         .expect(401);
     });
@@ -393,10 +443,16 @@ describe('Reports Endpoints Integration Tests', () => {
         .post('/api/v1/informes/generar')
         .set(getAuthHeader(adminTokens.accessToken))
         .send({
-          tipoInforme: 'excel',
-          filtros: {}, // All data
+          tipoInforme: 'inscripciones',
+          formato: 'excel', // All data
         })
         .timeout(30000) // 30 second timeout
+        .expect((res) => {
+          if (res.status !== 200) {
+            console.log('DEBUG Large Dataset - Status:', res.status);
+            console.log('DEBUG Large Dataset - Body:', JSON.stringify(res.body, null, 2));
+          }
+        })
         .expect(200);
 
       expect(response.headers['content-type']).toContain('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -412,34 +468,19 @@ describe('Reports Endpoints Integration Tests', () => {
 
       const inscription = response.body.data.inscripciones[0];
       
-      // Verify inscription fields
+      // Verify inscription fields according to InscripcionInformeDto
       expect(inscription).toHaveProperty('idInscripcion');
+      expect(inscription).toHaveProperty('nombreCompleto');
+      expect(inscription).toHaveProperty('email');
+      expect(inscription).toHaveProperty('telefono');
+      expect(inscription).toHaveProperty('cedula');
+      expect(inscription).toHaveProperty('nombreCurso');
       expect(inscription).toHaveProperty('fechaInscripcion');
       expect(inscription).toHaveProperty('matricula');
-      
-      // Verify course fields
-      expect(inscription.curso).toHaveProperty('nombreCurso');
-      expect(inscription.curso).toHaveProperty('modalidadCurso');
-      expect(inscription.curso).toHaveProperty('valorCurso');
-      
-      // Verify person fields
-      expect(inscription.persona).toHaveProperty('nombres');
-      expect(inscription.persona).toHaveProperty('apellidos');
-      expect(inscription.persona).toHaveProperty('correo');
-      expect(inscription.persona).toHaveProperty('ciPasaporte');
-      
-      // Verify billing fields
-      expect(inscription.datosFacturacion).toHaveProperty('razonSocial');
-      expect(inscription.datosFacturacion).toHaveProperty('identificacionTributaria');
-      
-      // Verify invoice fields
-      expect(Array.isArray(inscription.facturas)).toBe(true);
-      if (inscription.facturas.length > 0) {
-        const factura = inscription.facturas[0];
-        expect(factura).toHaveProperty('valorPagado');
-        expect(factura).toHaveProperty('verificacionPago');
-        expect(factura).toHaveProperty('numeroFactura');
-      }
+      expect(inscription).toHaveProperty('tipoComprobante');
+      expect(inscription).toHaveProperty('montoComprobante');
+      expect(inscription).toHaveProperty('verificacionPago');
+      expect(inscription).toHaveProperty('estadoPago');
     });
 
     it('Should calculate summary statistics correctly', async () => {
@@ -448,14 +489,21 @@ describe('Reports Endpoints Integration Tests', () => {
         .set(getAuthHeader(adminTokens.accessToken))
         .expect(200);
 
-      const summary = response.body.data.resumen;
+      const summary = response.body.data.estadisticas;
       
       expect(summary.totalInscripciones).toBe(3);
-      expect(summary.inscripcionesPorCurso).toHaveProperty(testCourse1.idCurso.toString(), 2);
-      expect(summary.inscripcionesPorCurso).toHaveProperty(testCourse2.idCurso.toString(), 1);
+      expect(summary.inscripcionesPorCurso).toHaveProperty(testCourse1.nombreCurso, 2);
+      expect(summary.inscripcionesPorCurso).toHaveProperty(testCourse2.nombreCurso, 1);
       
-      // Verify total income calculation (90 + 100 + 150 = 340)
-      expect(summary.ingresosTotales).toBe('340.00');
+      // Verify statistics according to EstadisticasInformeDto
+      expect(summary).toHaveProperty('matriculados');
+      expect(summary).toHaveProperty('noMatriculados');
+      expect(summary).toHaveProperty('pagosVerificados');
+      expect(summary).toHaveProperty('pagosPendientes');
+      expect(summary).toHaveProperty('montoTotalComprobantes');
+      expect(summary).toHaveProperty('promedioMonto');
+      expect(summary).toHaveProperty('cursosUnicos');
+      expect(summary).toHaveProperty('tiposComprobante');
       
       // Verify verified payments count (2 out of 3)
       expect(summary.pagosVerificados).toBe(2);

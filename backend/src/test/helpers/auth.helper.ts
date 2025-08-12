@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
+import { jwtConfig } from '@/config/jwt';
 
 const prisma = new PrismaClient();
 
@@ -49,13 +50,28 @@ export async function createTestUser(
     });
 
     if (!role) {
-      role = await prisma.rol.create({
-        data: {
-          nombreRol: roleName,
-          descripcionRol: `${roleName} role for testing`,
-          activo: true,
-        },
-      });
+      // Try to create the role, but handle case where it might have been created concurrently
+      try {
+        role = await prisma.rol.create({
+          data: {
+            nombreRol: roleName,
+            descripcionRol: `${roleName} role for testing`,
+            activo: true,
+          },
+        });
+      } catch (error: any) {
+        // If role was created concurrently, fetch it
+        if (error.code === 'P2002') {
+          role = await prisma.rol.findUnique({
+            where: { nombreRol: roleName },
+          });
+          if (!role) {
+            throw new Error(`Failed to create or find role: ${roleName}`);
+          }
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Assign role to user
@@ -86,17 +102,18 @@ export function generateTestTokens(user: TestUser): AuthTokens {
   // Usar el formato que espera el middleware existente: { sub: idUsuario }
   const payload = {
     sub: user.idUsuario, // El middleware existente espera 'sub'
-    idUsuario: user.idUsuario, // Mantener por compatibilidad
     email: user.email,
     roles: user.roles,
   };
 
-  const secret = process.env.JWT_SECRET || 'test-secret';
-  const expiresIn = process.env['JWT_EXPIRES_IN'] || '24h';
-  const refreshExpiresIn = process.env['JWT_REFRESH_EXPIRES_IN'] || '7d';
-
-  const accessToken = jwt.sign(payload, secret as string, { expiresIn } as jwt.SignOptions);
-  const refreshToken = jwt.sign({ sub: user.idUsuario, idUsuario: user.idUsuario }, secret as string, { expiresIn: refreshExpiresIn } as jwt.SignOptions);
+  // Usar las mismas configuraciones de JWT que el sistema
+  const accessToken = jwt.sign(payload, jwtConfig.access.secret as string, { 
+    expiresIn: jwtConfig.access.expiresIn 
+  } as jwt.SignOptions);
+  
+  const refreshToken = jwt.sign({ sub: user.idUsuario }, jwtConfig.refresh.secret as string, { 
+    expiresIn: jwtConfig.refresh.expiresIn 
+  } as jwt.SignOptions);
 
   return { accessToken, refreshToken };
 }
@@ -105,8 +122,9 @@ export function generateTestTokens(user: TestUser): AuthTokens {
  * Create a Super-Admin test user
  */
 export async function createSuperAdmin(): Promise<{ user: TestUser; tokens: AuthTokens }> {
+  const timestamp = Date.now();
   const user = await createTestUser(
-    'superadmin@test.com',
+    `superadmin-${timestamp}@test.com`,
     'password123',
     'Super',
     'Admin',
@@ -120,8 +138,9 @@ export async function createSuperAdmin(): Promise<{ user: TestUser; tokens: Auth
  * Create an Admin test user
  */
 export async function createAdmin(): Promise<{ user: TestUser; tokens: AuthTokens }> {
+  const timestamp = Date.now();
   const user = await createTestUser(
-    'admin@test.com',
+    `admin-${timestamp}@test.com`,
     'password123',
     'Test',
     'Admin',
@@ -135,8 +154,9 @@ export async function createAdmin(): Promise<{ user: TestUser; tokens: AuthToken
  * Create a Contador test user
  */
 export async function createContador(): Promise<{ user: TestUser; tokens: AuthTokens }> {
+  const timestamp = Date.now();
   const user = await createTestUser(
-    'contador@test.com',
+    `contador-${timestamp}@test.com`,
     'password123',
     'Test',
     'Contador',
@@ -150,8 +170,10 @@ export async function createContador(): Promise<{ user: TestUser; tokens: AuthTo
  * Create a regular User
  */
 export async function createRegularUser(): Promise<{ user: TestUser; tokens: AuthTokens }> {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
   const user = await createTestUser(
-    'user@test.com',
+    `user-${timestamp}-${random}@test.com`,
     'password123',
     'Test',
     'User',

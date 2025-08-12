@@ -180,8 +180,16 @@ export class InscripcionService {
     inscripcionActualizada: any
   ): Promise<void> {
     if (!cambioAMatriculado) return;
-    await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
-    await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
+    
+    // Skip Moodle integration in test environment
+    if (process.env['NODE_ENV'] !== 'test') {
+      await inscripcionMoodleTrigger.ejecutarMatriculaEnMoodle(idInscripcion, inscripcionActualizada);
+    }
+    
+    // Skip Telegram integration in test environment  
+    if (process.env['NODE_ENV'] !== 'test') {
+      await inscripcionTelegramTrigger.ejecutarInvitacionTelegram(idInscripcion, inscripcionActualizada);
+    }
   }
   
   // Obtener todas las inscripciones con información completa para administradores

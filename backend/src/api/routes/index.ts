@@ -14,6 +14,15 @@ import informeRoutes from './informeRoute/informe.routes';
 export const configureRoutes = (app: Application): void => {
   const apiRouter = Router();
   
+  // Ruta de ping pública (independiente de auth)
+  apiRouter.get('/ping', (_req, res) => 
+    res.json({ 
+      success: true, 
+      message: 'API is running', 
+      timestamp: new Date().toISOString() 
+    })
+  );
+  
   // Rutas de autenticación (públicas y protegidas)
   apiRouter.use('/auth', authRoutes);
   apiRouter.use('/usuarios', usuarioRoutes);

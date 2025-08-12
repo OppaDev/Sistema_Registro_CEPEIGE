@@ -6,6 +6,7 @@ import {
     IsString,
     IsEnum
 } from "class-validator";
+import { Transform } from "class-transformer";
 
 // Enum para tipos de informe
 export enum TipoInforme {
@@ -32,14 +33,25 @@ export class FiltrosInformeDto {
     fechaFin?: string;
 
     @IsOptional()
+    @Transform(({ value }) => value ? parseInt(value, 10) : value)
     @IsNumber({}, { message: "El ID del curso debe ser un número" })
     idCurso?: number;
 
     @IsOptional()
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value;
+    })
     @IsBoolean({ message: "El estado de matrícula debe ser un booleano" })
     matricula?: boolean;
 
     @IsOptional()
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value;
+    })
     @IsBoolean({ message: "El estado de verificación de pago debe ser un booleano" })
     verificacionPago?: boolean;
 
