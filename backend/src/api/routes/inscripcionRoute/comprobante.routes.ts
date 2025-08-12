@@ -1,26 +1,47 @@
 import { Router } from 'express';
 import { ComprobanteController } from '@/api/controllers/inscripcionController/comprobante.controller';
 import { uploadComprobanteMiddleware } from '@/config/multer'; // Middleware de Multer
+import { authenticate, optionalAuthenticate } from '@/api/middlewares/auth.middleware';
+import { roleMiddleware, publicWithOptionalAuthMiddleware } from '@/api/middlewares/role.middleware';
+import { ROLE_PERMISSIONS } from '@/config/roles';
 
 const router = Router();
 const comprobanteController = new ComprobanteController();
 
-// Ruta para subir un nuevo comprobante.
-// 'comprobanteFile' es el nombre del campo en el form-data que contendrá el archivo.
+// === COMPROBANTES según árbol de permisos ===
+
+// Subir comprobante - Super-Admin, Admin, Public (flujo de inscripción)
 router.post(
   '/',
-  uploadComprobanteMiddleware.single('comprobanteFile'), // 'comprobanteFile' debe ser el name del input type="file"
+  optionalAuthenticate, // Autenticación opcional
+  publicWithOptionalAuthMiddleware, // Permite acceso público para el flujo de inscripción
+  uploadComprobanteMiddleware.single('comprobanteFile'),
   comprobanteController.create
 );
 
-// Obtener todos los comprobantes (con paginación)
-router.get('/', comprobanteController.getAll);
+// Obtener todos los comprobantes - Super-Admin, Admin, Contador, Public (con limitaciones)
+router.get(
+  '/',
+  optionalAuthenticate, // Autenticación opcional
+  publicWithOptionalAuthMiddleware, // Los usuarios autenticados pueden ver más datos
+  comprobanteController.getAll
+);
 
-// Obtener un comprobante por su ID
-router.get('/:id', comprobanteController.getById);
+// Obtener comprobante por ID - Super-Admin, Admin, Contador, Public (para seguimiento)
+router.get(
+  '/:id',
+  optionalAuthenticate, // Autenticación opcional
+  publicWithOptionalAuthMiddleware, // Permite consultar durante proceso de inscripción
+  comprobanteController.getById
+);
 
-// Eliminar un comprobante
-router.delete('/:id', comprobanteController.delete);
+// Eliminar comprobante - Solo Super-Admin
+router.delete(
+  '/:id',
+  authenticate,
+  roleMiddleware(ROLE_PERMISSIONS.VOUCHERS_DELETE),
+  comprobanteController.delete
+);
 
 
 export default router;
