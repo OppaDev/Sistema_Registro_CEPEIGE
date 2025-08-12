@@ -7,25 +7,43 @@ const prisma = new PrismaClient();
  * Order matters due to foreign key constraints
  */
 export async function cleanDatabase(): Promise<void> {
-  await prisma.$transaction([
-    // Delete in order to respect foreign key constraints
-    prisma.sesionUsuario.deleteMany(),
-    prisma.inscripcionMoodle.deleteMany(),
-    prisma.grupoTelegram.deleteMany(),
-    prisma.cursoMoodle.deleteMany(),
-    prisma.factura.deleteMany(),
-    prisma.rolPermiso.deleteMany(),
-    prisma.usuarioRol.deleteMany(),
-    prisma.inscripcion.deleteMany(),
-    prisma.comprobante.deleteMany(),
-    prisma.curso.deleteMany(),
-    prisma.datosPersonales.deleteMany(),
-    prisma.datosFacturacion.deleteMany(),
-    prisma.descuento.deleteMany(),
-    prisma.usuario.deleteMany(),
-    prisma.rol.deleteMany(),
-    prisma.permiso.deleteMany(),
-  ]);
+  // Use explicit transaction with proper order and serialization to prevent deadlocks
+  await prisma.$transaction(async (tx) => {
+    // Delete all session data first
+    await tx.sesionUsuario.deleteMany();
+    
+    // Delete Moodle and Telegram integrations
+    await tx.inscripcionMoodle.deleteMany();
+    await tx.grupoTelegram.deleteMany();
+    await tx.cursoMoodle.deleteMany();
+    
+    // Delete financial records (facturas must be deleted before inscripcion)
+    await tx.factura.deleteMany();
+    
+    // Delete user-role relationships
+    await tx.usuarioRol.deleteMany();
+    await tx.rolPermiso.deleteMany();
+    
+    // Delete inscriptions (must be deleted before comprobante and other dependent tables)
+    await tx.inscripcion.deleteMany();
+    
+    // Delete supporting data
+    await tx.comprobante.deleteMany();
+    await tx.descuento.deleteMany();
+    await tx.datosPersonales.deleteMany();
+    await tx.datosFacturacion.deleteMany();
+    
+    // Delete courses
+    await tx.curso.deleteMany();
+    
+    // Delete users and roles
+    await tx.usuario.deleteMany();
+    await tx.rol.deleteMany();
+    await tx.permiso.deleteMany();
+  }, {
+    isolationLevel: 'Serializable', // Prevent concurrent transactions
+    timeout: 30000 // 30 second timeout
+  });
 }
 
 /**

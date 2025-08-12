@@ -17,9 +17,12 @@ export async function createTestCourse(overrides: Partial<CreateCursoDto> = {}):
   const nextMonth = new Date();
   nextMonth.setMonth(nextMonth.getMonth() + 1);
 
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+
   const courseData: CreateCursoDto = {
-    nombreCortoCurso: 'TEST-101',
-    nombreCurso: 'Curso de Prueba',
+    nombreCortoCurso: `TEST-${timestamp}-${random}`,
+    nombreCurso: `Curso de Prueba ${timestamp}`,
     modalidadCurso: 'Virtual',
     descripcionCurso: 'Curso creado para pruebas de integración',
     valorCurso: new Decimal(100.00),
@@ -45,12 +48,15 @@ export async function createTestCourse(overrides: Partial<CreateCursoDto> = {}):
  * Create test personal data
  */
 export async function createTestPersonalData(overrides: Partial<CreateDatosPersonalesDto> = {}): Promise<any> {
+  const uniqueId = generateUniqueCI();
+  const timestamp = Date.now();
+  
   const personalData: CreateDatosPersonalesDto = {
-    ciPasaporte: '1234567890',
+    ciPasaporte: uniqueId,
     nombres: 'Juan Carlos',
     apellidos: 'Pérez González',
-    numTelefono: '0987654321',
-    correo: 'juan.perez@test.com',
+    numTelefono: `098765${timestamp.toString().slice(-4)}`,
+    correo: `juan.perez.${timestamp}@test.com`,
     pais: 'Ecuador',
     provinciaEstado: 'Pichincha',
     ciudad: 'Quito',
@@ -68,11 +74,12 @@ export async function createTestPersonalData(overrides: Partial<CreateDatosPerso
  * Create test billing data
  */
 export async function createTestBillingData(overrides: Partial<CreateDatosFacturacionDto> = {}): Promise<any> {
+  const timestamp = Date.now();
   const billingData: CreateDatosFacturacionDto = {
     razonSocial: 'Empresa Test S.A.',
-    identificacionTributaria: '1234567890001',
-    telefono: '023456789',
-    correoFactura: 'facturacion@test.com',
+    identificacionTributaria: generateUniqueRUC(),
+    telefono: `023456${timestamp.toString().slice(-3)}`,
+    correoFactura: `facturacion.${timestamp}@test.com`,
     direccion: 'Av. Test 123 y Calle Prueba',
     ...overrides,
   };
@@ -196,19 +203,22 @@ export function generateUniqueEmail(prefix: string = 'test'): string {
 }
 
 /**
- * Generate unique CI for testing
+ * Generate unique CI/Passport for testing
  */
 export function generateUniqueCI(): string {
-  const base = '123456789';
-  const suffix = Math.floor(Math.random() * 10).toString();
-  return base + suffix;
+  // Generate a valid passport format instead of Ecuadorian CI
+  // Passport: 6-9 characters alphanumeric uppercase
+  const timestamp = Date.now().toString();
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+  return `P${randomLetter}${timestamp.slice(-6)}`; // Format: P + letter + 6 digits
 }
 
 /**
  * Generate unique RUC for testing
  */
 export function generateUniqueRUC(): string {
-  const base = '123456789000';
-  const suffix = Math.floor(Math.random() * 10).toString();
-  return base + suffix;
+  const timestamp = Date.now().toString();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `1234567890${timestamp.slice(-3)}${random}`.slice(0, 13); // 13 dígitos máximo para RUC
 }

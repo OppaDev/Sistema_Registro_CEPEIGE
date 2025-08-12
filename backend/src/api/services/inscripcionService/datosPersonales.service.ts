@@ -22,16 +22,22 @@ export class DatosPersonalesService {  //crear nuevos datos personales
     datosPersonalesData: CreateDatosPersonalesDto
   ): Promise<DatosPersonalesResponseDto> {
     try {
-      // Limpiar y formatear la cédula (el validador ya verificó que es válida)
-      const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(datosPersonalesData.ciPasaporte);
+      // Limpiar y formatear el CI/Pasaporte (el validador DTO ya verificó que es válido)
+      let ciPasaporteFormateado = datosPersonalesData.ciPasaporte.trim();
       
-      if (!cedulaFormateada) {
-        throw new Error("La cédula proporcionada no es válida");
+      // Si es una cédula ecuatoriana (10 dígitos), formatearla
+      if (/^\d{10}$/.test(ciPasaporteFormateado)) {
+        const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(ciPasaporteFormateado);
+        if (!cedulaFormateada) {
+          throw new Error("La cédula proporcionada no es válida");
+        }
+        ciPasaporteFormateado = cedulaFormateada;
       }
+      // Si es un pasaporte, usar tal como viene (ya validado por el DTO)
 
       const datosPersonales = await prisma.datosPersonales.create({
         data: {
-          ciPasaporte: cedulaFormateada, // Usar la cédula formateada
+          ciPasaporte: ciPasaporteFormateado, // Usar el CI/Pasaporte formateado
           nombres: datosPersonalesData.nombres,
           apellidos: datosPersonalesData.apellidos,
           numTelefono: datosPersonalesData.numTelefono,
@@ -192,15 +198,21 @@ export class DatosPersonalesService {  //crear nuevos datos personales
   //Buscar datos personales por ci o pasaporte
   async getByCiPasaporte(ciPasaporte: string): Promise<DatosPersonalesResponseDto> {
     try {
-      // Limpiar y formatear la cédula para la búsqueda
-      const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(ciPasaporte);
+      // Limpiar el CI/Pasaporte para la búsqueda
+      let ciPasaporteFormateado = ciPasaporte.trim();
       
-      if (!cedulaFormateada) {
-        throw new Error("La cédula proporcionada no es válida");
+      // Si es una cédula ecuatoriana (10 dígitos), formatearla
+      if (/^\d{10}$/.test(ciPasaporteFormateado)) {
+        const cedulaFormateada = CedulaEcuatorianaValidator.validateAndFormat(ciPasaporteFormateado);
+        if (!cedulaFormateada) {
+          throw new Error("La cédula proporcionada no es válida");
+        }
+        ciPasaporteFormateado = cedulaFormateada;
       }
+      // Si es un pasaporte, usar tal como viene
 
       const datosPersonales = await prisma.datosPersonales.findUnique({
-        where: { ciPasaporte: cedulaFormateada }, // Buscar con la cédula formateada
+        where: { ciPasaporte: ciPasaporteFormateado }, // Buscar con el CI/Pasaporte formateado
       });
       if (!datosPersonales) {
         throw new NotFoundError(`Datos personales con CI/Pasaporte '${ciPasaporte}'`);      }

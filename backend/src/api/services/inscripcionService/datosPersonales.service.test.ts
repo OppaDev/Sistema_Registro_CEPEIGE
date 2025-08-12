@@ -434,7 +434,7 @@ describe('2.1. DatosPersonalesService', () => {
 
     it('debería fallar si el CI/Pasaporte no es válido', async () => {
       // Arrange
-      const ciPasaporte = '123invalid';
+      const ciPasaporte = '1234567890'; // CI de 10 dígitos pero inválido según el algoritmo
       mockValidateAndFormat.mockReturnValue(null);
 
       // Act & Assert

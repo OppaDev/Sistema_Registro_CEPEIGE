@@ -138,8 +138,8 @@ async function main() {
 
   // Admin - Permisos según árbol de permisos CEPEIGE
   const permisosAdmin = [
-    // Cursos: listar, ver específico, actualizar (NO crear ni eliminar)
-    'leer:cursos', 'actualizar:curso',
+    // Cursos: crear, listar, ver específico, actualizar (NO eliminar)
+    'crear:curso', 'leer:cursos', 'actualizar:curso',
     
     // Datos Personales: crear, consultar, actualizar (NO eliminar)
     'crear:datos-personales', 'leer:datos-personales', 'buscar:datos-personales', 'actualizar:datos-personales',
@@ -185,8 +185,11 @@ async function main() {
 
   // Contador - Permisos según árbol de permisos CEPEIGE
   const permisosContador = [
-    // Cursos: solo listar
+    // Cursos: solo listar (GET /cursos y GET /cursos/:id)
     'leer:cursos',
+    
+    // Datos Personales: solo consultar (todos los GET)
+    'leer:datos-personales', 'buscar:datos-personales',
     
     // Datos de Facturación: consultar y actualizar
     'leer:datos-facturacion', 'actualizar:datos-facturacion',

@@ -8,3 +8,5 @@ coverage/
 .vscode
 moodle-docker\.env
 reportes
+scripts
+docs

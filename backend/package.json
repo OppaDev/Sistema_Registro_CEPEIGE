@@ -13,7 +13,7 @@
     "prisma:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed/seed.ts",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test jest --runInBand",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=\\.test\\.ts$",
     "test:integration": "cross-env NODE_ENV=test jest --testPathPattern=\\.integration\\.ts$ --runInBand",
