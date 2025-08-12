@@ -4,6 +4,17 @@ export interface InscriptionData {
   fechaInscripcion: Date;
   estado: 'PENDIENTE' | 'VALIDADO' | 'RECHAZADO';
   
+  // 🆕 NUEVOS CAMPOS FISCALES
+  valorPagado?: number;
+  numeroIngreso?: string;
+  numeroFactura?: string;
+  
+  // 🆕 DESCUENTOS (OPCIONAL)
+  descuento?: {
+    numeroEstudiantes?: number;
+    cantidadDescuento?: number;
+  };
+  
   // Datos del participante
   participante: {
     idParticipante: number;
@@ -47,12 +58,6 @@ export interface InscriptionData {
     tipoArchivo: string;
     nombreArchivo: string;
   };
-   //descuento?: {
-    //idDescuento: number;
-    //tipoDescuento: string;
-    //valorDescuento: number;
-    //porcentajeDescuento: number;
-  //};
 }
 
 export interface InscriptionFilters {
@@ -105,4 +110,15 @@ export interface EditInscriptionRequest {
   datosPersonales?: Partial<EditableInscriptionData['participante']>;
   datosFacturacion?: Partial<EditableInscriptionData['facturacion']>;
   nuevoCurso?: number; // Solo admin
+}
+
+// 🆕 NUEVA INTERFAZ PARA INFORMACIÓN FISCAL
+export interface FiscalInformationRequest {
+  idInscripcion: number;
+  valorPagado: number;
+  numeroIngreso: string;
+  numeroFactura: string;
+  // Descuentos opcionales
+  numeroEstudiantes?: number;
+  cantidadDescuento?: number;
 }

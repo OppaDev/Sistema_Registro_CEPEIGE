@@ -7,8 +7,9 @@ import {
 } from "@/api/dtos/cursoDto/curso.dto";
 import { NotFoundError, AppError } from "@/utils/errorTypes";
 import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
+// ✅ COMENTADO: Desactivar Moodle y Telegram temporalmente
 import { cursoMoodleTrigger } from "@/triggers/cursoMoodle.trigger";
-import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
+ import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
 
 const prisma = new PrismaClient();
 
@@ -58,9 +59,10 @@ export class CursoService {
         },
       });
 
-      // Ejecutar triggers post-creación
-      await cursoMoodleTrigger.ejecutarPostCreacion(curso);
-      await cursoTelegramTrigger.ejecutarPostCreacion(curso);
+      // ✅ COMENTADO: Triggers post-creación desactivados temporalmente
+       await cursoMoodleTrigger.ejecutarPostCreacion(curso);
+       await cursoTelegramTrigger.ejecutarPostCreacion(curso);
+      console.log('✅ Curso creado exitosamente (sin Moodle/Telegram):', curso.idCurso);
 
       return toCursoResponseDto(curso);
       
@@ -121,9 +123,10 @@ export class CursoService {
         data: datosActualizados,
       });
 
-      // Ejecutar triggers post-actualización
-      await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
-      await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
+      // ✅ COMENTADO: Triggers post-actualización desactivados temporalmente
+       await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
+       await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
+      console.log('✅ Curso actualizado exitosamente (sin Moodle/Telegram):', curso.idCurso);
 
       return toCursoResponseDto(curso);    } catch (error) {
       if (error instanceof NotFoundError) {
@@ -230,9 +233,10 @@ export class CursoService {
         throw new NotFoundError('Curso');
       }
 
-      // Ejecutar triggers pre-eliminación
-      await cursoMoodleTrigger.ejecutarPreEliminacion(id);
-      await cursoTelegramTrigger.ejecutarPreEliminacion(id);
+      // ✅ COMENTADO: Triggers pre-eliminación desactivados temporalmente
+       await cursoMoodleTrigger.ejecutarPreEliminacion(id);
+       await cursoTelegramTrigger.ejecutarPreEliminacion(id);
+      console.log('✅ Eliminando curso (sin Moodle/Telegram):', id);
 
       // Eliminar el curso
       const cursoEliminado = await prisma.curso.delete({

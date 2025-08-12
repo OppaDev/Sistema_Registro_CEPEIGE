@@ -44,8 +44,8 @@ export default function AccountantInscriptionsView() {
     selectedInscriptionForDelete,
     isDeleteModalOpen,
     openDeleteModal,
-    closeDeleteModal
-  
+    closeDeleteModal,
+    onPaymentValidated // 🆕 NUEVA FUNCIÓN
   } = useInscriptionController();
 
   const [forceRenderKey, setForceRenderKey] = React.useState(0);
@@ -159,12 +159,13 @@ export default function AccountantInscriptionsView() {
           onPageChange={handlePageChange}
         />
 
-        {/* Modal de detalles - SOLO PARA VISUALIZAR */}
+        {/* Modal de detalles - CON VALIDACIÓN DE PAGOS */}
         <InscriptionDetailModal
           inscription={selectedInscription}
           isOpen={!!selectedInscription}
           onClose={closeInscriptionDetails}
           userType="accountant"
+          onPaymentValidated={onPaymentValidated} // 🆕 CALLBACK PARA REFRESCAR
         />
          {/* 🆕 NUEVO MODAL DE EDICIÓN */}
         <EditInscriptionModal

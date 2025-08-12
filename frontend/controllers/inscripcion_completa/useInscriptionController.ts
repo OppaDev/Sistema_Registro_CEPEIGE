@@ -1,6 +1,6 @@
 // controllers/useInscriptionController.ts
 import { useState, useEffect, useCallback } from 'react';
-import { EditInscriptionRequest, InscriptionData } from '@/models/inscripcion_completa/inscription';
+import { EditInscriptionRequest, InscriptionData, FiscalInformationRequest } from '@/models/inscripcion_completa/inscription';
 import { inscriptionService, InscriptionApiData } from '@/services/inscripcion_completa/inscriptionService';
 
 interface UseInscriptionControllerReturn {
@@ -37,6 +37,12 @@ interface UseInscriptionControllerReturn {
   selectedInscriptionForEdit: InscriptionData | null;
   isEditModalOpen: boolean;
   isUpdating: boolean;
+  
+  // 🆕 VALIDACIÓN DE PAGOS
+  onPaymentValidated: () => Promise<void>;
+  
+  // 🆕 INFORMACIÓN FISCAL
+  saveFiscalInformation: (fiscalData: FiscalInformationRequest) => Promise<void>;
 }
 
 export const useInscriptionController = (): UseInscriptionControllerReturn => {
@@ -339,6 +345,41 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     }
   }, [currentPage, loadInscriptions, closeInscriptionDetails, closeEditModal, closeDeleteModal]);
 
+  // 🆕 CALLBACK PARA REFRESCAR DESPUÉS DE VALIDACIÓN DE PAGO
+  const onPaymentValidated = useCallback(async () => {
+    console.log('💳 Payment validated, refreshing inscriptions...');
+    await forceRefresh();
+  }, [forceRefresh]);
+
+  // 🆕 GUARDAR INFORMACIÓN FISCAL
+  const saveFiscalInformation = useCallback(async (fiscalData: FiscalInformationRequest) => {
+    try {
+      setMessage(null);
+      console.log('💰 Guardando información fiscal:', fiscalData);
+      
+      const response = await inscriptionService.saveFiscalInformation(fiscalData);
+      
+      if (response.success) {
+        setMessage({
+          type: 'success',
+          text: '✅ Información fiscal guardada exitosamente'
+        });
+        
+        // Refrescar la lista
+        await forceRefresh();
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      console.error('❌ Error saving fiscal information:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'Error al guardar información fiscal'
+      });
+      throw error;
+    }
+  }, [forceRefresh]);
+
   return {
     // Estado
     inscriptions,
@@ -371,6 +412,11 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     isDeleteModalOpen,
     openDeleteModal,
     closeDeleteModal,
-   
+    
+    // 🆕 VALIDACIÓN DE PAGOS
+    onPaymentValidated,
+    
+    // 🆕 INFORMACIÓN FISCAL
+    saveFiscalInformation,
   };
 };
