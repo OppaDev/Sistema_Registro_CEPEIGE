@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building, CheckCircle, AlertCircle, Receipt } from 'lucide-react';
+import { PaymentValidationSection } from '../validarPago/PaymentValidationSection';
+import { DiscountManagementSection } from '../validarPago/DiscountManagementSection';
+import { EnrollmentSection } from '../validarPago/EnrollmentSection';
 
 
 interface InscriptionDetailModalProps {
@@ -420,6 +423,33 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
               </CardContent>
             </Card>
           </div>
+
+          {/* 🆕 SECCIÓN DE VALIDACIÓN DE PAGO PARA CONTADOR */}
+          {userType === 'accountant' && (
+            <PaymentValidationSection
+              inscription={inscription}
+              userType={userType}
+              onPaymentValidated={handlePaymentValidationSuccess}
+            />
+          )}
+
+          {/* 🆕 SECCIÓN DE GESTIÓN DE DESCUENTOS PARA ADMIN */}
+          {userType === 'admin' && (
+            <DiscountManagementSection
+              inscription={inscription}
+              isPaymentValidated={inscription.estado === 'VALIDADO'}
+              onDiscountApplied={handlePaymentValidationSuccess}
+            />
+          )}
+
+          {/* 🆕 SECCIÓN DE MATRÍCULA PARA ADMIN */}
+          {userType === 'admin' && (
+            <EnrollmentSection
+              inscription={inscription}
+              isPaymentValidated={inscription.estado === 'VALIDADO'}
+              onEnrollmentCompleted={handlePaymentValidationSuccess}
+            />
+          )}
 
           {/* 🆕 MENSAJE DE VALIDACIÓN */}
           {validationMessage && (

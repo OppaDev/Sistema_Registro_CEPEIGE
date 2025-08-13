@@ -165,6 +165,7 @@ export default function AccountantInscriptionsView() {
           isOpen={!!selectedInscription}
           onClose={closeInscriptionDetails}
           userType="accountant"
+          onPaymentValidated={onPaymentValidated}
         />
          {/* 🆕 NUEVO MODAL DE EDICIÓN */}
         <EditInscriptionModal
