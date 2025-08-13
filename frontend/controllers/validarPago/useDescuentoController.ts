@@ -1,303 +1,121 @@
 // controllers/validarPago/useDescuentoController.ts
 import { useState, useCallback } from 'react';
 import { descuentoService } from '@/services/validarPago/descuentoService';
-import { 
-  Descuento, 
-  CreateDescuentoRequest, 
-  UpdateDescuentoRequest,
-  TipoDescuento,
-  DescuentoInscripcion
-} from '@/models/validarPago/descuento';
-
-interface UseDescuentoControllerState {
-  descuento: Descuento | null;
-  descuentos: Descuento[];
-  loading: boolean;
-  error: string | null;
-  success: string | null;
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
+import { CreateDescuentoData, DescuentoData, DescuentoFormData } from '@/models/validarPago/descuento';
 
 interface UseDescuentoControllerReturn {
-  // Estado
-  state: UseDescuentoControllerState;
-  
-  // Acciones CRUD
-  createDescuento: (data: CreateDescuentoRequest) => Promise<boolean>;
-  getDescuentoById: (id: number) => Promise<boolean>;
-  getAllDescuentos: (options?: {
-    page?: number;
-    limit?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
-  }) => Promise<boolean>;
-  updateDescuento: (id: number, data: UpdateDescuentoRequest) => Promise<boolean>;
-  deleteDescuento: (id: number) => Promise<boolean>;
-  
-  // Acciones específicas
-  createDescuentoGrupal: (inscripcionInfo: DescuentoInscripcion) => Promise<boolean>;
-  aplicarDescuentoAInscripcion: (inscripcionId: number, descuentoId: number) => Promise<boolean>;
-  
-  // Utilidades
+  // States
+  descuento: DescuentoData | null;
+  descuentos: DescuentoData[];
+  loading: boolean;
+  error: string | null;
+  isCreating: boolean;
+  isUpdating: boolean;
+
+  // Actions
+  createDescuento: (data: DescuentoFormData) => Promise<DescuentoData | null>;
+  getDescuentoById: (id: number) => Promise<DescuentoData | null>;
+  getAllDescuentos: () => Promise<DescuentoData[]>;
   clearError: () => void;
-  clearSuccess: () => void;
-  clearDescuento: () => void;
-  calcularDescuentoParaMonto: (monto: number, descuento: Descuento) => {
-    montoDescuento: number;
-    montoFinal: number;
-    porcentajeAplicado: number;
-  };
-  isDescuentoAplicable: (descuento: Descuento, montoBase: number) => boolean;
-  getTiposDescuento: () => { value: TipoDescuento; label: string }[];
+  resetDescuento: () => void;
 }
 
 export const useDescuentoController = (): UseDescuentoControllerReturn => {
-  const [state, setState] = useState<UseDescuentoControllerState>({
-    descuento: null,
-    descuentos: [],
-    loading: false,
-    error: null,
-    success: null,
-    pagination: {
-      total: 0,
-      page: 1,
-      limit: 10,
-      totalPages: 0
-    }
-  });
+  const [descuento, setDescuento] = useState<DescuentoData | null>(null);
+  const [descuentos, setDescuentos] = useState<DescuentoData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Helper para actualizar estado
-  const updateState = useCallback((updates: Partial<UseDescuentoControllerState>) => {
-    setState(prevState => ({
-      ...prevState,
-      ...updates
-    }));
-  }, []);
-
-  // Helper para manejar errores
-  const handleError = useCallback((error: any, defaultMessage: string) => {
-    const errorMessage = error.message || defaultMessage;
-    console.error('❌ DescuentoController Error:', errorMessage);
-    updateState({
-      loading: false,
-      error: errorMessage,
-      success: null
-    });
-    return false;
-  }, [updateState]);
-
-  // Helper para manejar éxito
-  const handleSuccess = useCallback((message: string, data?: any) => {
-    console.log('✅ DescuentoController Success:', message);
-    updateState({
-      loading: false,
-      error: null,
-      success: message,
-      ...data
-    });
-    return true;
-  }, [updateState]);
-
-  // Crear descuento
-  const createDescuento = useCallback(async (data: CreateDescuentoRequest): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.createDescuento(data);
-      
-      if (response.success) {
-        return handleSuccess('Descuento creado exitosamente', { 
-          descuento: response.data 
-        });
-      } else {
-        return handleError(new Error(response.message), 'Error al crear descuento');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al crear descuento');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Obtener descuento por ID
-  const getDescuentoById = useCallback(async (id: number): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.getDescuentoById(id);
-      
-      if (response.success) {
-        return handleSuccess('Descuento obtenido exitosamente', { 
-          descuento: response.data 
-        });
-      } else {
-        return handleError(new Error(response.message), 'Error al obtener descuento');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al obtener descuento');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Obtener todos los descuentos
-  const getAllDescuentos = useCallback(async (options: {
-    page?: number;
-    limit?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
-  } = {}): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.getAllDescuentos(options);
-      
-      if (response.success) {
-        const pagination = {
-          total: response.data.length,
-          page: options.page || 1,
-          limit: options.limit || 10,
-          totalPages: Math.ceil(response.data.length / (options.limit || 10))
-        };
-
-        return handleSuccess('Descuentos obtenidos exitosamente', { 
-          descuentos: response.data,
-          pagination
-        });
-      } else {
-        return handleError(new Error(response.message), 'Error al obtener descuentos');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al obtener descuentos');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Actualizar descuento
-  const updateDescuento = useCallback(async (id: number, data: UpdateDescuentoRequest): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.updateDescuento(id, data);
-      
-      if (response.success) {
-        return handleSuccess('Descuento actualizado exitosamente', { 
-          descuento: response.data 
-        });
-      } else {
-        return handleError(new Error(response.message), 'Error al actualizar descuento');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al actualizar descuento');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Eliminar descuento
-  const deleteDescuento = useCallback(async (id: number): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.deleteDescuento(id);
-      
-      if (response.success) {
-        // Actualizar lista eliminando el descuento
-        setState(prevState => ({
-          ...prevState,
-          loading: false,
-          error: null,
-          success: 'Descuento eliminado exitosamente',
-          descuentos: prevState.descuentos.filter(d => d.idDescuento !== id),
-          descuento: prevState.descuento?.idDescuento === id ? null : prevState.descuento
-        }));
-        return true;
-      } else {
-        return handleError(new Error(response.message), 'Error al eliminar descuento');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al eliminar descuento');
-    }
-  }, [handleError]);
-
-  // Crear descuento grupal
-  const createDescuentoGrupal = useCallback(async (inscripcionInfo: DescuentoInscripcion): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.createDescuentoGrupal(inscripcionInfo);
-      
-      if (response.success) {
-        return handleSuccess('Descuento grupal creado exitosamente', { 
-          descuento: response.data 
-        });
-      } else {
-        return handleError(new Error(response.message), 'Error al crear descuento grupal');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al crear descuento grupal');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Aplicar descuento a inscripción
-  const aplicarDescuentoAInscripcion = useCallback(async (inscripcionId: number, descuentoId: number): Promise<boolean> => {
-    try {
-      updateState({ loading: true, error: null, success: null });
-
-      const response = await descuentoService.aplicarDescuentoAInscripcion(inscripcionId, descuentoId);
-      
-      if (response.success) {
-        return handleSuccess('Descuento aplicado exitosamente');
-      } else {
-        return handleError(new Error(response.message), 'Error al aplicar descuento');
-      }
-    } catch (error: any) {
-      return handleError(error, 'Error al aplicar descuento');
-    }
-  }, [updateState, handleError, handleSuccess]);
-
-  // Limpiar error
   const clearError = useCallback(() => {
-    updateState({ error: null });
-  }, [updateState]);
-
-  // Limpiar éxito
-  const clearSuccess = useCallback(() => {
-    updateState({ success: null });
-  }, [updateState]);
-
-  // Limpiar descuento
-  const clearDescuento = useCallback(() => {
-    updateState({ descuento: null, descuentos: [] });
-  }, [updateState]);
-
-  // Calcular descuento para monto
-  const calcularDescuentoParaMonto = useCallback((monto: number, descuento: Descuento) => {
-    return descuentoService.calcularDescuentoParaMonto(monto, descuento);
+    setError(null);
   }, []);
 
-  // Validar si descuento es aplicable
-  const isDescuentoAplicable = useCallback((descuento: Descuento, montoBase: number): boolean => {
-    return descuentoService.isDescuentoAplicable(descuento, montoBase);
+  const resetDescuento = useCallback(() => {
+    setDescuento(null);
+    setError(null);
   }, []);
 
-  // Obtener tipos de descuento
-  const getTiposDescuento = useCallback(() => {
-    return descuentoService.getTiposDescuento();
+  const createDescuento = useCallback(async (formData: DescuentoFormData): Promise<DescuentoData | null> => {
+    setIsCreating(true);
+    setError(null);
+    
+    try {
+      // Convertir formData a CreateDescuentoData
+      const data: CreateDescuentoData = {
+        tipoDescuento: formData.tipoDescuento,
+        valorDescuento: formData.cantidadDescuento || 0,
+        porcentajeDescuento: 0, // Se puede calcular basado en el valor
+        descripcionDescuento: formData.descripcion || `Descuento ${formData.tipoDescuento}${formData.numeroEstudiantes ? ` para ${formData.numeroEstudiantes} estudiantes` : ''}`
+      };
+
+      const newDescuento = await descuentoService.createDescuento(data);
+      setDescuento(newDescuento);
+      console.log('✅ Descuento creado exitosamente:', newDescuento);
+      return newDescuento;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Error al crear el descuento';
+      setError(errorMessage);
+      console.error('❌ Error creating descuento:', error);
+      return null;
+    } finally {
+      setIsCreating(false);
+    }
+  }, []);
+
+  const getDescuentoById = useCallback(async (id: number): Promise<DescuentoData | null> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const descuentoEncontrado = await descuentoService.getDescuentoById(id);
+      setDescuento(descuentoEncontrado);
+      console.log('✅ Descuento encontrado:', descuentoEncontrado);
+      return descuentoEncontrado;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Error al obtener el descuento';
+      setError(errorMessage);
+      console.error('❌ Error fetching descuento:', error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getAllDescuentos = useCallback(async (): Promise<DescuentoData[]> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { descuentos } = await descuentoService.getAllDescuentos();
+      setDescuentos(descuentos);
+      console.log('✅ Descuentos obtenidos:', descuentos);
+      return descuentos;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Error al obtener los descuentos';
+      setError(errorMessage);
+      console.error('❌ Error fetching descuentos:', error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return {
-    state,
+    // States
+    descuento,
+    descuentos,
+    loading,
+    error,
+    isCreating,
+    isUpdating,
+
+    // Actions
     createDescuento,
     getDescuentoById,
     getAllDescuentos,
-    updateDescuento,
-    deleteDescuento,
-    createDescuentoGrupal,
-    aplicarDescuentoAInscripcion,
     clearError,
-    clearSuccess,
-    clearDescuento,
-    calcularDescuentoParaMonto,
-    isDescuentoAplicable,
-    getTiposDescuento
+    resetDescuento
   };
 };

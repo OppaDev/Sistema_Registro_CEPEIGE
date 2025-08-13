@@ -79,8 +79,12 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
       });
 
       if (response.success) {
-        // Mapear datos de API a modelo del frontend
-        const mappedInscriptions = response.data.map(apiData => 
+        // ✅ ENRIQUECER CON DATOS DE FACTURAS EN TIEMPO REAL
+        console.log('🔄 Enriqueciendo inscripciones con datos de facturas...');
+        const enrichedData = await inscriptionService.enrichInscriptionsWithFacturas(response.data);
+        
+        // Mapear datos de API enriquecidos a modelo del frontend
+        const mappedInscriptions = enrichedData.map(apiData => 
           inscriptionService.mapApiDataToInscriptionData(apiData)
         );
 

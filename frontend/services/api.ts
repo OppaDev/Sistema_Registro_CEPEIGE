@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { authService } from './login/authService'; // 🆕 IMPORTAR
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -58,4 +58,6 @@ api.interceptors.response.use(
   }
 );
 
+// Export both named and default for compatibility
+export const apiClient = api;
 export default api;

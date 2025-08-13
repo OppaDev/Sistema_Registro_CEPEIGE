@@ -3,6 +3,7 @@ export interface InscriptionData {
   idInscripcion: number;
   fechaInscripcion: Date;
   estado: 'PENDIENTE' | 'VALIDADO' | 'RECHAZADO';
+  matricula: boolean; // 🆕 Estado de matrícula
   
   // 🆕 NUEVOS CAMPOS FISCALES
   valorPagado?: number;
@@ -11,8 +12,11 @@ export interface InscriptionData {
   
   // 🆕 DESCUENTOS (OPCIONAL)
   descuento?: {
-    numeroEstudiantes?: number;
-    cantidadDescuento?: number;
+    idDescuento: number;
+    tipoDescuento: string;
+    valorDescuento: number;
+    porcentajeDescuento: number;
+    descripcionDescuento: string;
   };
   
   // Datos del participante
@@ -110,6 +114,8 @@ export interface EditInscriptionRequest {
   datosPersonales?: Partial<EditableInscriptionData['participante']>;
   datosFacturacion?: Partial<EditableInscriptionData['facturacion']>;
   nuevoCurso?: number; // Solo admin
+  matricula?: boolean; // 🆕 Para activar/desactivar matrícula
+  idDescuento?: number; // 🆕 Para aplicar descuentos
 }
 
 // 🆕 NUEVA INTERFAZ PARA INFORMACIÓN FISCAL

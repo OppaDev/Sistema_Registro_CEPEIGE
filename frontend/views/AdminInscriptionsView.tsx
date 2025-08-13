@@ -160,7 +160,7 @@ export default function AdminInscriptionsView() {
           isOpen={!!selectedInscription}
           onClose={closeInscriptionDetails}
           userType="admin"
-          onPaymentValidated={onPaymentValidated} // 🆕 CALLBACK PARA REFRESCAR
+          onInscriptionUpdated={handleRefresh}
         />
         {/* 🆕 NUEVO MODAL DE EDICIÓN */}
         <EditInscriptionModal

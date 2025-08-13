@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, User, BookOpen, FileText, CreditCard, Download, Eye, MapPin, Phone, Mail, Building, CheckCircle, AlertCircle, Receipt } from 'lucide-react';
-import { PaymentValidationFlow } from '@/views/components/validarPago/PaymentValidationFlow';
+
 
 interface InscriptionDetailModalProps {
   inscription: InscriptionData | null;
@@ -397,14 +397,6 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
                       </Button>
                     </div>
                     
-                    {/* Flujo de validación de pago integrado */}
-                    <div className="border-t pt-4">
-                      <PaymentValidationFlow
-                        inscription={inscription}
-                        userType={userType}
-                        onValidationSuccess={handlePaymentValidationSuccess}
-                      />
-                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">

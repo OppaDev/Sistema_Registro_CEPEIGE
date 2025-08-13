@@ -1,259 +1,128 @@
 // services/validarPago/facturaService.ts
-import { 
-  Factura, 
-  CreateFacturaRequest, 
-  UpdateFacturaRequest,
-  FacturaResponse,
-  FacturaListResponse,
-  validateFacturaData 
-} from '@/models/validarPago/factura';
-import { authService } from '@/services/login/authService';
+import { apiClient } from '@/services/api';
+import { CreateFacturaData, UpdateFacturaData, FacturaData, FacturaResponse } from '@/models/validarPago/factura';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+class FacturaService {
+  private baseUrl = '/facturas';
 
-export class FacturaService {
-  // Crear nueva factura
-  async createFactura(data: CreateFacturaRequest): Promise<FacturaResponse> {
+  // Crear una nueva factura
+  async createFactura(data: CreateFacturaData): Promise<FacturaData> {
     try {
-      // Validar datos antes de enviar
-      const errors = validateFacturaData(data);
-      if (errors.length > 0) {
-        throw new Error(`Datos inválidos: ${errors.join(', ')}`);
-      }
+      const response = await apiClient.post<FacturaResponse>(this.baseUrl, data);
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error creating factura:', error);
+      throw error;
+    }
+  }
 
-      console.log('🧾 Creando factura:', data);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta crear factura:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al crear factura');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error creating factura:', error);
-      throw new Error(error.message || 'Error al crear factura');
+  // Obtener todas las facturas
+  async getAllFacturas(params?: {
+    page?: number;
+    limit?: number;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+    includeRelations?: boolean;
+  }): Promise<{ facturas: FacturaData[]; total: number }> {
+    try {
+      const response = await apiClient.get<FacturaResponse>(this.baseUrl, { params });
+      const data = response.data;
+      return {
+        facturas: Array.isArray(data.data) ? data.data : [data.data],
+        total: data.pagination?.total || 0
+      };
+    } catch (error) {
+      console.error('Error fetching facturas:', error);
+      throw error;
     }
   }
 
   // Obtener factura por ID
-  async getFacturaById(id: number): Promise<FacturaResponse> {
+  async getFacturaById(id: number, includeRelations: boolean = true): Promise<FacturaData> {
     try {
-      console.log('🔍 Obteniendo factura por ID:', id);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta factura por ID:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al obtener factura');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error fetching factura by ID:', error);
-      throw new Error(error.message || 'Error al obtener factura');
+      const response = await apiClient.get<FacturaResponse>(
+        `${this.baseUrl}/${id}`,
+        { params: { includeRelations } }
+      );
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error fetching factura by ID:', error);
+      throw error;
     }
   }
 
-  // Obtener facturas por inscripción
-  async getFacturasByInscripcionId(inscripcionId: number): Promise<FacturaListResponse> {
+  // Obtener factura por número de factura
+  async getFacturaByNumeroFactura(numeroFactura: string): Promise<FacturaData> {
     try {
-      console.log('🔍 Obteniendo facturas por inscripción:', inscripcionId);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/inscripcion/${inscripcionId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
-      });
+      const response = await apiClient.get<FacturaResponse>(
+        `${this.baseUrl}/numero-factura/${numeroFactura}`
+      );
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error fetching factura by numero:', error);
+      throw error;
+    }
+  }
 
-      const result = await response.json();
-      console.log('📥 Respuesta facturas por inscripción:', result);
+  // Obtener factura por número de ingreso
+  async getFacturaByNumeroIngreso(numeroIngreso: string): Promise<FacturaData> {
+    try {
+      const response = await apiClient.get<FacturaResponse>(
+        `${this.baseUrl}/numero-ingreso/${numeroIngreso}`
+      );
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error fetching factura by numero ingreso:', error);
+      throw error;
+    }
+  }
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al obtener facturas');
-      }
+  // Obtener facturas por ID de inscripción
+  async getFacturasByInscripcionId(idInscripcion: number): Promise<FacturaData[]> {
+    try {
+      const response = await apiClient.get<FacturaResponse>(
+        `${this.baseUrl}/inscripcion/${idInscripcion}`
+      );
+      return Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+    } catch (error) {
+      console.error('Error fetching facturas by inscripcion:', error);
+      throw error;
+    }
+  }
 
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error fetching facturas by inscription:', error);
-      throw new Error(error.message || 'Error al obtener facturas de la inscripción');
+  // Verificar pago de una factura
+  async verificarPago(id: number): Promise<FacturaData> {
+    try {
+      const response = await apiClient.patch<FacturaResponse>(
+        `${this.baseUrl}/${id}/verificar-pago`
+      );
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      throw error;
     }
   }
 
   // Actualizar factura
-  async updateFactura(id: number, data: UpdateFacturaRequest): Promise<FacturaResponse> {
+  async updateFactura(id: number, data: UpdateFacturaData): Promise<FacturaData> {
     try {
-      console.log('📝 Actualizando factura:', { id, data });
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta actualizar factura:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al actualizar factura');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error updating factura:', error);
-      throw new Error(error.message || 'Error al actualizar factura');
+      const response = await apiClient.put<FacturaResponse>(`${this.baseUrl}/${id}`, data);
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error updating factura:', error);
+      throw error;
     }
   }
 
-  // Verificar pago de factura
-  async verificarPago(id: number): Promise<FacturaResponse> {
+  // Eliminar factura
+  async deleteFactura(id: number): Promise<FacturaData> {
     try {
-      console.log('✅ Verificando pago de factura:', id);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/${id}/verificar-pago`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta verificar pago:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al verificar pago');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error verifying payment:', error);
-      throw new Error(error.message || 'Error al verificar pago');
+      const response = await apiClient.delete<FacturaResponse>(`${this.baseUrl}/${id}`);
+      return response.data.data as FacturaData;
+    } catch (error) {
+      console.error('Error deleting factura:', error);
+      throw error;
     }
-  }
-
-  // Buscar factura por número de factura
-  async getFacturaByNumeroFactura(numeroFactura: string): Promise<FacturaResponse> {
-    try {
-      console.log('🔍 Buscando por número de factura:', numeroFactura);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/numero-factura/${numeroFactura}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta por número de factura:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al buscar factura');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error searching by numero factura:', error);
-      throw new Error(error.message || 'Error al buscar factura por número');
-    }
-  }
-
-  // Buscar factura por número de ingreso
-  async getFacturaByNumeroIngreso(numeroIngreso: string): Promise<FacturaResponse> {
-    try {
-      console.log('🔍 Buscando por número de ingreso:', numeroIngreso);
-      
-      const authHeaders = authService.getAuthHeader();
-      
-      const response = await fetch(`${API_BASE_URL}/facturas/numero-ingreso/${numeroIngreso}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
-      });
-
-      const result = await response.json();
-      console.log('📥 Respuesta por número de ingreso:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al buscar factura');
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error('❌ Error searching by numero ingreso:', error);
-      throw new Error(error.message || 'Error al buscar factura por número de ingreso');
-    }
-  }
-
-  // Generar números temporales únicos
-  generateTemporaryNumbers(inscripcionId: number): { numeroIngreso: string; numeroFactura: string } {
-    const timestamp = Date.now();
-    return {
-      numeroIngreso: `TMP-ING-${inscripcionId}-${timestamp}`,
-      numeroFactura: `TMP-FAC-${inscripcionId}-${timestamp}`
-    };
-  }
-
-  // Validar si números son temporales
-  isTemporaryNumber(numero: string): boolean {
-    return numero.startsWith('TMP-');
-  }
-
-  // Helper para formatear valor
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('es-EC', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  }
-
-  // Helper para formatear fecha
-  formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
   }
 }
 

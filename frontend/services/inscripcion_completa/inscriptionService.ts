@@ -48,6 +48,7 @@ export interface InscriptionApiData {
     tipoDescuento: string;
     valorDescuento: number;
     porcentajeDescuento: number;
+    descripcionDescuento: string;
   };
   matricula: boolean;
   fechaInscripcion: string;
@@ -103,10 +104,14 @@ class InscriptionService {
         order
       });
 
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+
       const response = await fetch(`${API_BASE_URL}/inscripciones?${queryParams}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders
         },
       });
 
@@ -115,6 +120,16 @@ class InscriptionService {
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al obtener inscripciones');
+      }
+
+      // 🆕 ENRIQUECER CON DATOS DE FACTURAS PARA DETERMINAR ESTADO REAL
+      if (data.success && data.data && Array.isArray(data.data)) {
+        console.log('🔄 Enriqueciendo inscripciones con datos de facturas...');
+        const enrichedData = await this.enrichInscriptionsWithFacturas(data.data);
+        return {
+          ...data,
+          data: enrichedData
+        };
       }
 
       return data;
@@ -131,10 +146,14 @@ class InscriptionService {
     try {
       console.log('🚀 Obteniendo inscripción por ID:', id);
 
+      // Obtener headers de autenticación
+      const authHeaders = authService.getAuthHeader();
+
       const response = await fetch(`${API_BASE_URL}/inscripciones/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders
         },
       });
 
@@ -143,6 +162,16 @@ class InscriptionService {
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al obtener inscripción');
+      }
+
+      // 🆕 ENRIQUECER CON DATOS DE FACTURAS PARA DETERMINAR ESTADO REAL
+      if (data.success && data.data) {
+        console.log('🔄 Enriqueciendo inscripción individual con datos de facturas...');
+        const enrichedData = await this.enrichInscriptionsWithFacturas([data.data]);
+        return {
+          ...data,
+          data: enrichedData[0]
+        };
       }
 
       return data;
@@ -180,6 +209,89 @@ class InscriptionService {
       throw new Error(
         error.message || 'Error al crear inscripción'
       );
+    }
+  }
+
+  // Enriquecer inscripciones con estado real basado en facturas
+  async enrichInscriptionsWithFacturas(inscriptions: InscriptionApiData[]): Promise<InscriptionApiData[]> {
+    console.log(`🔄 Enriqueciendo ${inscriptions.length} inscripciones con datos de facturas...`);
+    
+    try {
+      // Procesar cada inscripción para obtener su estado real
+      const enrichedInscriptions = await Promise.all(
+        inscriptions.map(async (inscription) => {
+          try {
+            console.log(`📋 Procesando inscripción ${inscription.idInscripcion}, matricula: ${inscription.matricula}`);
+            
+            // Si ya está matriculado, mantener el estado
+            if (inscription.matricula) {
+              console.log(`✅ Inscripción ${inscription.idInscripcion} ya está matriculada`);
+              return inscription;
+            }
+
+            // Verificar facturas para inscripciones no matriculadas
+            console.log(`🔍 Consultando facturas para inscripción ${inscription.idInscripcion}...`);
+            
+            // Obtener headers de autenticación
+            const authHeaders = authService.getAuthHeader();
+            
+            const response = await fetch(`${API_BASE_URL}/facturas/inscripcion/${inscription.idInscripcion}`, {
+              method: 'GET',
+              headers: { 
+                'Content-Type': 'application/json',
+                ...authHeaders
+              },
+            });
+
+            console.log(`📥 Respuesta facturas para ${inscription.idInscripcion}:`, {
+              ok: response.ok,
+              status: response.status
+            });
+
+            if (response.ok) {
+              const facturaData = await response.json();
+              console.log(`💰 Datos facturas para ${inscription.idInscripcion}:`, {
+                success: facturaData.success,
+                dataLength: facturaData.data?.length,
+                data: facturaData.data
+              });
+
+              if (facturaData.success && facturaData.data && Array.isArray(facturaData.data)) {
+                // Verificar si hay facturas con pago verificado
+                const facturaVerificada = facturaData.data.find((factura: any) => factura.verificacionPago === true);
+                
+                if (facturaVerificada) {
+                  console.log(`✅ Inscripción ${inscription.idInscripcion} tiene pago verificado! Factura:`, facturaVerificada);
+                  // Marcar como "pseudo-matriculada" para mostrar estado VALIDADO
+                  return {
+                    ...inscription,
+                    matricula: false, // Mantener matrícula real
+                    // Agregar flag temporal para distinguir estados
+                    _pagoVerificado: true
+                  } as InscriptionApiData & { _pagoVerificado?: boolean };
+                } else {
+                  console.log(`⏳ Inscripción ${inscription.idInscripcion} tiene facturas pero ninguna verificada`);
+                }
+              } else {
+                console.log(`ℹ️ Inscripción ${inscription.idInscripcion} no tiene facturas`);
+              }
+            } else {
+              console.log(`❌ Error consultando facturas para ${inscription.idInscripcion}:`, response.status);
+            }
+
+            return inscription;
+          } catch (error) {
+            console.warn(`❌ Error verificando facturas para inscripción ${inscription.idInscripcion}:`, error);
+            return inscription;
+          }
+        })
+      );
+
+      console.log(`✅ Enriquecimiento completado. ${enrichedInscriptions.length} inscripciones procesadas`);
+      return enrichedInscriptions;
+    } catch (error) {
+      console.warn('❌ Error enriqueciendo inscripciones:', error);
+      return inscriptions;
     }
   }
 
@@ -223,26 +335,94 @@ class InscriptionService {
         tipoArchivo: apiData.comprobante.tipoArchivo,
         nombreArchivo: apiData.comprobante.nombreArchivo
       },
-      //
-      //descuento: apiData.descuento ? {
-       // idDescuento: apiData.descuento.idDescuento,
-        //tipoDescuento: apiData.descuento.tipoDescuento,
-        //valorDescuento: Number(apiData.descuento.valorDescuento),
-        //porcentajeDescuento: Number(apiData.descuento.porcentajeDescuento)
-      //} : undefined,
-      estado: this.getEstadoFromMatricula(apiData.matricula),
+      descuento: apiData.descuento ? {
+        idDescuento: apiData.descuento.idDescuento,
+        tipoDescuento: apiData.descuento.tipoDescuento,
+        valorDescuento: Number(apiData.descuento.valorDescuento),
+        porcentajeDescuento: Number(apiData.descuento.porcentajeDescuento),
+        descripcionDescuento: apiData.descuento.descripcionDescuento || `Descuento ${apiData.descuento.tipoDescuento} - $${apiData.descuento.valorDescuento}`
+      } : undefined,
+      // Estado basado en matrícula O verificación de pago
+      estado: this.determinarEstadoFromApiData(apiData),
+      matricula: apiData.matricula,
       fechaInscripcion: new Date(apiData.fechaInscripcion)
     };
   }
 
-  // Determinar estado basado en matrícula y otros factores
- private getEstadoFromMatricula(matricula: boolean): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
-  if (matricula) {
-    return "VALIDADO";
-  } else {
+  // Determinar estado real considerando matrícula y verificación de pago
+  private determinarEstadoFromApiData(apiData: InscriptionApiData & { _pagoVerificado?: boolean }): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
+    console.log(`🎯 Determinando estado para inscripción ${apiData.idInscripcion}:`, {
+      matricula: apiData.matricula,
+      _pagoVerificado: (apiData as any)._pagoVerificado
+    });
+    
+    // Si está matriculado, siempre VALIDADO
+    if (apiData.matricula) {
+      console.log(`✅ Estado: VALIDADO (matriculado) para ${apiData.idInscripcion}`);
+      return "VALIDADO";
+    }
+    
+    // Si tiene pago verificado (flag temporal), VALIDADO
+    if ((apiData as any)._pagoVerificado) {
+      console.log(`✅ Estado: VALIDADO (pago verificado) para ${apiData.idInscripcion}`);
+      return "VALIDADO";
+    }
+    
+    // Por defecto, PENDIENTE
+    console.log(`⏳ Estado: PENDIENTE para ${apiData.idInscripcion}`);
     return "PENDIENTE";
   }
-}
+
+  // Determinar estado basado en matrícula
+  private getEstadoFromInscripcion(
+    matricula: boolean, 
+    facturas?: { verificacionPago: boolean }[]
+  ): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
+    
+    // Si ya está matriculado, está validado
+    if (matricula) {
+      return "VALIDADO";
+    }
+    
+    // Por defecto está pendiente (las facturas se verificarán por separado)
+    return "PENDIENTE";
+  }
+
+  // Nuevo método para verificar estado con facturas
+  async getEstadoWithFacturas(inscripcionId: number, matricula: boolean): Promise<"PENDIENTE" | "VALIDADO" | "RECHAZADO"> {
+    try {
+      // Si ya está matriculado, está validado
+      if (matricula) {
+        return "VALIDADO";
+      }
+
+      // Verificar si tiene facturas verificadas
+      const authHeaders = authService.getAuthHeader();
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      const response = await fetch(`${API_BASE_URL}/facturas/inscripcion/${inscripcionId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const tieneFacturaVerificada = data.data.some((factura: any) => factura.verificacionPago === true);
+          if (tieneFacturaVerificada) {
+            return "VALIDADO";
+          }
+        }
+      }
+
+      return "PENDIENTE";
+    } catch (error) {
+      console.warn('Error verificando facturas para estado:', error);
+      return matricula ? "VALIDADO" : "PENDIENTE";
+    }
+  }
   // Funciones auxiliares para la UI
   getStatusBadge(estado: string) {
     switch (estado.toUpperCase()) {
@@ -532,6 +712,37 @@ class InscriptionService {
     // Solo contador y admin pueden validar
     // Solo se pueden validar inscripciones PENDIENTES
     return (userType === 'accountant' || userType === 'admin') && inscription.estado === 'PENDIENTE';
+  }
+
+  // 🆕 VERIFICAR SI EL ADMIN PUEDE MATRICULAR
+  async canMatriculate(inscripcionId: number, userType: 'admin' | 'accountant'): Promise<boolean> {
+    try {
+      if (userType !== 'admin') return false;
+
+      // Verificar si tiene facturas verificadas
+      const authHeaders = authService.getAuthHeader();
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      const response = await fetch(`${API_BASE_URL}/facturas/inscripcion/${inscripcionId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data && Array.isArray(data.data)) {
+          // Solo puede matricular si hay facturas verificadas
+          return data.data.some((factura: any) => factura.verificacionPago === true);
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.warn('Error verificando si puede matricular:', error);
+      return false;
+    }
   }
 
   // Obtener campos editables según rol
