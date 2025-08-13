@@ -40,6 +40,10 @@ interface UseInscriptionControllerReturn {
   
   // 🆕 VALIDACIÓN DE PAGOS
   onPaymentValidated: () => Promise<void>;
+  
+  // 🆕 MATRICULACIÓN
+  matricularInscripcion: (inscriptionId: number) => Promise<void>;
+  isMatriculating: boolean;
 }
 
 export const useInscriptionController = (): UseInscriptionControllerReturn => {
@@ -55,6 +59,9 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedInscriptionForDelete, setSelectedInscriptionForDelete] = useState<InscriptionData | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // 🆕 MATRICULACIÓN
+  const [isMatriculating, setIsMatriculating] = useState(false);
   
   
   // Estados de paginación
@@ -352,6 +359,42 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     await forceRefresh();
   }, [forceRefresh]);
 
+  // 🆕 MATRICULAR INSCRIPCIÓN
+  const matricularInscripcion = useCallback(async (inscriptionId: number) => {
+    try {
+      setIsMatriculating(true);
+      setMessage(null);
+
+      console.log('🎓 Iniciando proceso de matriculación para inscripción:', inscriptionId);
+
+      // Usar el método específico de matriculación del service
+      const response = await inscriptionService.matricularInscripcion(inscriptionId);
+
+      if (response.success) {
+        setMessage({
+          type: 'success',
+          text: 'Matrícula iniciada exitosamente. Procesando integraciones Moodle y Telegram...'
+        });
+
+        // Refrescar los datos después de un pequeño delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await forceRefresh();
+
+        console.log('✅ Proceso de matriculación completado exitosamente');
+      } else {
+        throw new Error(response.message || 'Error al matricular inscripción');
+      }
+    } catch (error: any) {
+      console.error('❌ Error en matriculación:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'Error al matricular la inscripción'
+      });
+    } finally {
+      setIsMatriculating(false);
+    }
+  }, [forceRefresh]);
+
 
   return {
     // Estado
@@ -388,5 +431,9 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
     
     // 🆕 VALIDACIÓN DE PAGOS
     onPaymentValidated,
+    
+    // 🆕 MATRICULACIÓN
+    matricularInscripcion,
+    isMatriculating,
   };
 };

@@ -19,18 +19,15 @@ export const EnrollmentSection: React.FC<EnrollmentSectionProps> = ({
   isPaymentValidated,
   onEnrollmentCompleted
 }) => {
-  const { updateInscription, isUpdating } = useInscriptionController();
+  const { matricularInscripcion, isMatriculating } = useInscriptionController();
   const [error, setError] = useState<string | null>(null);
 
   const handleStartEnrollment = async () => {
     setError(null);
     
     try {
-      // Actualizar la inscripción para activar la matrícula
-      await updateInscription({
-        idInscripcion: inscription.idInscripcion,
-        matricula: true
-      });
+      // Usar el método específico de matriculación
+      await matricularInscripcion(inscription.idInscripcion);
       
       console.log('✅ Matrícula iniciada exitosamente');
       onEnrollmentCompleted?.();
@@ -161,12 +158,32 @@ export const EnrollmentSection: React.FC<EnrollmentSectionProps> = ({
 
         {/* Estado de matrícula */}
         {inscription.matricula ? (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription className="text-green-800">
-              <strong>✅ Participante matriculado exitosamente.</strong> El participante ya está inscrito en el curso y puede acceder a todas las actividades académicas.
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription className="text-green-800">
+                <strong>✅ Participante matriculado exitosamente.</strong> El participante ya está inscrito en el curso y puede acceder a todas las actividades académicas.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h5 className="font-medium text-green-800 mb-2">🎯 Integraciones Activadas</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-green-700">
+                    <strong>Moodle:</strong> Cuenta creada y matriculado al curso
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-green-700">
+                    <strong>Telegram:</strong> Invitación al grupo del curso enviada
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             <Alert className="border-blue-200 bg-blue-50">
@@ -176,22 +193,46 @@ export const EnrollmentSection: React.FC<EnrollmentSectionProps> = ({
               </AlertDescription>
             </Alert>
 
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <h5 className="font-medium text-yellow-800 mb-2">¿Qué sucede al iniciar la matrícula?</h5>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                <li>• El participante será oficialmente matriculado en el curso</li>
-                <li>• Se activará el acceso a las plataformas educativas (Moodle, Telegram)</li>
-                <li>• El participante recibirá notificaciones de confirmación</li>
-                <li>• Se generarán los registros académicos correspondientes</li>
-              </ul>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h5 className="font-medium text-blue-800 mb-3">🚀 Proceso Automático de Matrícula</h5>
+              <div className="space-y-2 text-sm text-blue-700">
+                <div className="flex items-start space-x-2">
+                  <span className="font-semibold text-blue-800">1.</span>
+                  <div>
+                    <p className="font-medium">Creación de cuenta Moodle</p>
+                    <p className="text-blue-600">Se genera automáticamente la cuenta del participante en Moodle</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="font-semibold text-blue-800">2.</span>
+                  <div>
+                    <p className="font-medium">Inscripción al curso</p>
+                    <p className="text-blue-600">El sistema registra al participante en el curso correspondiente</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="font-semibold text-blue-800">3.</span>
+                  <div>
+                    <p className="font-medium">Grupo de Telegram</p>
+                    <p className="text-blue-600">Se crea el grupo por curso (si no existe) y se agrega al participante</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="font-semibold text-blue-800">4.</span>
+                  <div>
+                    <p className="font-medium">Notificaciones</p>
+                    <p className="text-blue-600">El participante recibe confirmaciones y enlaces de acceso</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <Button
               onClick={handleStartEnrollment}
-              disabled={isUpdating}
+              disabled={isMatriculating}
               className="bg-indigo-600 hover:bg-indigo-700 text-white w-full"
             >
-              {isUpdating ? (
+              {isMatriculating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Iniciando Matrícula...
