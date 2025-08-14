@@ -2,7 +2,7 @@
 import { LoginCredentials, LoginResponse, User } from '@/models/login/auth';
 import { TokenManager } from '@/lib/tokenManager';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 export class AuthService {
   // Login del usuario
@@ -77,20 +77,41 @@ export class AuthService {
   async logout(): Promise<void> {
     try {
       const refreshToken = TokenManager.getRefreshToken();
+      const accessToken = TokenManager.getAccessToken();
       
-      if (refreshToken) {
+      if (refreshToken && accessToken) {
         // Intentar cerrar sesión en el servidor
         try {
-          await fetch(`${API_BASE_URL}/auth/logout`, {
+          console.log('🔄 Intentando logout en servidor...', { 
+            url: `${API_BASE_URL}/auth/logout`,
+            hasRefreshToken: !!refreshToken,
+            hasAccessToken: !!accessToken 
+          });
+          
+          const response = await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ refreshToken }),
           });
+          
+          console.log('📡 Respuesta logout servidor:', {
+            status: response.status,
+            ok: response.ok
+          });
+          
+          if (response.ok) {
+            console.log('✅ Sesión cerrada en servidor');
+          } else {
+            console.warn('⚠️ Logout falló en servidor:', response.status);
+          }
         } catch (error) {
           console.warn('⚠️ Error cerrando sesión en servidor:', error);
         }
+      } else {
+        console.log('⚠️ No hay tokens para logout en servidor');
       }
 
       // Limpiar datos locales siempre

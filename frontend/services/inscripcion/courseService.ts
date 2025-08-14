@@ -5,6 +5,14 @@ import { Course, CreateCourseData, UpdateCourseData, CourseFilters, CourseApiRes
 class CourseService {
   private readonly baseUrl = '/cursos';
 
+  // Función para convertir fecha ISO a fecha local (evita problemas de timezone)
+  private parseLocalDate(isoString: string): Date {
+    // Tomar solo la parte de fecha (YYYY-MM-DD) e interpretar como local
+    const datePart = isoString.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+    return new Date(year, month - 1, day); // month - 1 porque los meses en JS van de 0-11
+  }
+
   // 🆕 RF-04.1 CREAR CURSO
   async createCourse(courseData: CreateCourseData): Promise<CourseApiResponse<Course>> {
     try {
@@ -19,8 +27,8 @@ class CourseService {
           ...response.data,
           data: {
             ...response.data.data,
-            fechaInicioCurso: new Date(response.data.data.fechaInicioCurso),
-            fechaFinCurso: new Date(response.data.data.fechaFinCurso),
+            fechaInicioCurso: this.parseLocalDate(response.data.data.fechaInicioCurso),
+            fechaFinCurso: this.parseLocalDate(response.data.data.fechaFinCurso),
             valorCurso: Number(response.data.data.valorCurso)
           }
         };
@@ -77,8 +85,8 @@ class CourseService {
       if (response.data.success) {
         const courses = response.data.data.map(course => ({
           ...course,
-          fechaInicioCurso: new Date(course.fechaInicioCurso),
-          fechaFinCurso: new Date(course.fechaFinCurso),
+          fechaInicioCurso: this.parseLocalDate(course.fechaInicioCurso),
+          fechaFinCurso: this.parseLocalDate(course.fechaFinCurso),
           valorCurso: Number(course.valorCurso)
         }));
         
@@ -114,8 +122,8 @@ class CourseService {
           ...response.data,
           data: {
             ...response.data.data,
-            fechaInicioCurso: new Date(response.data.data.fechaInicioCurso),
-            fechaFinCurso: new Date(response.data.data.fechaFinCurso),
+            fechaInicioCurso: this.parseLocalDate(response.data.data.fechaInicioCurso),
+            fechaFinCurso: this.parseLocalDate(response.data.data.fechaFinCurso),
             valorCurso: Number(response.data.data.valorCurso)
           }
         };
@@ -161,8 +169,8 @@ class CourseService {
           modalidadCurso: course.modalidadCurso ?? '',
           nombreCurso: course.nombreCurso ?? '',
           valorCurso: Number(course.valorCurso),
-          fechaInicioCurso: new Date(course.fechaInicioCurso),
-          fechaFinCurso: new Date(course.fechaFinCurso),
+          fechaInicioCurso: this.parseLocalDate(course.fechaInicioCurso),
+          fechaFinCurso: this.parseLocalDate(course.fechaFinCurso),
           descripcionCurso: course.descripcionCurso ?? ''
         }));
       }
@@ -194,8 +202,8 @@ class CourseService {
       if (response.data.success) {
         const courses = response.data.data.map(course => ({
           ...course,
-          fechaInicioCurso: new Date(course.fechaInicioCurso),
-          fechaFinCurso: new Date(course.fechaFinCurso),
+          fechaInicioCurso: this.parseLocalDate(course.fechaInicioCurso),
+          fechaFinCurso: this.parseLocalDate(course.fechaFinCurso),
           valorCurso: Number(course.valorCurso)
         }));
         
@@ -259,8 +267,8 @@ class CourseService {
         const course = response.data.data;
         return {
           ...course,
-          fechaInicioCurso: new Date(course.fechaInicioCurso),
-          fechaFinCurso: new Date(course.fechaFinCurso),
+          fechaInicioCurso: this.parseLocalDate(course.fechaInicioCurso),
+          fechaFinCurso: this.parseLocalDate(course.fechaFinCurso),
           valorCurso: Number(course.valorCurso)
         };
       }
@@ -291,10 +299,12 @@ class CourseService {
   }
 
   formatDate(date: Date): string {
+    // Asegurar que se use la fecha local sin conversión de timezone
     return new Intl.DateTimeFormat('es-EC', {
       year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
+      month: '2-digit', 
+      day: '2-digit',
+      timeZone: 'America/Guayaquil' // Zona horaria de Ecuador
     }).format(date);
   }
 

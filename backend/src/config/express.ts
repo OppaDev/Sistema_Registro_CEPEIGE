@@ -51,6 +51,10 @@ export function configureExpress(app: Application): void {
     limit: '10mb' 
   }));
 
+  // Servir archivos estáticos desde /uploads
+  const uploadsPath = process.env['UPLOAD_PATH'] || './uploads';
+  app.use('/uploads', express.static(uploadsPath));
+
   // Logging
   if (process.env['NODE_ENV'] === 'development') {
     app.use(morgan('dev'));

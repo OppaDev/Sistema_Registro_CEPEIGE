@@ -49,8 +49,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
         descripcionCurso: course.descripcionCurso,
         modalidadCurso: course.modalidadCurso,
         valorCurso: course.valorCurso,
-        fechaInicioCurso: course.fechaInicioCurso.toISOString().split('T')[0],
-        fechaFinCurso: course.fechaFinCurso.toISOString().split('T')[0]
+        fechaInicioCurso: course.fechaInicioCurso.toLocaleDateString('en-CA'), // formato YYYY-MM-DD
+        fechaFinCurso: course.fechaFinCurso.toLocaleDateString('en-CA') // formato YYYY-MM-DD
       });
     } else {
       // Reset para crear nuevo
@@ -139,6 +139,14 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Función para convertir fecha string a ISO con hora local (evita problemas de timezone)
+  const formatDateForBackend = (dateString: string): string => {
+    if (!dateString) return dateString;
+    // Crear fecha como local (no UTC) y convertir a ISO
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toISOString();
+  };
+
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,14 +156,21 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
     }
 
     try {
+      // Preparar datos con fechas correctamente formateadas
+      const preparedData = {
+        ...formData,
+        fechaInicioCurso: formatDateForBackend(formData.fechaInicioCurso),
+        fechaFinCurso: formatDateForBackend(formData.fechaFinCurso)
+      };
+
       if (isEditing && course) {
         const updateData: UpdateCourseData = {
           idCurso: course.idCurso,
-          ...formData
+          ...preparedData
         };
         await onSubmit(updateData);
       } else {
-        await onSubmit(formData);
+        await onSubmit(preparedData);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
