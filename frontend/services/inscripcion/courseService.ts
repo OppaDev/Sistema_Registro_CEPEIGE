@@ -6,9 +6,14 @@ class CourseService {
   private readonly baseUrl = '/cursos';
 
   // Función para convertir fecha ISO a fecha local (evita problemas de timezone)
-  private parseLocalDate(isoString: string): Date {
-    // Tomar solo la parte de fecha (YYYY-MM-DD) e interpretar como local
-    const datePart = isoString.split('T')[0];
+  private parseLocalDate(dateInput: string | Date): Date {
+    // Si ya es un Date, devolverlo tal como está
+    if (dateInput instanceof Date) {
+      return dateInput;
+    }
+    
+    // Si es string, parsearlo
+    const datePart = dateInput.split('T')[0];
     const [year, month, day] = datePart.split('-').map(Number);
     return new Date(year, month - 1, day); // month - 1 porque los meses en JS van de 0-11
   }
