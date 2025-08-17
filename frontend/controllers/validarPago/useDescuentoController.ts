@@ -26,7 +26,7 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdating] = useState(false);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -54,8 +54,9 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
       setDescuento(newDescuento);
       console.log('✅ Descuento creado exitosamente:', newDescuento);
       return newDescuento;
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al crear el descuento';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al crear el descuento';
       setError(errorMessage);
       console.error('❌ Error creating descuento:', error);
       return null;
@@ -73,8 +74,9 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
       setDescuento(descuentoEncontrado);
       console.log('✅ Descuento encontrado:', descuentoEncontrado);
       return descuentoEncontrado;
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al obtener el descuento';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al obtener el descuento';
       setError(errorMessage);
       console.error('❌ Error fetching descuento:', error);
       return null;
@@ -92,8 +94,9 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
       setDescuentos(descuentos);
       console.log('✅ Descuentos obtenidos:', descuentos);
       return descuentos;
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al obtener los descuentos';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al obtener los descuentos';
       setError(errorMessage);
       console.error('❌ Error fetching descuentos:', error);
       return [];

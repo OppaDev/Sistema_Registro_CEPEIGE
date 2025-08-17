@@ -22,7 +22,7 @@ interface UseFacturaControllerReturn {
 
 export const useFacturaController = (): UseFacturaControllerReturn => {
   const [factura, setFactura] = useState<FacturaData | null>(null);
-  const [facturas, setFacturas] = useState<FacturaData[]>([]);
+  const [facturas] = useState<FacturaData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -46,8 +46,9 @@ export const useFacturaController = (): UseFacturaControllerReturn => {
       setFactura(newFactura);
       console.log('✅ Factura creada exitosamente:', newFactura);
       return newFactura;
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al crear la factura';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al crear la factura';
       setError(errorMessage);
       console.error('❌ Error creating factura:', error);
       return null;
@@ -72,8 +73,9 @@ export const useFacturaController = (): UseFacturaControllerReturn => {
         console.log('ℹ️ No se encontró factura para la inscripción:', inscripcionId);
         return null;
       }
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al obtener la factura';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al obtener la factura';
       setError(errorMessage);
       console.error('❌ Error fetching factura:', error);
       return null;
@@ -91,8 +93,9 @@ export const useFacturaController = (): UseFacturaControllerReturn => {
       setFactura(facturaActualizada);
       console.log('✅ Pago verificado exitosamente:', facturaActualizada);
       return true;
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al verificar el pago';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al verificar el pago';
       setError(errorMessage);
       console.error('❌ Error verifying payment:', error);
       return false;

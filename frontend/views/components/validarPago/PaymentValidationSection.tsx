@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InscriptionData } from '@/models/inscripcion_completa/inscription';
-import { FacturaData } from '@/models/validarPago/factura';
+import { CreateFacturaData } from '@/models/validarPago/factura';
 import { useFacturaController } from '@/controllers/validarPago/useFacturaController';
 import { FiscalDataForm } from './FiscalDataForm';
-import { CheckCircle, XCircle, Clock, Receipt, AlertCircle, Eye, Download } from 'lucide-react';
+import { CheckCircle, Clock, Receipt, AlertCircle, Eye, Download } from 'lucide-react';
 
 interface PaymentValidationSectionProps {
   inscription: InscriptionData;
@@ -63,7 +63,7 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
     }
   }, [factura]);
 
-  const handleCreateFactura = async (fiscalData: any) => {
+  const handleCreateFactura = async (fiscalData: CreateFacturaData) => {
     const result = await createFactura(fiscalData);
     if (result) {
       setShowFiscalForm(false);
@@ -262,7 +262,7 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-yellow-800">
                     <strong>Paso final:</strong> Revise los datos fiscales y el comprobante de pago. Una vez que valide el pago, 
-                    el participante pasará a estado "Validado" y el administrador podrá proceder con descuentos y matrícula.
+                    el participante pasará a estado &quot;Validado&quot; y el administrador podrá proceder con descuentos y matrícula.
                   </AlertDescription>
                 </Alert>
                 
@@ -291,7 +291,7 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription className="text-green-800">
-                  <strong>✅ Pago validado exitosamente.</strong> El participante ahora está en estado "Validado" 
+                  <strong>✅ Pago validado exitosamente.</strong> El participante ahora está en estado &quot;Validado&quot; 
                   y el administrador puede proceder con la gestión de descuentos y matrícula.
                 </AlertDescription>
               </Alert>

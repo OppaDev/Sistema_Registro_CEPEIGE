@@ -31,8 +31,9 @@ export const EnrollmentSection: React.FC<EnrollmentSectionProps> = ({
       
       console.log('✅ Matrícula iniciada exitosamente');
       onEnrollmentCompleted?.();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Error al iniciar la matrícula';
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = errorObj?.response?.data?.message || errorObj?.message || 'Error al iniciar la matrícula';
       setError(errorMessage);
       console.error('❌ Error starting enrollment:', error);
     }

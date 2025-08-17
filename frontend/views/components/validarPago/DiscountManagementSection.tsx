@@ -25,8 +25,6 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
   onDiscountApplied
 }) => {
   const {
-    descuento,
-    loading,
     error,
     isCreating,
     createDescuento,
@@ -110,7 +108,7 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
     }
   };
 
-  const handleInputChange = (field: keyof DescuentoFormData, value: any) => {
+  const handleInputChange = (field: keyof DescuentoFormData, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
