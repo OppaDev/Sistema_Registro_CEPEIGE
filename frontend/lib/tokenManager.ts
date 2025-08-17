@@ -1,4 +1,6 @@
 // utils/tokenManager.ts - NUEVO ARCHIVO
+import { User } from '@/models/login/auth';
+
 const ACCESS_TOKEN_KEY = 'cepeige_access_token';
 const REFRESH_TOKEN_KEY = 'cepeige_refresh_token';
 const USER_KEY = 'cepeige_user';
@@ -29,14 +31,14 @@ export class TokenManager {
   }
 
   // Guardar datos del usuario
-  static setUser(user: any): void {
+  static setUser(user: User): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
   }
 
   // Obtener datos del usuario
-  static getUser(): any | null {
+  static getUser(): User | null {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem(USER_KEY);
       return userData ? JSON.parse(userData) : null;

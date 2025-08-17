@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Save, User, FileText, BookOpen } from 'lucide-react';
+import { X, Save, User, FileText } from 'lucide-react';
 import { Edit } from 'lucide-react'; // Icono para editar
 
 interface EditInscriptionModalProps {
@@ -158,10 +158,14 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
         if (inscriptionsData.success && inscriptionsData.data) {
           // Obtener todos los cursos donde ya está inscrito este participante
           participantCourses = inscriptionsData.data
-            .filter((insc: any) => 
-              insc.datosPersonales.ciPasaporte === inscription.participante.ciPasaporte
-            )
-            .map((insc: any) => insc.curso.idCurso);
+            .filter((insc: unknown) => {
+              const typedInsc = insc as { datosPersonales: { ciPasaporte: string }; curso: { idCurso: number } };
+              return typedInsc.datosPersonales.ciPasaporte === inscription.participante.ciPasaporte;
+            })
+            .map((insc: unknown) => {
+              const typedInsc = insc as { curso: { idCurso: number } };
+              return typedInsc.curso.idCurso;
+            });
           
           console.log('🎓 Cursos donde ya está inscrito el participante:', participantCourses);
         }
@@ -194,8 +198,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
         setCoursesError('Solo está disponible el curso actual. No hay otros cursos disponibles para cambio.');
       }
       
-    } catch (error: any) {
-      const errorMessage = error.message || 'Error de conexión al cargar cursos';
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
+      const errorMessage = errorObj.message || 'Error de conexión al cargar cursos';
       console.error('❌ Error cargando cursos:', error);
       setCoursesError(errorMessage);
       setAvailableCourses([]);
@@ -246,8 +251,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
         profesion: true,
         institucion: true
       }).parse(formData.participante);
-    } catch (error: any) {
-      error.errors?.forEach((err: any) => {
+    } catch (error: unknown) {
+      const errorObj = error as { errors?: Array<{ path?: string[]; message: string }> };
+      errorObj.errors?.forEach((err) => {
         if (err.path?.[0]) {
           newErrors[`participante.${err.path[0]}`] = err.message;
         }
@@ -257,8 +263,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
     // Validar datos de facturación
     try {
       billingSchema.parse(formData.facturacion);
-    } catch (error: any) {
-      error.errors?.forEach((err: any) => {
+    } catch (error: unknown) {
+      const errorObj = error as { errors?: Array<{ path?: string[]; message: string }> };
+      errorObj.errors?.forEach((err) => {
         if (err.path?.[0]) {
           newErrors[`facturacion.${err.path[0]}`] = err.message;
         }

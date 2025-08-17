@@ -3,7 +3,6 @@
 import React from 'react';
 import { InscriptionData } from '@/models/inscripcion_completa/inscription';
 import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, Trash2, AlertTriangle } from 'lucide-react';

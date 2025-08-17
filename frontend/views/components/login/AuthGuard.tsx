@@ -12,7 +12,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
-  const { isAuthenticated, isLoading, userType, user } = useAuth();
+  const { isAuthenticated, isLoading, userType } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 

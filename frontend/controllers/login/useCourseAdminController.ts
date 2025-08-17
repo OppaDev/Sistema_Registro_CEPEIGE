@@ -122,11 +122,12 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error cargando cursos:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al cargar los cursos'
+        text: errorObj.message || 'Error al cargar los cursos'
       });
       setCourses([]);
       setTotalItems(0);
@@ -171,11 +172,12 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error creando curso:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al crear el curso'
+        text: errorObj.message || 'Error al crear el curso'
       });
     } finally {
       setIsCreating(false);
@@ -205,11 +207,12 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error actualizando curso:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al actualizar el curso'
+        text: errorObj.message || 'Error al actualizar el curso'
       });
     } finally {
       setIsUpdating(false);
@@ -239,11 +242,12 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error eliminando curso:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al eliminar el curso'
+        text: errorObj.message || 'Error al eliminar el curso'
       });
     } finally {
       setIsDeleting(false);
@@ -272,7 +276,7 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
   }, []);
 
   const openDeleteModal = useCallback((course: Course) => {
-    if (!courseService.canDeleteCourse(course)) {
+    if (!courseService.canDeleteCourse()) {
       setMessage({
         type: 'error',
         text: 'No se puede eliminar un curso que ya ha iniciado'

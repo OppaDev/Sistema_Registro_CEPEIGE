@@ -86,14 +86,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       console.log('✅ Usuario autenticado:', savedUser.email);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error inicializando auth:', error);
       TokenManager.clearAll();
       setAuthState({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: error.message || 'Error de autenticación',
+        error: errorObj.message || 'Error de autenticación',
       });
     }
   };
@@ -130,12 +131,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         throw new Error(response.message || 'Error en el login');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ AuthContext: Error en login:', error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
-        error: error.message || 'Error al iniciar sesión',
+        error: errorObj.message || 'Error al iniciar sesión',
         isAuthenticated: false,
         user: null,
       }));
@@ -158,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       console.log('✅ Logout exitoso');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error en logout:', error);
       // Limpiar estado local aunque falle
       setAuthState({

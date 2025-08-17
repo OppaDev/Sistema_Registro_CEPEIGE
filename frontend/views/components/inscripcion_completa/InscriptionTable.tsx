@@ -276,7 +276,7 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
             {/* Vista móvil - Cards */}
             <div className="block lg:hidden">
               <div className="p-4 space-y-4">
-                {inscriptions.map((inscription, index) => (
+                {inscriptions.map((inscription) => (
                   <Card key={`mobile-${inscription.idInscripcion}`} className="border border-gray-200">
                     <CardContent className="p-4">
                   {/* Header con ID y Estado */}
