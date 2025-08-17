@@ -28,25 +28,30 @@ export const useBillingController = () => {
 
   const validateField = useCallback((name: string, value: string) => {
     try {
-      // Validar campo individual
-      billingSchema.pick({ [name]: true } as any).parse({ [name]: value });
+      // Validar campo individual usando la validación completa del schema
+      billingSchema.parse({ ...formData, [name]: value });
       setFieldErrors(prev => ({ ...prev, [name]: '' }));
-    } catch (error: any) {
-      if (error.errors?.[0]?.message) {
-        setFieldErrors(prev => ({ ...prev, [name]: error.errors[0].message }));
+    } catch (error: unknown) {
+      const zodError = error as { errors?: Array<{ message?: string; path?: Array<string> }> };
+      if (zodError.errors) {
+        const fieldError = zodError.errors.find(err => err.path?.[0] === name);
+        if (fieldError?.message) {
+          setFieldErrors(prev => ({ ...prev, [name]: fieldError.message || '' }));
+        }
       }
     }
-  }, []);
+  }, [formData]);
 
   const validateForm = useCallback((): boolean => {
     try {
       billingSchema.parse(formData);
       setFieldErrors({});
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const zodError = error as { errors?: Array<{ path?: Array<string>; message?: string }> };
       const errors: BillingFieldErrors = {};
-      error.errors?.forEach((err: any) => {
-        if (err.path?.[0]) {
+      zodError.errors?.forEach((err) => {
+        if (err.path?.[0] && err.message) {
           errors[err.path[0]] = err.message;
         }
       });
@@ -55,7 +60,7 @@ export const useBillingController = () => {
     }
   }, [formData]);
 
-  const submitForm = useCallback(async (): Promise<any> => {
+  const submitForm = useCallback(async (): Promise<unknown> => {
     if (!validateForm()) {
       setMessage({
         text: 'Por favor, corrige los errores en el formulario',
@@ -81,10 +86,11 @@ export const useBillingController = () => {
       } else {
         throw new Error(response.message || 'Error en el registro');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('Error submitting billing form:', error);
       setMessage({
-        text: error.message || 'Error al registrar los datos de facturación',
+        text: errorObj.message || 'Error al registrar los datos de facturación',
         type: 'error'
       });
       throw error;

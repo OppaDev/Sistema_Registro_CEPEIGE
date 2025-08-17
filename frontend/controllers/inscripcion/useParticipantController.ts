@@ -1,8 +1,8 @@
 // controllers/useParticipantController.ts - VERSIÓN COMPLETA ACTUALIZADA
 import { useState } from 'react';
 import { Participant, FormMessage, FieldErrors } from '@/models/inscripcion/participant';
-import { BillingData, billingSchema, BillingFormMessage, BillingFieldErrors } from '@/models/inscripcion/billing';
-import { PaymentReceipt, paymentReceiptSchema, PaymentFormMessage, PaymentFieldErrors } from '@/models/inscripcion/payment';
+import { BillingData, billingSchema, BillingFieldErrors } from '@/models/inscripcion/billing';
+import { PaymentReceipt, paymentReceiptSchema, PaymentFieldErrors } from '@/models/inscripcion/payment';
 import { Course } from '@/models/inscripcion/course';
 import { participantSchema } from '@/models/validation';
 import { participantService } from '@/services/inscripcion/participantService';
@@ -11,6 +11,29 @@ import { paymentService } from '@/services/inscripcion/paymentService';
 import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService'; // 🆕 NUEVA IMPORTACIÓN
 
 export type RegistrationStep = 'course' | 'personal' | 'billing' | 'payment' | 'summary';
+
+interface ParticipantResponseData {
+  idPersona: number;
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  numTelefono: string;
+  ciPasaporte: string;
+  pais: string;
+  provinciaEstado: string;
+  ciudad: string;
+  profesion: string;
+  institucion: string;
+}
+
+interface BillingResponseData {
+  idFacturacion: number;
+  razonSocial: string;
+  identificacionTributaria: string;
+  telefono: string;
+  correoFactura: string;
+  direccion: string;
+}
 
 const initialFormData: Participant = {
   selectedCourse: undefined,
@@ -60,10 +83,11 @@ export function useParticipantController() {
       
       participantSchema.shape[name as keyof typeof participantSchema.shape].parse(value);
       setFieldErrors(prev => ({ ...prev, [name]: '' }));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const zodError = error as { errors?: Array<{ message?: string }> };
       setFieldErrors(prev => ({ 
         ...prev, 
-        [name]: error.errors[0]?.message || 'Campo inválido' 
+        [name]: zodError.errors?.[0]?.message || 'Campo inválido' 
       }));
     }
   };
@@ -72,10 +96,11 @@ export function useParticipantController() {
     try {
       billingSchema.shape[name as keyof typeof billingSchema.shape].parse(value);
       setBillingErrors(prev => ({ ...prev, [name]: '' }));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const zodError = error as { errors?: Array<{ message?: string }> };
       setBillingErrors(prev => ({ 
         ...prev, 
-        [name]: error.errors[0]?.message || 'Campo inválido' 
+        [name]: zodError.errors?.[0]?.message || 'Campo inválido' 
       }));
     }
   };
@@ -143,7 +168,10 @@ export function useParticipantController() {
       }
 
       // Buscar inscripción duplicada
-      const duplicate = data.data.find((inscription: any) => 
+      const duplicate = data.data.find((inscription: { 
+        datosPersonales: { ciPasaporte: string }; 
+        curso: { idCurso: number } 
+      }) => 
         inscription.datosPersonales.ciPasaporte === ciPasaporte && 
         inscription.curso.idCurso === courseId
       );
@@ -209,7 +237,8 @@ export function useParticipantController() {
       const response = await participantService.register(formData);
       
       if (response.success) {
-        setPersonalDataId(response.data.idPersona); // 🆕 NOMBRE CORRECTO
+        const responseData = response.data as ParticipantResponseData;
+        setPersonalDataId(responseData.idPersona); // 🆕 NOMBRE CORRECTO
         setMessage({
           text: '✅ Datos personales registrados correctamente',
           type: 'success'
@@ -222,16 +251,20 @@ export function useParticipantController() {
       } else {
         throw new Error(response.message || 'Error en el registro');
       }
-    } catch (error: any) {
-      if (error.errors) {
-        const firstError = error.errors[0];
+    } catch (error: unknown) {
+      const errorObj = error as { 
+        errors?: Array<{ message?: string }>; 
+        message?: string 
+      };
+      if (errorObj.errors) {
+        const firstError = errorObj.errors[0];
         setMessage({
           text: firstError?.message || 'Por favor, revisa los datos ingresados',
           type: 'error'
         });
       } else {
         setMessage({
-          text: error.message || 'Error al procesar el registro. Intenta nuevamente.',
+          text: errorObj.message || 'Error al procesar el registro. Intenta nuevamente.',
           type: 'error'
         });
       }
@@ -250,7 +283,8 @@ export function useParticipantController() {
       const response = await billingService.create(billingData);
       
       if (response.success) {
-        setBillingDataId(response.data.idFacturacion); // 🆕 NOMBRE CORRECTO
+        const billingResponseData = response.data as BillingResponseData;
+        setBillingDataId(billingResponseData.idFacturacion); // 🆕 NOMBRE CORRECTO
         setMessage({
           text: '✅ Datos de facturación registrados correctamente',
           type: 'success'
@@ -263,16 +297,20 @@ export function useParticipantController() {
       } else {
         throw new Error(response.message || 'Error en el registro de facturación');
       }
-    } catch (error: any) {
-      if (error.errors) {
-        const firstError = error.errors[0];
+    } catch (error: unknown) {
+      const errorObj = error as { 
+        errors?: Array<{ message?: string }>; 
+        message?: string 
+      };
+      if (errorObj.errors) {
+        const firstError = errorObj.errors[0];
         setMessage({
           text: firstError?.message || 'Por favor, revisa los datos de facturación',
           type: 'error'
         });
       } else {
         setMessage({
-          text: error.message || 'Error al procesar los datos de facturación',
+          text: errorObj.message || 'Error al procesar los datos de facturación',
           type: 'error'
         });
       }
@@ -302,48 +340,6 @@ export function useParticipantController() {
     }
   };
 
-  // 🆕 FUNCIÓN PARA CREAR INSCRIPCIÓN COMPLETA
-  const createCompleteInscription = async () => {
-    try {
-      if (!formData.selectedCourse || !personalDataId || !billingDataId || !paymentData.idComprobante) {
-        throw new Error('Faltan datos para crear la inscripción');
-      }
-
-      console.log('🚀 Creando inscripción completa:', {
-        idCurso: formData.selectedCourse.courseId,
-        idPersona: personalDataId,
-        idFacturacion: billingDataId,
-        idComprobante: paymentData.idComprobante
-      });
-
-      const inscriptionData = {
-        idCurso: formData.selectedCourse.courseId,
-        idPersona: personalDataId,
-        idFacturacion: billingDataId,
-        idComprobante: paymentData.idComprobante
-      };
-
-      const response = await inscriptionService.createInscription(inscriptionData);
-
-      if (response.success) {
-        console.log('✅ Inscripción creada exitosamente:', response.data);
-        setMessage({
-          type: 'success',
-          text: '¡Inscripción completada exitosamente! Te contactaremos pronto.'
-        });
-        return response.data;
-      } else {
-        throw new Error(response.message);
-      }
-    } catch (error: any) {
-      console.error('❌ Error creando inscripción:', error);
-      setMessage({
-        type: 'error',
-        text: error.message || 'Error al completar la inscripción'
-      });
-      throw error;
-    }
-  };
   // ...en el mismo archivo
 const createCompleteInscriptionDirect = async (
   courseId: number | undefined,
@@ -374,10 +370,11 @@ const createCompleteInscriptionDirect = async (
     } else {
       throw new Error(response.message);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorObj = error as { message?: string };
     setMessage({
       type: 'error',
-      text: error.message || 'Error al completar la inscripción'
+      text: errorObj.message || 'Error al completar la inscripción'
     });
     throw error;
   }
@@ -428,11 +425,16 @@ const createCompleteInscriptionDirect = async (
       } else {
         throw new Error(uploadResponse.message || 'Error al subir el comprobante');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error en submitPaymentReceipt:', error);
       
-      if (error.errors) {
-        const firstError = error.errors[0];
+      const errorObj = error as { 
+        errors?: Array<{ message?: string }>; 
+        message?: string 
+      };
+      
+      if (errorObj.errors) {
+        const firstError = errorObj.errors[0];
         setMessage({
           text: firstError?.message || 'Por favor, revisa el archivo seleccionado',
           type: 'error'
@@ -440,7 +442,7 @@ const createCompleteInscriptionDirect = async (
         setPaymentErrors({ file: firstError?.message || 'Archivo inválido' });
       } else {
         setMessage({
-          text: error.message || 'Error al procesar el comprobante de pago',
+          text: errorObj.message || 'Error al procesar el comprobante de pago',
           type: 'error'
         });
       }
@@ -495,7 +497,7 @@ const createCompleteInscriptionDirect = async (
       );
 
       if (autocompleteResponse.success && autocompleteResponse.data) {
-        const existingData = autocompleteResponse.data;
+        const existingData = autocompleteResponse.data as ParticipantResponseData;
         
         // Llenar el formulario con los datos encontrados, pero mantener el correo actual si se cambió
         const currentEmail = formData.correo.trim();
@@ -532,7 +534,7 @@ const createCompleteInscriptionDirect = async (
           type: 'info'
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error en autocompletado:', error);
       setMessage({
         text: 'Error al buscar datos anteriores. Complete el formulario manualmente.',

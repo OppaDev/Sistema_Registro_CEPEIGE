@@ -1,6 +1,5 @@
 // services/inscriptionService.ts
-import { api } from '../api';
-import { EditInscriptionRequest, InscriptionData, FiscalInformationRequest } from '@/models/inscripcion_completa/inscription';
+import { EditInscriptionRequest, InscriptionData } from '@/models/inscripcion_completa/inscription';
 import { authService } from '@/services/login/authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -133,10 +132,11 @@ class InscriptionService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error fetching inscriptions:', error);
       throw new Error(
-        error.message || 'Error de conexión al obtener inscripciones'
+        errorObj.message || 'Error de conexión al obtener inscripciones'
       );
     }
   }
@@ -175,10 +175,11 @@ class InscriptionService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error fetching inscription:', error);
       throw new Error(
-        error.message || 'Error de conexión al obtener inscripción'
+        errorObj.message || 'Error de conexión al obtener inscripción'
       );
     }
   }
@@ -204,10 +205,11 @@ class InscriptionService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error creating inscription:', error);
       throw new Error(
-        error.message || 'Error al crear inscripción'
+        errorObj.message || 'Error al crear inscripción'
       );
     }
   }
@@ -258,7 +260,7 @@ class InscriptionService {
 
               if (facturaData.success && facturaData.data && Array.isArray(facturaData.data)) {
                 // Verificar si hay facturas con pago verificado
-                const facturaVerificada = facturaData.data.find((factura: any) => factura.verificacionPago === true);
+                const facturaVerificada = facturaData.data.find((factura: { verificacionPago?: boolean }) => factura.verificacionPago === true);
                 
                 if (facturaVerificada) {
                   console.log(`✅ Inscripción ${inscription.idInscripcion} tiene pago verificado! Factura:`, facturaVerificada);
@@ -353,7 +355,7 @@ class InscriptionService {
   private determinarEstadoFromApiData(apiData: InscriptionApiData & { _pagoVerificado?: boolean }): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
     console.log(`🎯 Determinando estado para inscripción ${apiData.idInscripcion}:`, {
       matricula: apiData.matricula,
-      _pagoVerificado: (apiData as any)._pagoVerificado
+      _pagoVerificado: (apiData as InscriptionApiData & { _pagoVerificado?: boolean })._pagoVerificado
     });
     
     // Si está matriculado, siempre VALIDADO
@@ -363,7 +365,7 @@ class InscriptionService {
     }
     
     // Si tiene pago verificado (flag temporal), VALIDADO
-    if ((apiData as any)._pagoVerificado) {
+    if ((apiData as InscriptionApiData & { _pagoVerificado?: boolean })._pagoVerificado) {
       console.log(`✅ Estado: VALIDADO (pago verificado) para ${apiData.idInscripcion}`);
       return "VALIDADO";
     }
@@ -375,8 +377,7 @@ class InscriptionService {
 
   // Determinar estado basado en matrícula
   private getEstadoFromInscripcion(
-    matricula: boolean, 
-    facturas?: { verificacionPago: boolean }[]
+    matricula: boolean
   ): "PENDIENTE" | "VALIDADO" | "RECHAZADO" {
     
     // Si ya está matriculado, está validado
@@ -410,7 +411,7 @@ class InscriptionService {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data && Array.isArray(data.data)) {
-          const tieneFacturaVerificada = data.data.some((factura: any) => factura.verificacionPago === true);
+          const tieneFacturaVerificada = data.data.some((factura: { verificacionPago?: boolean }) => factura.verificacionPago === true);
           if (tieneFacturaVerificada) {
             return "VALIDADO";
           }
@@ -486,7 +487,7 @@ class InscriptionService {
       const idPersona = inscription.datosPersonales.idPersona;
       const idFacturacion = inscription.datosFacturacion.idFacturacion;
       
-      const updatePromises: Promise<any>[] = [];
+      const updatePromises: Promise<unknown>[] = [];
       
       // 1. Actualizar datos personales si se proporcionaron
       if (updateData.datosPersonales && Object.keys(updateData.datosPersonales).length > 0) {
@@ -539,8 +540,9 @@ class InscriptionService {
       
       // Verificar que todas las respuestas sean exitosas
       for (const response of responses) {
-        if (!response.ok) {
-          const errorData = await response.json();
+        const typedResponse = response as Response;
+        if (!typedResponse.ok) {
+          const errorData = await typedResponse.json();
           throw new Error(errorData.message || 'Error en una de las actualizaciones');
         }
       }
@@ -554,10 +556,11 @@ class InscriptionService {
         message: 'Inscripción actualizada exitosamente'
       };
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error updating inscription:', error);
       throw new Error(
-        error.message || 'Error al actualizar inscripción'
+        errorObj.message || 'Error al actualizar inscripción'
       );
     }
   }
@@ -584,10 +587,11 @@ class InscriptionService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error deleting inscription:', error);
       throw new Error(
-        error.message || 'Error al eliminar la inscripción'
+        errorObj.message || 'Error al eliminar la inscripción'
       );
     }
   }
@@ -619,9 +623,10 @@ class InscriptionService {
       }
 
       return data.data || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error fetching courses for change:', error);
-      throw new Error(error.message || 'Error al obtener cursos disponibles');
+      throw new Error(errorObj.message || 'Error al obtener cursos disponibles');
     }
   }
 
@@ -659,10 +664,11 @@ class InscriptionService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error matriculating inscription:', error);
       throw new Error(
-        error.message || 'Error al matricular la inscripción'
+        errorObj.message || 'Error al matricular la inscripción'
       );
     }
   }
@@ -691,10 +697,11 @@ class InscriptionService {
       }
 
       return await response.blob();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error downloading receipt:', error);
       throw new Error(
-        error.message || 'Error al descargar el comprobante'
+        errorObj.message || 'Error al descargar el comprobante'
       );
     }
   }
@@ -734,7 +741,7 @@ class InscriptionService {
         const data = await response.json();
         if (data.success && data.data && Array.isArray(data.data)) {
           // Solo puede matricular si hay facturas verificadas
-          return data.data.some((factura: any) => factura.verificacionPago === true);
+          return data.data.some((factura: { verificacionPago?: boolean }) => factura.verificacionPago === true);
         }
       }
 

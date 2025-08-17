@@ -40,18 +40,19 @@ class CourseService {
       }
       
       throw new Error(response.data.message || 'Error al crear curso');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string }; status?: number }; request?: unknown; message?: string };
       console.error('❌ Error creating course:', error);
       
-      if (error.response) {
+      if (errorObj.response) {
         throw new Error(
-          error.response.data?.message || 
-          `Error del servidor: ${error.response.status}`
+          errorObj.response.data?.message || 
+          `Error del servidor: ${errorObj.response.status}`
         );
-      } else if (error.request) {
+      } else if (errorObj.request) {
         throw new Error('Error de conexión. Verifique que el servidor esté ejecutándose.');
       } else {
-        throw new Error(error.message || 'Error desconocido');
+        throw new Error(errorObj.message || 'Error desconocido');
       }
     }
   }
@@ -80,7 +81,7 @@ class CourseService {
         limit: limit.toString(),
         orderBy,
         order,
-        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+        ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
       });
 
       const response = await api.get<CourseApiResponse<Course[]>>(`${this.baseUrl}?${queryParams}`);
@@ -102,10 +103,11 @@ class CourseService {
       }
       
       throw new Error(response.data.message || 'Error al obtener cursos');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } } };
       console.error('❌ Error fetching admin courses:', error);
       throw new Error(
-        error.response?.data?.message || 
+        errorObj.response?.data?.message || 
         'Error de conexión al obtener cursos'
       );
     }
@@ -135,9 +137,10 @@ class CourseService {
       }
       
       throw new Error(response.data.message || 'Error al actualizar curso');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } } };
       console.error('❌ Error updating course:', error);
-      throw new Error(error.response?.data?.message || 'Error al actualizar curso');
+      throw new Error(errorObj.response?.data?.message || 'Error al actualizar curso');
     }
   }
 
@@ -155,9 +158,10 @@ class CourseService {
       }
       
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } } };
       console.error('❌ Error deleting course:', error);
-      throw new Error(error.response?.data?.message || 'Error al eliminar curso');
+      throw new Error(errorObj.response?.data?.message || 'Error al eliminar curso');
     }
   }
 
@@ -165,7 +169,7 @@ class CourseService {
   async getAvailableCourses(): Promise<Course[]> {
     try {
       console.log('🚀 Obteniendo cursos disponibles...');
-      const response = await api.get<CourseApiResponse<any[]>>(`${this.baseUrl}/disponibles`);
+      const response = await api.get<CourseApiResponse<Course[]>>(`${this.baseUrl}/disponibles`);
       console.log('📥 Respuesta cursos:', response.data);
       if (response.data.success) {
         return response.data.data.map(course => ({
@@ -180,17 +184,18 @@ class CourseService {
         }));
       }
       throw new Error(response.data.message || 'Error al obtener cursos');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string }; status?: number }; request?: unknown; message?: string };
       console.error('❌ Error fetching courses:', error);
-      if (error.response) {
+      if (errorObj.response) {
         throw new Error(
-          error.response.data?.message || 
-          `Error del servidor: ${error.response.status}`
+          errorObj.response.data?.message || 
+          `Error del servidor: ${errorObj.response.status}`
         );
-      } else if (error.request) {
+      } else if (errorObj.request) {
         throw new Error('Error de conexión. Verifique que el servidor esté ejecutándose.');
       } else {
-        throw new Error(error.message || 'Error desconocido');
+        throw new Error(errorObj.message || 'Error desconocido');
       }
     }
   }
@@ -224,12 +229,13 @@ class CourseService {
         success: false,
         message: response.data.message || 'Error al obtener cursos',
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { status?: number }; request?: unknown; message?: string };
       console.error('❌ Error en getAllCourses:', error);
       
       // Manejar errores de red
-      if (error.response) {
-        const status = error.response.status;
+      if (errorObj.response) {
+        const status = errorObj.response.status;
         if (status === 401) {
           return {
             success: false,
@@ -246,7 +252,7 @@ class CourseService {
           success: false,
           message: `Error del servidor: ${status}`,
         };
-      } else if (error.request) {
+      } else if (errorObj.request) {
         return {
           success: false,
           message: 'Error de conexión. Verifique su conexión a internet.',
@@ -255,7 +261,7 @@ class CourseService {
 
       return {
         success: false,
-        message: error.message || 'Error inesperado al obtener cursos',
+        message: errorObj.message || 'Error inesperado al obtener cursos',
       };
     }
   }
@@ -279,18 +285,19 @@ class CourseService {
       }
       
       throw new Error(response.data.message || 'Error al obtener curso');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string }; status?: number }; request?: unknown; message?: string };
       console.error('❌ Error fetching course:', error);
       
-      if (error.response) {
+      if (errorObj.response) {
         throw new Error(
-          error.response.data?.message || 
-          `Error del servidor: ${error.response.status}`
+          errorObj.response.data?.message || 
+          `Error del servidor: ${errorObj.response.status}`
         );
-      } else if (error.request) {
+      } else if (errorObj.request) {
         throw new Error('Error de conexión. Verifique que el servidor esté ejecutándose.');
       } else {
-        throw new Error(error.message || 'Error desconocido');
+        throw new Error(errorObj.message || 'Error desconocido');
       }
     }
   }
@@ -328,7 +335,7 @@ class CourseService {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  canDeleteCourse(course: Course): boolean {
+  canDeleteCourse(): boolean {
     // ✅ Permitir eliminar cualquier curso (incluidos los que ya pasaron)
     // El administrador tiene control total sobre la gestión de cursos
     return true;

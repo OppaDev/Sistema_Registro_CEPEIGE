@@ -1,7 +1,7 @@
 // controllers/useInscriptionController.ts
 import { useState, useEffect, useCallback } from 'react';
 import { EditInscriptionRequest, InscriptionData } from '@/models/inscripcion_completa/inscription';
-import { inscriptionService, InscriptionApiData } from '@/services/inscripcion_completa/inscriptionService';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 
 interface UseInscriptionControllerReturn {
   // Estado
@@ -116,11 +116,12 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error cargando inscripciones:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al cargar las inscripciones'
+        text: errorObj.message || 'Error al cargar las inscripciones'
       });
       setInscriptions([]);
       setTotalItems(0);
@@ -161,7 +162,7 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
           text: 'Mostrando datos en caché. Los datos más recientes no están disponibles.'
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error obteniendo detalles:', error);
       // Usar datos que ya tenemos como fallback
       setSelectedInscription(inscription);
@@ -293,11 +294,12 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
       } else {
         throw new Error(response.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error eliminando inscripción:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al eliminar la inscripción'
+        text: errorObj.message || 'Error al eliminar la inscripción'
       });
     } finally {
       setIsDeleting(false);
@@ -384,11 +386,12 @@ export const useInscriptionController = (): UseInscriptionControllerReturn => {
       } else {
         throw new Error(response.message || 'Error al matricular inscripción');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error en matriculación:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Error al matricular la inscripción'
+        text: errorObj.message || 'Error al matricular la inscripción'
       });
     } finally {
       setIsMatriculating(false);

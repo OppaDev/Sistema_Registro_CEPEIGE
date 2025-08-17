@@ -1,6 +1,7 @@
 // views/ParticipantRegistrationView.tsx - VERSIÓN COMPLETA ACTUALIZADA
 "use client";
 
+import Image from 'next/image';
 import { useParticipantController } from '@/controllers/inscripcion/useParticipantController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,7 +87,13 @@ export default function ParticipantRegistrationView() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <img src="/logo__cepeige.png" alt="Logo CEPEIGE" className="h-16 sm:h-20 lg:h-24" />
+            <Image 
+              src="/logo__cepeige.png" 
+              alt="Logo CEPEIGE" 
+              width={96} 
+              height={96} 
+              className="h-16 sm:h-20 lg:h-24 w-auto" 
+            />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 px-4">
@@ -225,7 +232,7 @@ export default function ParticipantRegistrationView() {
                           Protección de Datos Personales
                         </h4>
                         <p className="text-sm text-yellow-700 leading-relaxed">
-                          En conformidad con lo establecido en la <strong>Ley Orgánica de Protección de Datos Personales</strong> (en adelante, "LOPD") 
+                          En conformidad con lo establecido en la <strong>Ley Orgánica de Protección de Datos Personales</strong> (en adelante, &ldquo;LOPD&rdquo;) 
                           y demás normativa pertinente, se recopilarán y procesarán los siguientes datos personales, 
                           los cuales han sido proporcionados voluntariamente, tal como se detalla a continuación:
                         </p>
@@ -422,7 +429,6 @@ export default function ParticipantRegistrationView() {
               onBillingChange={handleBillingChangeWrapper}
               onBillingBlur={handleBillingBlur}
               onSubmit={submitBillingData}
-              onBack={() => goToStep('personal')}
             />
           </div>
         )}
@@ -441,7 +447,6 @@ export default function ParticipantRegistrationView() {
               isSubmitting={isSubmitting}
               onFileChange={handlePaymentFileChange}
               onSubmit={submitPaymentReceipt}
-              onBack={() => goToStep('billing')}
             />
           </div>
         )}

@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FormInput } from './FormInput';
 import { BillingData, BillingFieldErrors } from '@/models/inscripcion/billing';
 import { Receipt, Building2 } from 'lucide-react';
@@ -14,7 +13,6 @@ interface BillingFormProps {
   onBillingChange: (name: string, value: string) => void;
   onBillingBlur: (name: string, value: string) => void;
   onSubmit: () => void;
-  onBack: () => void;
 }
 
 export const BillingForm: React.FC<BillingFormProps> = ({
@@ -23,8 +21,7 @@ export const BillingForm: React.FC<BillingFormProps> = ({
   isSubmitting,
   onBillingChange,
   onBillingBlur,
-  onSubmit,
-  onBack
+  onSubmit
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

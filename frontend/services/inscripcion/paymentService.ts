@@ -7,7 +7,7 @@ export interface PaymentReceiptUploadData {
   file: File;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message: string;
@@ -44,7 +44,7 @@ class PaymentService {
         },
         message: data.message
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error uploading payment receipt:', error);
       throw error;
     }
@@ -76,7 +76,7 @@ class PaymentService {
         },
         message: data.message
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error getting payment receipt by ID:', error);
       throw error;
     }
@@ -98,7 +98,7 @@ class PaymentService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error deleting payment receipt:', error);
       throw error;
     }

@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PaymentReceipt, PaymentFieldErrors, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/models/inscripcion/payment';
+import { PaymentReceipt, PaymentFieldErrors } from '@/models/inscripcion/payment';
 import { paymentService } from '@/services/inscripcion/paymentService';
 import { Upload, FileText, Image, X, CheckCircle } from 'lucide-react';
 
@@ -13,7 +13,6 @@ interface PaymentReceiptUploadProps {
   isSubmitting: boolean;
   onFileChange: (file: File | null) => void;
   onSubmit: () => void;
-  onBack: () => void;
 }
 
 export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
@@ -21,8 +20,7 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
   paymentErrors,
   isSubmitting,
   onFileChange,
-  onSubmit,
-  onBack
+  onSubmit
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -77,6 +75,7 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
 
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) {
+      // eslint-disable-next-line jsx-a11y/alt-text
       return <Image className="h-8 w-8 text-blue-500" />;
     } else if (type === 'application/pdf') {
       return <FileText className="h-8 w-8 text-red-500" />;

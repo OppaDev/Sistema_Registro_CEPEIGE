@@ -36,9 +36,10 @@ export class CourseController {
       const courses = await courseService.getAvailableCourses();
       this.setCourses(courses);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('Error loading courses:', error);
-      this.setError(error.message || 'Error al cargar cursos');
+      this.setError(errorObj.message || 'Error al cargar cursos');
     } finally {
       this.setLoading(false);
     }
@@ -56,9 +57,10 @@ export class CourseController {
   async getCourseById(id: number): Promise<Course | null> {
     try {
       return await courseService.getCourseById(id);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('Error fetching course by ID:', error);
-      this.setError(error.message || 'Error al obtener curso');
+      this.setError(errorObj.message || 'Error al obtener curso');
       return null;
     }
   }
@@ -114,6 +116,7 @@ export function useCourseController() {
   // Auto-cargar cursos al montar el componente
   useEffect(() => {
     controller.loadAvailableCourses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
