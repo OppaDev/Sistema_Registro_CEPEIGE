@@ -29,14 +29,14 @@ export class TokenManager {
   }
 
   // Guardar datos del usuario
-  static setUser(user: any): void {
+  static setUser(user: Record<string, unknown>): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
   }
 
   // Obtener datos del usuario
-  static getUser(): any | null {
+  static getUser(): Record<string, unknown> | null {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem(USER_KEY);
       return userData ? JSON.parse(userData) : null;

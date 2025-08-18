@@ -24,8 +24,8 @@ services:
     image: bitnami/moodle:5.0.1-debian-12-r4
     container_name: moodle-test
     ports:
-      - "706:8080"
-      - "707:8443"
+      - "8080:8080"
+      - "8443:8443"
     dns:
       - 8.8.8.8
       - 8.8.4.4
