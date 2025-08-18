@@ -165,6 +165,52 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
     );
   }
 
+  // Si el participante ya está matriculado, no se pueden aplicar descuentos
+  if (inscription.matricula) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="bg-purple-50">
+          <CardTitle className="flex items-center justify-between text-lg text-purple-700">
+            <span className="flex items-center">
+              <Percent className="h-5 w-5 mr-2" />
+              Gestión de Descuentos
+            </span>
+            {getDiscountBadge()}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-red-800">
+              <strong>Participante ya matriculado:</strong> No se pueden aplicar descuentos después de que el participante ha sido matriculado al curso. Los descuentos deben aplicarse antes de la matrícula.
+            </AlertDescription>
+          </Alert>
+
+          {/* Mostrar descuento existente si lo hay */}
+          {inscription.descuento && (
+            <div className="bg-purple-50 p-4 rounded-lg mt-4">
+              <h4 className="font-medium text-purple-900 mb-3">Descuento Aplicado</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">Tipo:</span>
+                  <p className="text-gray-900">{inscription.descuento.tipoDescuento}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Valor:</span>
+                  <p className="text-gray-900 font-semibold">${Number(inscription.descuento.valorDescuento || 0).toFixed(2)} USD</p>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="font-medium text-gray-700">Descripción:</span>
+                  <p className="text-gray-900">{inscription.descuento.descripcionDescuento}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full">
       <CardHeader className="bg-purple-50">
