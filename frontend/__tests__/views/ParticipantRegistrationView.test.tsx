@@ -4,28 +4,58 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { mockCourses, mockPersonalData, mockBillingData } from '../fixtures/mockData';
 
+// Types for the mock component
+interface Course {
+  idCurso: number;
+  nombreCorto: string;
+  nombreLargo: string;
+  costoTotal: number;
+  activo: boolean;
+}
+
+interface PersonalData {
+  nombres?: string;
+  apellidos?: string;
+  ciPasaporte?: string;
+  correo?: string;
+  [key: string]: string | undefined;
+}
+
+interface BillingData {
+  razonSocial?: string;
+  ruc?: string;
+  [key: string]: string | undefined;
+}
+
+interface FormData {
+  curso: Course | null;
+  participante: PersonalData;
+  facturacion: BillingData;
+  comprobante: File | null;
+}
+
 // Mock del formulario completo de inscripción (ParticipantRegistrationView)
 const MockParticipantRegistrationView = () => {
   const [currentStep, setCurrentStep] = React.useState(1);
-  const [formData, setFormData] = React.useState({
-    curso: null as any,
-    participante: {} as any,
-    facturacion: {} as any,
-    comprobante: null as File | null
+  const [formData, setFormData] = React.useState<FormData>({
+    curso: null,
+    participante: {},
+    facturacion: {},
+    comprobante: null
   });
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitMessage, setSubmitMessage] = React.useState('');
 
-  const handleCourseSelect = (course: any) => {
-    setFormData({ ...formData, curso: course });
+  const handleCourseSelect = (course: Course | undefined) => {
+    setFormData({ ...formData, curso: course || null });
   };
 
-  const handlePersonalDataChange = (data: any) => {
+  const handlePersonalDataChange = (data: PersonalData) => {
     setFormData({ ...formData, participante: data });
   };
 
-  const handleBillingDataChange = (data: any) => {
+  const handleBillingDataChange = (data: BillingData) => {
     setFormData({ ...formData, facturacion: data });
   };
 
@@ -83,8 +113,8 @@ const MockParticipantRegistrationView = () => {
           
           {formData.curso && (
             <div data-testid="selected-course-info">
-              <p>Curso seleccionado: {(formData.curso as any).nombreLargo}</p>
-              <p>Costo: ${(formData.curso as any).costoTotal}</p>
+              <p>Curso seleccionado: {formData.curso.nombreLargo}</p>
+              <p>Costo: ${formData.curso.costoTotal}</p>
             </div>
           )}
           
@@ -168,7 +198,7 @@ const MockParticipantRegistrationView = () => {
           
           {formData.comprobante && (
             <div data-testid="file-preview">
-              Archivo: {(formData.comprobante as File).name}
+              Archivo: {formData.comprobante.name}
             </div>
           )}
           

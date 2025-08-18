@@ -5,7 +5,12 @@ import '@testing-library/jest-dom';
 import { mockValidFiles, mockInvalidFiles } from '../../fixtures/mockData';
 
 // Mock del componente PaymentReceiptUpload
-const MockPaymentReceiptUpload = ({ onFileUpload, onError }: any) => {
+interface MockPaymentReceiptUploadProps {
+  onFileUpload?: (file: File) => void;
+  onError?: (error: string) => void;
+}
+
+const MockPaymentReceiptUpload = ({ onFileUpload, onError }: MockPaymentReceiptUploadProps) => {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState('');
 
@@ -149,8 +154,6 @@ describe('PREF-004: Subir comprobante de pago (RF-01.4)', () => {
   });
 
   it('should reject invalid file types (only PNG, JPG, PDF allowed)', async () => {
-    const user = userEvent.setup();
-    
     render(<MockPaymentReceiptUpload onFileUpload={mockOnFileUpload} onError={mockOnError} />);
     
     const fileInput = screen.getByTestId('file-input');

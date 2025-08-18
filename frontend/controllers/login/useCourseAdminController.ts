@@ -182,6 +182,7 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
     } finally {
       setIsCreating(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshCourses]);
 
   // RF-04.3 ACTUALIZAR CURSO
@@ -217,6 +218,7 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
     } finally {
       setIsUpdating(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshCourses]);
 
   // RF-04.4 ELIMINAR CURSO
@@ -252,6 +254,7 @@ export const useCourseAdminController = (): UseCourseAdminControllerReturn => {
     } finally {
       setIsDeleting(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshCourses]);
 
   // Gestión de modales

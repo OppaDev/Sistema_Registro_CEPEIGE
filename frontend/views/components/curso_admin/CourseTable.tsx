@@ -106,7 +106,7 @@ export const CourseTable: React.FC<CourseTableProps> = ({
             {/* Vista móvil - Cards */}
             <div className="block lg:hidden">
               <div className="p-4 space-y-4">
-                {courses.map((course, index) => (
+                {courses.map((course) => (
                   <Card key={course.idCurso} className="border border-gray-200">
                     <CardContent className="p-4">
                       <div className="space-y-3">
@@ -270,14 +270,14 @@ export const CourseTable: React.FC<CourseTableProps> = ({
                             size="sm"
                             variant="ghost"
                             onClick={() => onDeleteCourse(course)}
-                            disabled={!courseService.canDeleteCourse(course)}
+                            disabled={!courseService.canDeleteCourse()}
                             className={`h-8 w-8 p-0 ${
-                              courseService.canDeleteCourse(course)
+                              courseService.canDeleteCourse()
                                 ? 'hover:bg-red-50 text-red-600'
                                 : 'text-gray-400 cursor-not-allowed'
                             }`}
                             title={
-                              courseService.canDeleteCourse(course)
+                              courseService.canDeleteCourse()
                                 ? 'Eliminar curso'
                                 : 'No se puede eliminar un curso que ya ha iniciado'
                             }

@@ -1,5 +1,5 @@
 // views/components/EditInscriptionModal.tsx - NUEVO ARCHIVO
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { InscriptionData, EditInscriptionRequest } from '@/models/inscripcion_completa/inscription';
 import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { courseService } from '@/services/inscripcion/courseService'; // ✅ AÑADIR IMPORT DEL COURSE SERVICE
@@ -59,70 +59,7 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Inicializar formulario cuando se abre el modal
-  useEffect(() => {
-    if (inscription && isOpen) {
-      setFormData({
-        participante: {
-          nombres: inscription.participante.nombres,
-          apellidos: inscription.participante.apellidos,
-          numTelefono: inscription.participante.numTelefono,
-          correo: inscription.participante.correo,
-          pais: inscription.participante.pais,
-          provinciaEstado: inscription.participante.provinciaEstado,
-          ciudad: inscription.participante.ciudad,
-          profesion: inscription.participante.profesion,
-          institucion: inscription.participante.institucion
-        },
-        facturacion: {
-          razonSocial: inscription.facturacion.razonSocial,
-          identificacionTributaria: inscription.facturacion.identificacionTributaria,
-          telefono: inscription.facturacion.telefono,
-          correoFactura: inscription.facturacion.correoFactura,
-          direccion: inscription.facturacion.direccion
-        },
-        nuevoCurso: inscription.curso.idCurso
-      });
-
-      // Cargar cursos disponibles si es admin
-      if (userType === 'admin') {
-        loadAvailableCourses();
-      }
-
-      setErrors({});
-      setHasChanges(false);
-    } else if (!isOpen) {
-      // LIMPIAR ESTADOS CUANDO SE CIERRA EL MODAL
-      setFormData({
-        participante: {
-          nombres: '',
-          apellidos: '',
-          numTelefono: '',
-          correo: '',
-          pais: '',
-          provinciaEstado: '',
-          ciudad: '',
-          profesion: '',
-          institucion: ''
-        },
-        facturacion: {
-          razonSocial: '',
-          identificacionTributaria: '',
-          telefono: '',
-          correoFactura: '',
-          direccion: ''
-        },
-        nuevoCurso: 0
-      });
-      setAvailableCourses([]);
-      setCoursesError(null);
-      setCoursesLoading(false);
-      setErrors({});
-      setHasChanges(false);
-    }
-  }, [inscription, isOpen, userType]);
-
-  const loadAvailableCourses = async () => {
+  const loadAvailableCourses = useCallback(async () => {
     if (!inscription) return;
     
     setCoursesLoading(true);
@@ -207,7 +144,70 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
     } finally {
       setCoursesLoading(false);
     }
-  };
+  }, [inscription]);
+
+  // Inicializar formulario cuando se abre el modal
+  useEffect(() => {
+    if (inscription && isOpen) {
+      setFormData({
+        participante: {
+          nombres: inscription.participante.nombres,
+          apellidos: inscription.participante.apellidos,
+          numTelefono: inscription.participante.numTelefono,
+          correo: inscription.participante.correo,
+          pais: inscription.participante.pais,
+          provinciaEstado: inscription.participante.provinciaEstado,
+          ciudad: inscription.participante.ciudad,
+          profesion: inscription.participante.profesion,
+          institucion: inscription.participante.institucion
+        },
+        facturacion: {
+          razonSocial: inscription.facturacion.razonSocial,
+          identificacionTributaria: inscription.facturacion.identificacionTributaria,
+          telefono: inscription.facturacion.telefono,
+          correoFactura: inscription.facturacion.correoFactura,
+          direccion: inscription.facturacion.direccion
+        },
+        nuevoCurso: inscription.curso.idCurso
+      });
+
+      // Cargar cursos disponibles si es admin
+      if (userType === 'admin') {
+        loadAvailableCourses();
+      }
+
+      setErrors({});
+      setHasChanges(false);
+    } else if (!isOpen) {
+      // LIMPIAR ESTADOS CUANDO SE CIERRA EL MODAL
+      setFormData({
+        participante: {
+          nombres: '',
+          apellidos: '',
+          numTelefono: '',
+          correo: '',
+          pais: '',
+          provinciaEstado: '',
+          ciudad: '',
+          profesion: '',
+          institucion: ''
+        },
+        facturacion: {
+          razonSocial: '',
+          identificacionTributaria: '',
+          telefono: '',
+          correoFactura: '',
+          direccion: ''
+        },
+        nuevoCurso: 0
+      });
+      setAvailableCourses([]);
+      setCoursesError(null);
+      setCoursesLoading(false);
+      setErrors({});
+      setHasChanges(false);
+    }
+  }, [inscription, isOpen, userType, loadAvailableCourses]);
 
   const handleInputChange = (section: 'participante' | 'facturacion', field: string, value: string) => {
     setFormData(prev => ({

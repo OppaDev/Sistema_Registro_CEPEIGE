@@ -5,7 +5,12 @@ import '@testing-library/jest-dom';
 import { mockBillingData } from '../../fixtures/mockData';
 
 // Mock del componente BillingForm
-const MockBillingForm = ({ onChange, onSubmit }: any) => {
+interface MockBillingFormProps {
+  onChange?: (data: unknown) => void;
+  onSubmit?: (data: unknown) => void;
+}
+
+const MockBillingForm = ({ onChange, onSubmit }: MockBillingFormProps) => {
   const [formData, setFormData] = React.useState({
     razonSocial: '',
     identificacionTributaria: '',
@@ -165,9 +170,7 @@ describe('PREF-003: Registro de datos para factura (RF-01.3)', () => {
     });
   });
 
-  it('should validate required fields', async () => {
-    const user = userEvent.setup();
-    
+  it('should validate required fields', () => {
     render(<MockBillingForm onChange={mockOnChange} onSubmit={mockOnSubmit} />);
     
     // Verificar que todos los campos tienen el atributo required

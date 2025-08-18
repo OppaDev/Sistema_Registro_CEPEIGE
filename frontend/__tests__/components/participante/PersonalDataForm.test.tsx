@@ -1,11 +1,19 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { mockPersonalData } from '../../fixtures/mockData';
 
 // Mock del componente FormInput ya que puede no existir aún
-const MockFormInput = ({ label, name, type = 'text', required = false, onChange }: any) => {
+interface MockFormInputProps {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const MockFormInput = ({ label, name, type = 'text', required = false, onChange }: MockFormInputProps) => {
   return (
     <div>
       <label htmlFor={name}>{label} {required && '*'}</label>
@@ -22,7 +30,12 @@ const MockFormInput = ({ label, name, type = 'text', required = false, onChange 
 };
 
 // Mock del formulario completo de datos personales
-const MockPersonalDataForm = ({ onSubmit, initialData = {} }: any) => {
+interface MockPersonalDataFormProps {
+  onSubmit: (data: Record<string, string>) => void;
+  initialData?: Record<string, string>;
+}
+
+const MockPersonalDataForm = ({ onSubmit, initialData = {} }: MockPersonalDataFormProps) => {
   const [formData, setFormData] = React.useState(initialData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -49,11 +49,32 @@ export const mockBillingData = {
 // Inscripción completa de prueba
 export const mockInscription = {
   idInscripcion: 1,
-  participante: mockPersonalData,
-  facturacion: mockBillingData,
-  curso: mockCourses[0],
-  fechaInscripcion: '2024-01-15',
-  estadoPago: 'pendiente'
+  fechaInscripcion: new Date('2024-01-15'),
+  estado: 'PENDIENTE' as const,
+  matricula: false,
+  participante: {
+    idParticipante: 1,
+    ...mockPersonalData
+  },
+  facturacion: {
+    idFacturacion: 1,
+    ...mockBillingData
+  },
+  curso: {
+    idCurso: 1,
+    nombreCurso: 'Curso de Python - Nivel Básico',
+    precio: 100,
+    fechaInicio: new Date('2024-02-01'),
+    fechaFin: new Date('2024-02-28'),
+    modalidad: 'Virtual'
+  },
+  comprobante: {
+    idComprobante: 1,
+    fechaSubida: new Date('2024-01-16'),
+    rutaComprobante: 'uploads/comprobantes/comprobante_123.jpg',
+    tipoArchivo: 'image/jpeg',
+    nombreArchivo: 'comprobante_123.jpg'
+  }
 };
 
 // Archivo de prueba válido (PREF-004)

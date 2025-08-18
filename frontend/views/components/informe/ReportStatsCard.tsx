@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -31,11 +31,7 @@ export default function ReportStatsCard({ filtros = {}, refreshTrigger = 0 }: Re
   const [error, setError] = useState<string | null>(null);
   const [fechaGeneracion, setFechaGeneracion] = useState<Date | null>(null);
 
-  useEffect(() => {
-    loadEstadisticas();
-  }, [filtros, refreshTrigger]);
-
-  const loadEstadisticas = async () => {
+  const loadEstadisticas = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -49,7 +45,11 @@ export default function ReportStatsCard({ filtros = {}, refreshTrigger = 0 }: Re
     } finally {
       setLoading(false);
     }
-  };
+  }, [filtros]);
+
+  useEffect(() => {
+    loadEstadisticas();
+  }, [filtros, refreshTrigger, loadEstadisticas]);
 
   if (loading) {
     return (
