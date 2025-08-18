@@ -25,19 +25,30 @@ export type EnrollmentStatus = typeof ENROLLMENT_STATUS[keyof typeof ENROLLMENT_
 export type DiscountType = typeof DISCOUNT_TYPES[keyof typeof DISCOUNT_TYPES];
 
 // Determinar si el pago ha sido validado basado en el estado de la inscripción
+<<<<<<< HEAD
 export const isPaymentValidated = (inscription: Record<string, unknown>): boolean => {
+=======
+export const isPaymentValidated = (inscription: unknown): boolean => {
+  const typedInscription = inscription as { estado?: string; matricula?: boolean };
+>>>>>>> 6dbacb0d99939f9f59772c82424aaa1ccffab05b
   // Lógica para determinar si el pago está validado
   // Puede basarse en el estado, existencia de factura con verificación, etc.
-  return inscription.estado === 'VALIDADO' || inscription.matricula === true;
+  return typedInscription.estado === 'VALIDADO' || typedInscription.matricula === true;
 };
 
 // Determinar el paso actual en el flujo de validación
+<<<<<<< HEAD
 export const getValidationStep = (inscription: Record<string, unknown>, factura: Record<string, unknown> | null): PaymentValidationStep => {
   if (!factura) {
+=======
+export const getValidationStep = (inscription: unknown, factura: unknown): PaymentValidationStep => {
+  const typedFactura = factura as { verificacionPago?: boolean } | null;
+  if (!typedFactura) {
+>>>>>>> 6dbacb0d99939f9f59772c82424aaa1ccffab05b
     return PAYMENT_VALIDATION_STEPS.PENDING;
   }
   
-  if (!factura.verificacionPago) {
+  if (!typedFactura.verificacionPago) {
     return PAYMENT_VALIDATION_STEPS.READY_TO_VALIDATE;
   }
   

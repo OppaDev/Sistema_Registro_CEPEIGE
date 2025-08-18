@@ -50,7 +50,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading, error
 
     try {
       await onSubmit(formData.email, formData.password);
-    } catch (error) {
+    } catch {
       // Error manejado por el componente padre
     }
   };

@@ -50,9 +50,10 @@ export class AuthService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error en login:', error);
-      throw new Error(error.message || 'Error de conexión');
+      throw new Error(errorObj.message || 'Error de conexión');
     }
   }
 
@@ -66,6 +67,8 @@ export class AuthService {
         case 'contador':
           return 'CONTADOR';
         case 'super-admin':
+        case 'super_admin':
+        case 'superadmin':
           return 'SUPER_ADMIN';
         default:
           return role.toUpperCase();
@@ -151,7 +154,7 @@ export class AuthService {
       TokenManager.setTokens(data.data.accessToken, refreshToken);
 
       return data.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error refrescando token:', error);
       // Si falla el refresh, limpiar todo
       TokenManager.clearAll();
@@ -170,7 +173,7 @@ export class AuthService {
   }
 
   // Verificar token con el servidor
-  async verifyToken(): Promise<{ success: boolean; data?: any; message?: string }> {
+  async verifyToken(): Promise<{ success: boolean; data?: unknown; message?: string }> {
     try {
       const accessToken = TokenManager.getAccessToken();
       
@@ -202,9 +205,10 @@ export class AuthService {
       }
       
       return { success: false, message: data.message || 'Token inválido' };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
       console.error('❌ Error verificando token:', error);
-      return { success: false, message: error.message };
+      return { success: false, message: errorObj.message };
     }
   }
 

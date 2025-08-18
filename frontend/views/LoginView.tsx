@@ -2,6 +2,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from './components/login/LoginForm';
@@ -54,10 +55,13 @@ export default function LoginView() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img 
+          <Image 
             src="/logo__cepeige.png" 
             alt="Logo CEPEIGE" 
+            width={80}
+            height={80}
             className="h-20 mx-auto mb-4 drop-shadow-lg"
+            priority
           />
           <h1 className="text-3xl font-bold text-white mb-2">
             Sistema CEPEIGE

@@ -33,7 +33,7 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
     nombreCurso: '',
     descripcionCurso: '',
     modalidadCurso: '',
-    valorCurso: 0,
+    valorCurso: 1,
     fechaInicioCurso: '',
     fechaFinCurso: ''
   });
@@ -49,8 +49,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
         descripcionCurso: course.descripcionCurso,
         modalidadCurso: course.modalidadCurso,
         valorCurso: course.valorCurso,
-        fechaInicioCurso: course.fechaInicioCurso.toLocaleDateString('en-CA'), // formato YYYY-MM-DD
-        fechaFinCurso: course.fechaFinCurso.toLocaleDateString('en-CA') // formato YYYY-MM-DD
+        fechaInicioCurso: formatDateToInputValue(course.fechaInicioCurso),
+        fechaFinCurso: formatDateToInputValue(course.fechaFinCurso)
       });
     } else {
       // Reset para crear nuevo
@@ -59,7 +59,7 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
         nombreCurso: '',
         descripcionCurso: '',
         modalidadCurso: '',
-        valorCurso: 0,
+        valorCurso: 1,
         fechaInicioCurso: '',
         fechaFinCurso: ''
       });
@@ -103,8 +103,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
       newErrors.modalidadCurso = 'La modalidad es requerida';
     }
 
-    if (!formData.valorCurso || formData.valorCurso <= 0) {
-      newErrors.valorCurso = 'El precio debe ser mayor a 0';
+    if (!formData.valorCurso || formData.valorCurso < 1) {
+      newErrors.valorCurso = 'El precio debe ser mayor o igual a 1';
     }
 
     if (!formData.fechaInicioCurso) {
@@ -139,11 +139,21 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Función para convertir fecha Date a string formato YYYY-MM-DD sin desfase UTC
+  const formatDateToInputValue = (date: Date): string => {
+    if (!date) return '';
+    // Usar la fecha local sin conversión UTC
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Función para convertir fecha string a ISO con hora local (evita problemas de timezone)
   const formatDateForBackend = (dateString: string): string => {
     if (!dateString) return dateString;
     // Crear fecha como local (no UTC) y convertir a ISO
-    const date = new Date(dateString + 'T00:00:00');
+    const date = new Date(dateString + 'T12:00:00');
     return date.toISOString();
   };
 
@@ -303,11 +313,11 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                   </label>
                   <Input
                     type="number"
-                    min="0"
+                    min="1"
                     step="0.01"
                     value={formData.valorCurso}
-                    onChange={(e) => handleInputChange('valorCurso', parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
+                    onChange={(e) => handleInputChange('valorCurso', parseFloat(e.target.value) || 1)}
+                    placeholder="1.00"
                     className={errors.valorCurso ? 'border-red-500' : ''}
                   />
                   {errors.valorCurso && (

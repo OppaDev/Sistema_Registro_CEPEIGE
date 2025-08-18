@@ -6,7 +6,7 @@ import { courseService } from '@/services/inscripcion/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, BookOpen, Calendar, DollarSign, Clock, MapPin, Info, FileText } from 'lucide-react';
+import { X, BookOpen, Calendar, DollarSign, Clock, Info } from 'lucide-react';
 
 interface CourseDetailModalProps {
   course: Course | null;
@@ -167,7 +167,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                   <div className="text-center">
                     <label className="text-sm font-medium text-gray-600">Disponibilidad</label>
                     <p className="text-lg font-semibold mt-2">
-                      {courseService.canDeleteCourse(course) 
+                      {courseService.canDeleteCourse() 
                         ? '✅ Disponible para modificaciones' 
                         : '⚠️ Curso en progreso o finalizado'
                       }

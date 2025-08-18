@@ -11,7 +11,7 @@ export interface BillingRegistrationData {
   direccion: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message: string;
@@ -69,7 +69,7 @@ class BillingService {
               
               if (inscriptionsData.success && inscriptionsData.data && inscriptionsData.data.length > 0) {
                 // Buscar una inscripción que tenga los mismos datos de facturación
-                const matchingInscription = inscriptionsData.data.find((inscription: any) => 
+                const matchingInscription = inscriptionsData.data.find((inscription: { datosFacturacion?: { identificacionTributaria?: string; correoFactura?: string; idFacturacion?: number; razonSocial?: string; telefono?: string; direccion?: string } }) => 
                   inscription.datosFacturacion && (
                     inscription.datosFacturacion.identificacionTributaria === billingData.identificacionTributaria ||
                     inscription.datosFacturacion.correoFactura === billingData.correoFactura
@@ -111,8 +111,9 @@ class BillingService {
                           message: 'Datos de facturación encontrados y actualizados'
                         };
                       }
-                    } catch (updateError: any) {
-                      console.warn('⚠️ No se pudieron actualizar los datos, usando existentes:', updateError.message);
+                    } catch (updateError: unknown) {
+                      const errorObj = updateError as { message?: string };
+                      console.warn('⚠️ No se pudieron actualizar los datos, usando existentes:', errorObj.message);
                     }
                   }
                   
@@ -137,7 +138,7 @@ class BillingService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error in billing registration:', error);
       throw error;
     }
@@ -159,7 +160,7 @@ class BillingService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error getting billing data by ID:', error);
       throw error;
     }
@@ -190,7 +191,7 @@ class BillingService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error updating billing data:', error);
       throw error;
     }

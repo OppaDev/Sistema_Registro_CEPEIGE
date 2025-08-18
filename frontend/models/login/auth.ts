@@ -46,12 +46,17 @@ export interface LoginFormErrors {
 }
 
 // Tipos de usuario basados en roles
-export type UserType = 'admin' | 'accountant' | null;
+export type UserType = 'admin' | 'accountant' | 'super_admin' | null;
 
 // Función helper para determinar tipo de usuario
 export const getUserType = (roles: string[]): UserType => {
   console.log('🔍 getUserType: Evaluando roles:', roles);
   
+  // Super admin tiene prioridad máxima
+  if (roles.includes('SUPER_ADMIN') || roles.includes('super-admin') || roles.includes('Super-Admin')) {
+    console.log('✅ getUserType: Rol super admin detectado');
+    return 'super_admin';
+  }
   if (roles.includes('ADMIN') || roles.includes('admin') || roles.includes('Admin')) {
     console.log('✅ getUserType: Rol admin detectado');
     return 'admin';
@@ -68,5 +73,6 @@ export const getUserType = (roles: string[]): UserType => {
 // Rutas permitidas por rol
 export const ROLE_ROUTES = {
   admin: ['/inscripciones_admin', '/cursos_admin'],
-  accountant: ['/inscripciones_contador']
+  accountant: ['/inscripciones_contador'],
+  super_admin: ['/inscripciones_admin', '/cursos_admin', '/inscripciones_contador'] // Acceso a todas las rutas
 } as const;

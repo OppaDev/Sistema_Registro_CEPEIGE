@@ -1,17 +1,33 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockCourses } from '../../fixtures/mockData';
 
 // Mock del componente CourseSelector con estado interno para las pruebas
-const MockCourseSelector = ({ courses, onCourseSelect, selectedCourse: initialCourse }: any) => {
+interface Course {
+  idCurso: number;
+  nombreCorto: string;
+  nombreLargo: string;
+  costoTotal: number;
+  activo: boolean;
+}
+
+interface MockCourseSelectorProps {
+  courses: Course[];
+  onCourseSelect: (course: Course) => void;
+  selectedCourse: Course | null;
+}
+
+const MockCourseSelector = ({ courses, onCourseSelect, selectedCourse: initialCourse }: MockCourseSelectorProps) => {
   const [selectedCourse, setSelectedCourse] = React.useState(initialCourse);
   
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const courseId = parseInt(e.target.value);
-    const course = courses.find((c: any) => c.idCurso === courseId);
+    const course = courses.find((c: Course) => c.idCurso === courseId) || null;
     setSelectedCourse(course);
-    onCourseSelect(course);
+    if (course) {
+      onCourseSelect(course);
+    }
   };
 
   return (
@@ -23,7 +39,7 @@ const MockCourseSelector = ({ courses, onCourseSelect, selectedCourse: initialCo
         onChange={handleChange}
       >
         <option value="">Seleccione un curso</option>
-        {courses.map((course: any) => (
+        {courses.map((course: Course) => (
           <option key={course.idCurso} value={course.idCurso}>
             {course.nombreLargo}
           </option>
@@ -67,8 +83,6 @@ describe('PREF-001: Selección del curso (RF-01.1)', () => {
       />
     );
 
-    const selector = screen.getByRole('combobox');
-    
     // Verificar que las opciones están disponibles
     expect(screen.getByText('Curso de Python - Nivel Básico')).toBeInTheDocument();
     expect(screen.getByText('Curso de Java - Nivel Avanzado')).toBeInTheDocument();

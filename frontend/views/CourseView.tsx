@@ -10,14 +10,12 @@ import { useCourseController } from '@/controllers/inscripcion/CourseController'
 interface CourseViewProps {
   onCourseSelect?: (course: Course) => void;
   selectedCourseId?: number;
-  showSelectionOnly?: boolean;
   error?: string;
 }
 
 export function CourseView({ 
   onCourseSelect, 
   selectedCourseId, 
-  showSelectionOnly = false,
   error 
 }: CourseViewProps) {
   const {

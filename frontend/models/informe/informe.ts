@@ -49,20 +49,15 @@ export interface InscripcionInforme {
 
 export interface EstadisticasInforme {
   totalInscripciones: number;
-  estudiantesMatriculados: number;
+  matriculados: number;
+  noMatriculados: number;
   pagosVerificados: number;
   pagosPendientes: number;
-  montoTotalRecaudado: number;
-  distribucionPorCurso: {
-    nombreCurso: string;
-    cantidad: number;
-    porcentaje: number;
-  }[];
-  distribucionPorEstado: {
-    estado: string;
-    cantidad: number;
-    porcentaje: number;
-  }[];
+  montoTotalComprobantes: number;
+  promedioMonto: number;
+  cursosUnicos: number;
+  tiposComprobante: Record<string, number>;
+  inscripcionesPorCurso: Record<string, number>;
 }
 
 export interface InformeCompleto {

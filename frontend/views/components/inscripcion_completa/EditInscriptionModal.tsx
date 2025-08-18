@@ -1,5 +1,5 @@
 // views/components/EditInscriptionModal.tsx - NUEVO ARCHIVO
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { InscriptionData, EditInscriptionRequest } from '@/models/inscripcion_completa/inscription';
 import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 import { courseService } from '@/services/inscripcion/courseService'; // ✅ AÑADIR IMPORT DEL COURSE SERVICE
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Save, User, FileText, BookOpen } from 'lucide-react';
+import { X, Save, User, FileText } from 'lucide-react';
 import { Edit } from 'lucide-react'; // Icono para editar
 
 interface EditInscriptionModalProps {
@@ -58,6 +58,93 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
   const [coursesError, setCoursesError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [hasChanges, setHasChanges] = useState(false);
+
+  const loadAvailableCourses = useCallback(async () => {
+    if (!inscription) return;
+    
+    setCoursesLoading(true);
+    setCoursesError(null);
+    
+    try {
+      console.log('📚 EditInscriptionModal: Cargando cursos disponibles...');
+      
+      // 1. Cargar todos los cursos disponibles
+      const response = await courseService.getAllCourses();
+      
+      if (!response.success || !response.data) {
+        const errorMessage = response.message || 'Error al cargar cursos';
+        console.error('❌ Error en respuesta de cursos:', errorMessage);
+        setCoursesError(errorMessage);
+        setAvailableCourses([]);
+        return;
+      }
+
+      // 2. Verificar inscripciones existentes del participante
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      const inscriptionsResponse = await fetch(`${API_BASE_URL}/inscripciones?page=1&limit=100&_t=${Date.now()}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      let participantCourses: number[] = [];
+      
+      if (inscriptionsResponse.ok) {
+        const inscriptionsData = await inscriptionsResponse.json();
+        
+        if (inscriptionsData.success && inscriptionsData.data) {
+          // Obtener todos los cursos donde ya está inscrito este participante
+          participantCourses = inscriptionsData.data
+            .filter((insc: unknown) => {
+              const typedInsc = insc as { datosPersonales: { ciPasaporte: string }; curso: { idCurso: number } };
+              return typedInsc.datosPersonales.ciPasaporte === inscription.participante.ciPasaporte;
+            })
+            .map((insc: unknown) => {
+              const typedInsc = insc as { curso: { idCurso: number } };
+              return typedInsc.curso.idCurso;
+            });
+          
+          console.log('🎓 Cursos donde ya está inscrito el participante:', participantCourses);
+        }
+      }
+
+      // 3. Filtrar cursos: incluir solo cursos disponibles donde NO esté inscrito
+      // EXCEPCIÓN: incluir el curso actual para permitir mantenerlo
+      const availableCourses = response.data
+        .filter(course => 
+          // Solo mostrar cursos disponibles (futuro) O el curso actual
+          (course.fechaInicioCurso > new Date()) || course.idCurso === inscription.curso.idCurso
+        )
+        .filter(course =>
+          // No incluir cursos donde ya esté inscrito, EXCEPTO el curso actual
+          !participantCourses.includes(course.idCurso) || course.idCurso === inscription.curso.idCurso
+        )
+        .map(course => ({
+          id: course.idCurso,
+          nombre: course.nombreCurso,
+          precio: Number(course.valorCurso || 0),
+          esCursoActual: course.idCurso === inscription.curso.idCurso
+        }));
+      
+      console.log(`✅ ${availableCourses.length} cursos disponibles para cambio (excluyendo inscripciones duplicadas)`);
+      setAvailableCourses(availableCourses);
+      
+      if (availableCourses.length === 0) {
+        setCoursesError('No hay cursos disponibles para cambio. El participante ya está inscrito en todos los cursos disponibles.');
+      } else if (availableCourses.length === 1 && availableCourses[0].esCursoActual) {
+        setCoursesError('Solo está disponible el curso actual. No hay otros cursos disponibles para cambio.');
+      }
+      
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
+      const errorMessage = errorObj.message || 'Error de conexión al cargar cursos';
+      console.error('❌ Error cargando cursos:', error);
+      setCoursesError(errorMessage);
+      setAvailableCourses([]);
+    } finally {
+      setCoursesLoading(false);
+    }
+  }, [inscription]);
 
   // Inicializar formulario cuando se abre el modal
   useEffect(() => {
@@ -120,89 +207,7 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
       setErrors({});
       setHasChanges(false);
     }
-  }, [inscription, isOpen, userType]);
-
-  const loadAvailableCourses = async () => {
-    if (!inscription) return;
-    
-    setCoursesLoading(true);
-    setCoursesError(null);
-    
-    try {
-      console.log('📚 EditInscriptionModal: Cargando cursos disponibles...');
-      
-      // 1. Cargar todos los cursos disponibles
-      const response = await courseService.getAllCourses();
-      
-      if (!response.success || !response.data) {
-        const errorMessage = response.message || 'Error al cargar cursos';
-        console.error('❌ Error en respuesta de cursos:', errorMessage);
-        setCoursesError(errorMessage);
-        setAvailableCourses([]);
-        return;
-      }
-
-      // 2. Verificar inscripciones existentes del participante
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-      const inscriptionsResponse = await fetch(`${API_BASE_URL}/inscripciones?page=1&limit=100&_t=${Date.now()}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      let participantCourses: number[] = [];
-      
-      if (inscriptionsResponse.ok) {
-        const inscriptionsData = await inscriptionsResponse.json();
-        
-        if (inscriptionsData.success && inscriptionsData.data) {
-          // Obtener todos los cursos donde ya está inscrito este participante
-          participantCourses = inscriptionsData.data
-            .filter((insc: any) => 
-              insc.datosPersonales.ciPasaporte === inscription.participante.ciPasaporte
-            )
-            .map((insc: any) => insc.curso.idCurso);
-          
-          console.log('🎓 Cursos donde ya está inscrito el participante:', participantCourses);
-        }
-      }
-
-      // 3. Filtrar cursos: incluir solo cursos disponibles donde NO esté inscrito
-      // EXCEPCIÓN: incluir el curso actual para permitir mantenerlo
-      const availableCourses = response.data
-        .filter(course => 
-          // Solo mostrar cursos disponibles (futuro) O el curso actual
-          (course.fechaInicioCurso > new Date()) || course.idCurso === inscription.curso.idCurso
-        )
-        .filter(course =>
-          // No incluir cursos donde ya esté inscrito, EXCEPTO el curso actual
-          !participantCourses.includes(course.idCurso) || course.idCurso === inscription.curso.idCurso
-        )
-        .map(course => ({
-          id: course.idCurso,
-          nombre: course.nombreCurso,
-          precio: Number(course.valorCurso || 0),
-          esCursoActual: course.idCurso === inscription.curso.idCurso
-        }));
-      
-      console.log(`✅ ${availableCourses.length} cursos disponibles para cambio (excluyendo inscripciones duplicadas)`);
-      setAvailableCourses(availableCourses);
-      
-      if (availableCourses.length === 0) {
-        setCoursesError('No hay cursos disponibles para cambio. El participante ya está inscrito en todos los cursos disponibles.');
-      } else if (availableCourses.length === 1 && availableCourses[0].esCursoActual) {
-        setCoursesError('Solo está disponible el curso actual. No hay otros cursos disponibles para cambio.');
-      }
-      
-    } catch (error: any) {
-      const errorMessage = error.message || 'Error de conexión al cargar cursos';
-      console.error('❌ Error cargando cursos:', error);
-      setCoursesError(errorMessage);
-      setAvailableCourses([]);
-    } finally {
-      setCoursesLoading(false);
-    }
-  };
+  }, [inscription, isOpen, userType, loadAvailableCourses]);
 
   const handleInputChange = (section: 'participante' | 'facturacion', field: string, value: string) => {
     setFormData(prev => ({
@@ -246,8 +251,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
         profesion: true,
         institucion: true
       }).parse(formData.participante);
-    } catch (error: any) {
-      error.errors?.forEach((err: any) => {
+    } catch (error: unknown) {
+      const errorObj = error as { errors?: Array<{ path?: string[]; message: string }> };
+      errorObj.errors?.forEach((err) => {
         if (err.path?.[0]) {
           newErrors[`participante.${err.path[0]}`] = err.message;
         }
@@ -257,8 +263,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
     // Validar datos de facturación
     try {
       billingSchema.parse(formData.facturacion);
-    } catch (error: any) {
-      error.errors?.forEach((err: any) => {
+    } catch (error: unknown) {
+      const errorObj = error as { errors?: Array<{ path?: string[]; message: string }> };
+      errorObj.errors?.forEach((err) => {
         if (err.path?.[0]) {
           newErrors[`facturacion.${err.path[0]}`] = err.message;
         }

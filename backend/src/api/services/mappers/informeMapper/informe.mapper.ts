@@ -61,9 +61,9 @@ export function toInscripcionInformeDto(prismaData: PrismaInscripcionInforme): I
         fechaInscripcion: prismaData.fechaInscripcion,
         matricula: prismaData.matricula,
         tipoComprobante: prismaData.comprobante.tipoArchivo,
-        montoComprobante: tieneFacturas ? prismaData.facturas[0].valorPagado : 0,
+        montoComprobante: tieneFacturas ? Number(prismaData.facturas[0].valorPagado) || 0 : 0,
         verificacionPago: pagoVerificado,
-        montoTotal: tieneFacturas ? prismaData.facturas[0].valorPagado : 0,
+        montoTotal: tieneFacturas ? Number(prismaData.facturas[0].valorPagado) || 0 : 0,
         descuento: prismaData.descuento 
             ? `${prismaData.descuento.tipoDescuento} (${prismaData.descuento.porcentajeDescuento}%)`
             : '',
@@ -87,7 +87,7 @@ export function toEstadisticasInformeDto(inscripciones: InscripcionInformeDto[])
     const total = inscripciones.length;
     const matriculados = inscripciones.filter(i => i.matricula).length;
     const pagosVerificados = inscripciones.filter(i => i.verificacionPago).length;
-    const montoTotal = inscripciones.reduce((sum, i) => sum + i.montoComprobante, 0);
+    const montoTotal = inscripciones.reduce((sum, i) => sum + (Number(i.montoComprobante) || 0), 0);
 
     // Agrupar por tipo de comprobante
     const tiposComprobante = inscripciones.reduce((acc: Record<string, number>, inscripcion) => {

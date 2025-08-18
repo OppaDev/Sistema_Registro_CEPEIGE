@@ -1,6 +1,7 @@
 // views/components/AdminLayout.tsx
 import React from 'react';
-import { Users, FileText, Settings, LogOut, BookOpen } from 'lucide-react';
+import Image from 'next/image';
+import { Users, LogOut, BookOpen, BarChart3 } from 'lucide-react';
 import { useAuthController } from '@/controllers/login/useAuthController'; 
 
 
@@ -36,6 +37,14 @@ if (userType === 'admin') {
     href: '/cursos_admin'
   });
 }
+
+// 🆕 AGREGAR INFORMES PARA ADMIN Y CONTADOR
+menuItems.push({
+  id: 'informes',
+  label: 'Informes',
+  icon: <BarChart3 className="h-5 w-5" />,
+  href: '/informes'
+});
   
 
   return (
@@ -45,10 +54,13 @@ if (userType === 'admin') {
         <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-2">
           {/* Logo y título en móvil */}
           <div className="flex items-center justify-center sm:justify-start w-full sm:w-auto mb-2 sm:mb-0">
-            <img 
-              src="/logo__cepeige.png" 
+            <Image 
+              src="/Logo__cepeige.png" 
               alt="Logo CEPEIGE" 
+              width={80}
+              height={80}
               className="h-12 sm:h-16 md:h-20 w-auto mr-3"
+              priority
             />
             <h1 
               className="text-sm sm:text-lg md:text-2xl font-bold text-center sm:text-left"
@@ -95,6 +107,7 @@ if (userType === 'admin') {
                 <a
                   key={item.id}
                   href={item.href}
+                  onClick={() => console.log(`🔗 Navegando a: ${item.href} (${item.label})`)}
                  className={`flex items-center space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                     activeModule === item.id
                       ? 'bg-white text-gray-900 shadow-md'

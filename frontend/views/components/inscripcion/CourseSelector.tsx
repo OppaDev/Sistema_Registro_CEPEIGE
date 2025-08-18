@@ -28,8 +28,9 @@ export function CourseSelector({ selectedCourse, onCourseSelect, error }: Course
       setFetchError('');
       const availableCourses = await courseService.getAvailableCourses();
       setCourses(availableCourses);
-    } catch (error: any) {
-      setFetchError(error.message);
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string };
+      setFetchError(errorObj.message || 'Error al cargar los cursos');
     } finally {
       setLoading(false);
     }

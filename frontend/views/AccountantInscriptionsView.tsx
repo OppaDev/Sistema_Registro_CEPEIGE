@@ -8,7 +8,7 @@ import { InscriptionTable } from './components/inscripcion_completa/InscriptionT
 import { InscriptionDetailModal } from './components/inscripcion_completa/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Edit} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { EditInscriptionModal } from './components/inscripcion_completa/EditInscriptionModal';
 import { DeleteInscriptionModal } from './components/inscripcion_completa/DeleteInscriptionModal';
 import { EditInscriptionRequest } from '@/models/inscripcion_completa/inscription';
@@ -26,7 +26,6 @@ export default function AccountantInscriptionsView() {
     totalPages,
     totalItems,
     itemsPerPage,
-    refreshInscriptions,
     forceRefresh, // ✅ USAR LA NUEVA FUNCIÓN
     handlePageChange,
     viewInscriptionDetails,

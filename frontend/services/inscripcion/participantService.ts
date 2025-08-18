@@ -16,7 +16,21 @@ export interface ParticipantRegistrationData {
   institucion: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ParticipantData {
+  idPersona: number;
+  correo: string;
+  nombres: string;
+  apellidos: string;
+  numTelefono: string;
+  ciPasaporte: string;
+  pais: string;
+  provinciaEstado: string;
+  ciudad: string;
+  profesion: string;
+  institucion: string;
+}
+
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message: string;
@@ -34,12 +48,13 @@ class ParticipantService {
         console.log('✅ Participante ya existe:', existingParticipant.data);
         
         // Verificar si el correo es diferente y necesita actualización
-        if (existingParticipant.data.correo !== participant.correo) {
+        const participantData = existingParticipant.data as ParticipantData;
+        if (participantData.correo !== participant.correo) {
           console.log('📧 Correo diferente detectado, actualizando datos del participante...');
           
           try {
             // Actualizar los datos del participante existente
-            const updateResponse = await this.updateParticipant(existingParticipant.data.idPersona, {
+            const updateResponse = await this.updateParticipant(participantData.idPersona, {
               correo: participant.correo,
               // También actualizar otros campos si han cambiado
               nombres: participant.nombres,
@@ -57,7 +72,7 @@ class ParticipantService {
               return {
                 success: true,
                 data: {
-                  ...existingParticipant.data,
+                  ...participantData,
                   correo: participant.correo,
                   nombres: participant.nombres,
                   apellidos: participant.apellidos,
@@ -73,14 +88,15 @@ class ParticipantService {
             } else {
               throw new Error(updateResponse.message || 'Error al actualizar los datos');
             }
-          } catch (updateError: any) {
-            console.warn('⚠️ No se pudieron actualizar los datos, usando datos existentes:', updateError.message);
+          } catch (updateError: unknown) {
+            const errorObj = updateError as { message?: string };
+            console.warn('⚠️ No se pudieron actualizar los datos, usando datos existentes:', errorObj.message);
             
             // Si falla la actualización, usar datos existentes con advertencia
             return {
               success: true,
-              data: existingParticipant.data,
-              message: `Participante encontrado. Nota: Se detectaron cambios en los datos, pero se usarán los datos registrados previamente (${existingParticipant.data.correo}).`
+              data: participantData,
+              message: `Participante encontrado. Nota: Se detectaron cambios en los datos, pero se usarán los datos registrados previamente (${participantData.correo}).`
             };
           }
         }
@@ -132,7 +148,7 @@ class ParticipantService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error in participant registration:', error);
       throw error;
     }
@@ -156,7 +172,7 @@ class ParticipantService {
       console.log('📥 Resultado búsqueda:', data);
       
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error checking existing participant:', error);
       throw error;
     }
@@ -178,7 +194,7 @@ class ParticipantService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error getting participant by ID:', error);
       throw error;
     }
@@ -213,7 +229,7 @@ class ParticipantService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error updating participant:', error);
       throw error;
     }
@@ -248,7 +264,7 @@ class ParticipantService {
         success: false,
         message: 'No se encontraron datos previos para este CI/Pasaporte'
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error getting data for autocomplete:', error);
       return {
         success: false,
