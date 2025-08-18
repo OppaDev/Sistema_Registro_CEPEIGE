@@ -13,7 +13,7 @@ export const useAuthController = () => {
       await auth.login(email, password);
       
       // Redirigir según el rol
-      if (auth.userType === 'admin') {
+      if (auth.userType === 'super_admin' || auth.userType === 'admin') {
         router.push('/inscripciones_admin');
       } else if (auth.userType === 'accountant') {
         router.push('/inscripciones_contador');
@@ -35,7 +35,7 @@ export const useAuthController = () => {
   }, [auth, router]);
 
   const redirectToAppropriateRoute = useCallback(() => {
-    if (auth.userType === 'admin') {
+    if (auth.userType === 'super_admin' || auth.userType === 'admin') {
       router.push('/inscripciones_admin');
     } else if (auth.userType === 'accountant') {
       router.push('/inscripciones_contador');
@@ -47,8 +47,8 @@ export const useAuthController = () => {
   const hasPermission = useCallback((permission: string): boolean => {
     if (!auth.user) return false;
     
-    // Admin tiene todos los permisos
-    if (auth.userType === 'admin') return true;
+    // Super admin y admin tienen todos los permisos
+    if (auth.userType === 'super_admin' || auth.userType === 'admin') return true;
     
     // Verificar permisos específicos
     return auth.user.permisos?.includes(permission) || false;

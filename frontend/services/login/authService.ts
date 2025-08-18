@@ -67,6 +67,8 @@ export class AuthService {
         case 'contador':
           return 'CONTADOR';
         case 'super-admin':
+        case 'super_admin':
+        case 'superadmin':
           return 'SUPER_ADMIN';
         default:
           return role.toUpperCase();
