@@ -88,7 +88,7 @@ export default function ParticipantRegistrationView() {
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <Image 
-              src="/logo__cepeige.png" 
+              src="/Logo__cepeige.png" 
               alt="Logo CEPEIGE" 
               width={96} 
               height={96} 

@@ -56,7 +56,7 @@ export default function LoginView() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Image 
-            src="/logo__cepeige.png" 
+            src="/Logo__cepeige.png" 
             alt="Logo CEPEIGE" 
             width={80}
             height={80}

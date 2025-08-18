@@ -31,22 +31,14 @@ export class TokenManager {
   }
 
   // Guardar datos del usuario
-<<<<<<< HEAD
-  static setUser(user: Record<string, unknown>): void {
-=======
   static setUser(user: User): void {
->>>>>>> 6dbacb0d99939f9f59772c82424aaa1ccffab05b
     if (typeof window !== 'undefined') {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
   }
 
   // Obtener datos del usuario
-<<<<<<< HEAD
-  static getUser(): Record<string, unknown> | null {
-=======
   static getUser(): User | null {
->>>>>>> 6dbacb0d99939f9f59772c82424aaa1ccffab05b
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem(USER_KEY);
       return userData ? JSON.parse(userData) : null;

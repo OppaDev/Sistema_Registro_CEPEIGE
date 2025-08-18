@@ -33,10 +33,10 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-# Install only production dependencies
+# Install only production dependencies and tsx for seed
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production && npm install tsx && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
@@ -50,20 +50,5 @@ EXPOSE 3001
 
 ENV PORT 3001
 
-# Create startup script that runs migrations and seeds
-COPY --chown=nodejs:nodejs <<EOF /app/start.sh
-#!/bin/sh
-echo "Running database migrations..."
-npx prisma migrate deploy
-
-echo "Running database seed..."
-npx prisma db seed
-
-echo "Starting server..."
-npm start
-EOF
-
-RUN chmod +x /app/start.sh
-
 # Start the server with migrations and seeds
-CMD ["/app/start.sh"]
+CMD ["sh", "-c", "echo 'Running database migrations...' && npx prisma migrate deploy && echo 'Running database seed...' && npx prisma db seed && echo 'Starting server...' && npm start"]

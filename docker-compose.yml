@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   database:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: cepeige_postgres
     restart: unless-stopped
     environment:
@@ -25,35 +25,13 @@ services:
       dockerfile: Dockerfile
     container_name: cepeige_backend
     restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://admin:admin12345@database:5432/inscripciones_cepeige?schema=public
-      - PORT=3001
-      - JWT_SECRET=SuperSecureAndComplexSecret123456789!@#$$%^&*
-      - JWT_REFRESH_SECRET=SuperSecureRefreshSecret987654321!@#$$%^&*
-      - JWT_ACCESS_EXPIRES_IN=15m
-      - JWT_REFRESH_EXPIRES_IN=7d
-      - SUPERADMIN_PASSWORD=SuperAdmin123!
-      - ADMIN_PASSWORD=Admin123!
-      - CONTADOR_PASSWORD=Contador123!
-      - ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
-      - RATE_LIMIT_WINDOW_MS=900000
-      - RATE_LIMIT_MAX_REQUESTS=100
-      - MAX_FILE_SIZE=5242880
-      - UPLOAD_PATH=./uploads
-      - EMAIL_HOST=smtp.maileroo.com
-      - EMAIL_PORT=2525
-      - EMAIL_USER=oppadev@e90adc8c3d2c158c.maileroo.org
-      - EMAIL_PASS=6be356c6868b834e90eb0cd6
-      - LOG_LEVEL=info
-      - LOG_FILE=logs/app.log
-      - MOODLE_URL=https://moodle.oppadev.com/webservice/rest/server.php
-      - MOODLE_TOKEN=f8537741af05bb7710e5e555f70f5493
-      - TELEGRAM_API_ID=23403017
-      - TELEGRAM_API_HASH=576a7f350cffb6e1adaa486a70e9734f
-      - TELEGRAM_SESSION_STRING=1AQAOMTQ5LjE1NC4xNzUuNjABu6Z+iXGFhAFcyV+FjtvE2W2JWx7uc0q6rnoyd3e5LGnYr0hIKGoN25NHzYTsT7quUrG00GwAEQHXbkx7KzxQgkwfWhfVtJLOe/5mz/94sK/6vwQdOROvxDcCBEAuhLkUFHr3bFg1iVWMvXJo0hh82XsqOMqQUU9aU9Mfpf+YmB3vIxDVoWGEeeh9aZ3CZFfIJs1RC+t/0BKWJc2L4YySWrKMOe1rqsbAD8brGZmFBF1PGqXwmB5qELnDpS3CjnB1qDnygY1k/PQpoZG0DsG+NfWt6KC6N0z3uJknvNve86fkkDh67r2KFkzD2GSRXhE+S9MEHtUv2sfyjVNYq6/z36g=
-      - TELEGRAM_RATE_LIMIT_DELAY=2000
-      - TELEGRAM_MAX_RETRIES=3
     volumes:
       - backend_uploads:/app/uploads
       - backend_logs:/app/logs
@@ -72,9 +50,11 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:3001
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
     depends_on:
       - backend
     networks:

@@ -90,5 +90,8 @@
   },
   "_moduleAliases": {
     "@": "dist"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed/seed.ts"
   }
 }
