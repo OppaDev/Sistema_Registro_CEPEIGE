@@ -5,18 +5,19 @@ services:
     container_name: cepeige_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: inscripciones_cepeige
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin12345
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cepeige_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d inscripciones_cepeige"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Backend API
   backend:
@@ -26,12 +27,33 @@ services:
     container_name: cepeige_backend
     restart: unless-stopped
     ports:
-      - "3001:3001"
-    env_file:
-      - ./backend/.env
+      - "${BACKEND_PORT}:3001"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://admin:admin12345@database:5432/inscripciones_cepeige?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN}
+      - SUPERADMIN_PASSWORD=${SUPERADMIN_PASSWORD}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CONTADOR_PASSWORD=${CONTADOR_PASSWORD}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - MOODLE_URL=${MOODLE_URL}
+      - MOODLE_TOKEN=${MOODLE_TOKEN}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_SESSION_STRING=${TELEGRAM_SESSION_STRING}
+      - TELEGRAM_RATE_LIMIT_DELAY=${TELEGRAM_RATE_LIMIT_DELAY}
+      - TELEGRAM_MAX_RETRIES=${TELEGRAM_MAX_RETRIES}
     volumes:
       - backend_uploads:/app/uploads
       - backend_logs:/app/logs
@@ -49,12 +71,11 @@ services:
     container_name: cepeige_frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
-    env_file:
-      - ./frontend/.env.local
+      - "${FRONTEND_PORT}:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       - backend
     networks:
