@@ -559,9 +559,9 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                     <p className="text-sm text-red-600">{errors['facturacion.direccion']}</p>
                   )}
                 </div>
-
-                {/* Cambio de curso (solo admin) */}
-                {userType === 'admin' && (
+                
+                {/* Cambio de curso (solo admin) - COMENTADO: Ya no es necesario permitir cambios de curso una vez que el participante ha subido su comprobante */}
+                {/* {userType === 'admin' && (
                   <div>
                     <Label htmlFor="nuevoCurso">Cambiar Curso</Label>
                     
@@ -614,7 +614,6 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                           ))}
                         </select>
                         
-                        {/* Información adicional sobre el cambio de curso */}
                         {formData.nuevoCurso !== inscription.curso.idCurso && (
                           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <div className="flex items-start space-x-2">
@@ -636,7 +635,6 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                           </div>
                         )}
                         
-                        {/* Información sobre cursos filtrados */}
                         <div className="mt-2 text-xs text-gray-500">
                           <p>• Solo se muestran cursos disponibles (futuros) donde el participante NO esté inscrito</p>
                           <p>• El curso actual siempre aparece para mantener la inscripción actual</p>
@@ -646,8 +644,8 @@ export const EditInscriptionModal: React.FC<EditInscriptionModalProps> = ({
                         </div>
                       </>
                     )}
-                  </div>
-                )}
+                  </div> 
+                )} */} 
               </CardContent>
             </Card>
           </div>

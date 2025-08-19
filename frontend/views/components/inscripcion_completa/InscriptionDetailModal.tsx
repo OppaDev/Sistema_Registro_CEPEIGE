@@ -52,7 +52,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
   };
 
   // 🆕 MANEJAR DESCARGA DE COMPROBANTE - DIRECTO
-  const handleDownloadReceipt = () => {
+  const handleDownloadReceipt = async () => {
     if (!inscription.comprobante) {
       setValidationMessage({
         type: 'error',
@@ -61,17 +61,41 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
       return;
     }
     
-    // Crear enlace de descarga directa
-    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
-    const link = document.createElement('a');
-    link.href = directUrl;
-    link.download = inscription.comprobante.nombreArchivo;
-    link.target = '_blank';
-    
-    // Trigger automático de descarga
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+      
+      // Fetch del archivo como blob
+      const response = await fetch(directUrl);
+      if (!response.ok) {
+        throw new Error('Error al descargar el archivo');
+      }
+      
+      const blob = await response.blob();
+      
+      // Crear URL object y enlace de descarga
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = inscription.comprobante.nombreArchivo;
+      
+      // Trigger automático de descarga
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpiar URL object
+      window.URL.revokeObjectURL(url);
+      
+      setValidationMessage({
+        type: 'success',
+        text: 'Comprobante descargado exitosamente'
+      });
+    } catch (error) {
+      setValidationMessage({
+        type: 'error',
+        text: 'Error al descargar el comprobante'
+      });
+    }
   };
 
   // 🆕 MANEJAR VISUALIZACIÓN DE COMPROBANTE - DIRECTO

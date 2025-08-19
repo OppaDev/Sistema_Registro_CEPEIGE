@@ -172,16 +172,36 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
                 size="sm"
                 variant="outline"
                 className="text-green-600 border-green-600"
-                onClick={() => {
+                onClick={async () => {
                   if (!inscription.comprobante?.nombreArchivo) return;
-                  const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
-                  const link = document.createElement('a');
-                  link.href = directUrl;
-                  link.download = inscription.comprobante.nombreArchivo;
-                  link.target = '_blank';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  
+                  try {
+                    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+                    
+                    // Fetch del archivo como blob
+                    const response = await fetch(directUrl);
+                    if (!response.ok) {
+                      throw new Error('Error al descargar el archivo');
+                    }
+                    
+                    const blob = await response.blob();
+                    
+                    // Crear URL object y enlace de descarga
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = inscription.comprobante.nombreArchivo;
+                    
+                    // Trigger automático de descarga
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Limpiar URL object
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('Error al descargar:', error);
+                  }
                 }}
               >
                 <Download className="h-4 w-4 mr-1" />
