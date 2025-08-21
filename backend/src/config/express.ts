@@ -53,7 +53,7 @@ export function configureExpress(app: Application): void {
 
   // Servir archivos estáticos desde /uploads con CORS específico para archivos
   const uploadsPath = process.env['UPLOAD_PATH'] || './uploads';
-  app.use('/uploads', (req, res, next) => {
+  app.use('/uploads', (_req, res, next) => {
     // CORS específico para archivos estáticos
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
