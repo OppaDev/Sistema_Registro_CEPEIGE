@@ -366,7 +366,7 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                         onClick={() => {
                           if (inscription.comprobante?.nombreArchivo) {
                             const link = document.createElement('a');
-                            link.href = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'}/comprobantes/download/${inscription.comprobante.nombreArchivo}`;
+                            link.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/comprobantes/download/${inscription.comprobante.nombreArchivo}`;
                             link.download = inscription.comprobante.nombreArchivo;
                             link.click();
                           }

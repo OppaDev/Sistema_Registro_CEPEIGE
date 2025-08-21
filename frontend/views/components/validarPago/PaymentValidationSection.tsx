@@ -161,7 +161,7 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
                 className="text-blue-600 border-blue-600"
                 onClick={() => {
                   if (!inscription.comprobante?.nombreArchivo) return;
-                  const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+                  const directUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
                   window.open(directUrl, '_blank');
                 }}
               >
@@ -176,7 +176,7 @@ export const PaymentValidationSection: React.FC<PaymentValidationSectionProps> =
                   if (!inscription.comprobante?.nombreArchivo) return;
                   
                   try {
-                    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+                    const directUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
                     
                     // Fetch del archivo como blob
                     const response = await fetch(directUrl);
