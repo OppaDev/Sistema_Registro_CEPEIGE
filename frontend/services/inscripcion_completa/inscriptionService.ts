@@ -535,6 +535,40 @@ class InscriptionService {
         updatePromises.push(courseUpdatePromise);
       }
       
+      // 4. Actualizar descuento si se proporcionó
+      if (updateData.idDescuento !== undefined) {
+        console.log('💰 Actualizando descuento...', { 
+          inscripcionId: updateData.idInscripcion,
+          idDescuento: updateData.idDescuento
+        });
+        const discountUpdatePromise = fetch(`${API_BASE_URL}/inscripciones/${updateData.idInscripcion}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify({ idDescuento: updateData.idDescuento })
+        });
+        updatePromises.push(discountUpdatePromise);
+      }
+      
+      // 5. Actualizar matrícula si se proporcionó
+      if (updateData.matricula !== undefined) {
+        console.log('🎓 Actualizando matrícula...', { 
+          inscripcionId: updateData.idInscripcion,
+          matricula: updateData.matricula
+        });
+        const matriculaUpdatePromise = fetch(`${API_BASE_URL}/inscripciones/${updateData.idInscripcion}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify({ matricula: updateData.matricula })
+        });
+        updatePromises.push(matriculaUpdatePromise);
+      }
+      
       // Ejecutar todas las actualizaciones en paralelo
       const responses = await Promise.all(updatePromises);
       

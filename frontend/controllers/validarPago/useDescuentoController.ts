@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { descuentoService } from '@/services/validarPago/descuentoService';
 import { CreateDescuentoData, DescuentoData, DescuentoFormData } from '@/models/validarPago/descuento';
+import { inscriptionService } from '@/services/inscripcion_completa/inscriptionService';
 
 interface UseDescuentoControllerReturn {
   // States
@@ -13,7 +14,7 @@ interface UseDescuentoControllerReturn {
   isUpdating: boolean;
 
   // Actions
-  createDescuento: (data: DescuentoFormData) => Promise<DescuentoData | null>;
+  createDescuento: (data: DescuentoFormData, idInscripcion?: number) => Promise<DescuentoData | null>;
   getDescuentoById: (id: number) => Promise<DescuentoData | null>;
   getAllDescuentos: () => Promise<DescuentoData[]>;
   clearError: () => void;
@@ -37,7 +38,7 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
     setError(null);
   }, []);
 
-  const createDescuento = useCallback(async (formData: DescuentoFormData): Promise<DescuentoData | null> => {
+  const createDescuento = useCallback(async (formData: DescuentoFormData, idInscripcion?: number): Promise<DescuentoData | null> => {
     setIsCreating(true);
     setError(null);
     
@@ -46,13 +47,38 @@ export const useDescuentoController = (): UseDescuentoControllerReturn => {
       const data: CreateDescuentoData = {
         tipoDescuento: formData.tipoDescuento,
         valorDescuento: formData.cantidadDescuento || 0,
-        porcentajeDescuento: 0, // Se puede calcular basado en el valor
+        porcentajeDescuento: formData.porcentajeDescuento || 0,
         descripcionDescuento: formData.descripcion || `Descuento ${formData.tipoDescuento}${formData.numeroEstudiantes ? ` para ${formData.numeroEstudiantes} estudiantes` : ''}`
       };
 
+      // 1. Crear el descuento
       const newDescuento = await descuentoService.createDescuento(data);
-      setDescuento(newDescuento);
       console.log('✅ Descuento creado exitosamente:', newDescuento);
+
+      // 2. Si se proporciona idInscripcion, asociar el descuento a la inscripción
+      if (idInscripcion && newDescuento.idDescuento) {
+        console.log('🔗 Asociando descuento a inscripción...', { idInscripcion, idDescuento: newDescuento.idDescuento });
+        
+        try {
+          await inscriptionService.updateInscription({
+            idInscripcion: idInscripcion,
+            idDescuento: newDescuento.idDescuento
+          });
+          
+          console.log('✅ Descuento asociado a inscripción exitosamente');
+          
+          // Dar tiempo al backend para procesar la asociación
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (updateError) {
+          console.error('❌ Error al asociar descuento a inscripción:', updateError);
+          // No fallar todo el proceso si no se puede asociar
+        }
+      } else {
+        console.log('⚠️ No se puede asociar descuento:', { idInscripcion, idDescuento: newDescuento?.idDescuento });
+      }
+
+      setDescuento(newDescuento);
       return newDescuento;
     } catch (error: unknown) {
       const errorObj = error as { response?: { data?: { message?: string } }; message?: string };

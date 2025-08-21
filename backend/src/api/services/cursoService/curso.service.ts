@@ -8,8 +8,8 @@ import {
 import { NotFoundError, AppError } from "@/utils/errorTypes";
 import { toCursoResponseDto } from "@/api/services/mappers/cursoMapper/curso.mapper";
 // ✅ ACTIVADO: Integraciones Moodle y Telegram habilitadas
-import { cursoMoodleTrigger } from "@/triggers/cursoMoodle.trigger";
-import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
+//import { cursoMoodleTrigger } from "@/triggers/cursoMoodle.trigger";
+//import { cursoTelegramTrigger } from "@/triggers/cursoTelegram.trigger";
 
 const prisma = new PrismaClient();
 
@@ -60,8 +60,8 @@ export class CursoService {
       });
 
       // ✅ ACTIVADO: Triggers post-creación habilitados
-      await cursoMoodleTrigger.ejecutarPostCreacion(curso);
-      await cursoTelegramTrigger.ejecutarPostCreacion(curso);
+      //await cursoMoodleTrigger.ejecutarPostCreacion(curso);
+      //await cursoTelegramTrigger.ejecutarPostCreacion(curso);
       console.log('✅ Curso creado exitosamente con integraciones Moodle/Telegram:', curso.idCurso);
 
       return toCursoResponseDto(curso);
@@ -124,8 +124,8 @@ export class CursoService {
       });
 
       // ✅ ACTIVADO: Triggers post-actualización habilitados
-      await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
-      await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
+     // await cursoMoodleTrigger.ejecutarPostActualizacion(curso);
+      //await cursoTelegramTrigger.ejecutarPostActualizacion(curso);
       console.log('✅ Curso actualizado exitosamente con integraciones Moodle/Telegram:', curso.idCurso);
 
       return toCursoResponseDto(curso);    } catch (error) {
@@ -234,8 +234,8 @@ export class CursoService {
       }
 
       // ✅ ACTIVADO: Triggers pre-eliminación habilitados
-      await cursoMoodleTrigger.ejecutarPreEliminacion(id);
-      await cursoTelegramTrigger.ejecutarPreEliminacion(id);
+     //await cursoMoodleTrigger.ejecutarPreEliminacion(id);
+      //await cursoTelegramTrigger.ejecutarPreEliminacion(id);
       console.log('✅ Eliminando curso con validaciones Moodle/Telegram:', id);
 
       // Eliminar el curso

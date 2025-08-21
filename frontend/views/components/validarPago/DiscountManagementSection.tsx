@@ -36,6 +36,7 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
     tipoDescuento: 'estudiante',
     numeroEstudiantes: undefined,
     cantidadDescuento: undefined,
+    porcentajeDescuento: undefined,
     descripcion: ''
   });
 
@@ -91,20 +92,31 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🚀 Iniciando creación de descuento...', { formData, idInscripcion: inscription.idInscripcion });
+    
     if (!validateForm()) {
+      console.log('❌ Validación de formulario falló');
       return;
     }
 
-    const result = await createDescuento(formData);
+    console.log('✅ Validación pasó, llamando createDescuento...');
+    const result = await createDescuento(formData, inscription.idInscripcion);
+    console.log('🎯 Resultado de createDescuento:', result);
+    
     if (result) {
+      console.log('✅ Descuento creado exitosamente, limpiando formulario...');
       setShowDiscountForm(false);
       setFormData({
         tipoDescuento: 'estudiante',
         numeroEstudiantes: undefined,
         cantidadDescuento: undefined,
+        porcentajeDescuento: undefined,
         descripcion: ''
       });
+      console.log('🔄 Llamando onDiscountApplied...');
       onDiscountApplied?.();
+    } else {
+      console.log('❌ createDescuento falló o retornó null');
     }
   };
 
@@ -344,6 +356,28 @@ export const DiscountManagementSection: React.FC<DiscountManagementSectionProps>
               />
               {formErrors.cantidadDescuento && (
                 <p className="text-sm text-red-600">{formErrors.cantidadDescuento}</p>
+              )}
+            </div>
+
+            {/* Porcentaje del descuento */}
+            <div className="space-y-2">
+              <Label htmlFor="porcentajeDescuento" className="flex items-center text-sm font-medium">
+                <Percent className="h-4 w-4 mr-2" />
+                Porcentaje de Descuento (%) (Opcional)
+              </Label>
+              <Input
+                id="porcentajeDescuento"
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="100"
+                value={formData.porcentajeDescuento || ''}
+                onChange={(e) => handleInputChange('porcentajeDescuento', e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Ejemplo: 15.50"
+                className={`${formErrors.porcentajeDescuento ? 'border-red-500' : ''}`}
+              />
+              {formErrors.porcentajeDescuento && (
+                <p className="text-sm text-red-600">{formErrors.porcentajeDescuento}</p>
               )}
             </div>
 

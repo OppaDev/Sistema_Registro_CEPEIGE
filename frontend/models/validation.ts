@@ -30,8 +30,14 @@ export const participantSchema = z.object({
   .min(1, 'CI o Pasaporte es requerido')
   .max(20, 'CI o Pasaporte muy largo')
   .refine(
-    value =>
-      (/[A-Za-z0-9]{6,15}$/i.test(value)) || validarCedulaEcuatoriana(value),
+    value => {
+      // Si tiene exactamente 10 dígitos, validar solo como cédula ecuatoriana
+      if (/^\d{10}$/.test(value)) {
+        return validarCedulaEcuatoriana(value);
+      }
+      // Si no son 10 dígitos, validar como pasaporte
+      return /^[A-Za-z0-9]{6,15}$/i.test(value);
+    },
     {
       message: "Debe ser una cédula ecuatoriana válida o un pasaporte válido con solo letras y números, sin símbolos (máx. 15 caracteres)",
     }

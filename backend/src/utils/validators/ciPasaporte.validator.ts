@@ -19,12 +19,13 @@ export class IsCiPasaporteConstraint implements ValidatorConstraintInterface {  
       return CedulaEcuatorianaValidator.isValid(cleanValue);
     }
 
-    // Verificar si es un pasaporte (6-9 caracteres alfanuméricos en mayúsculas, pero NO solo números)
-    if (/^[A-Z0-9]{6,9}$/.test(cleanValue)) {
-      // Si es solo números pero no tiene exactamente 10 dígitos, es inválido
-      if (/^\d+$/.test(cleanValue)) {
-        return false; // Solo números debe ser tratado como cédula inválida
+    // Verificar si es un pasaporte (6-15 caracteres alfanuméricos en mayúsculas)
+    if (/^[A-Z0-9]{6,15}$/.test(cleanValue)) {
+      // Permitir pasaportes numéricos de 6-15 dígitos (como pasaportes de Estados Unidos)
+      if (/^\d{6,15}$/.test(cleanValue)) {
+        return true; // Pasaportes numéricos válidos
       }
+      // También permitir pasaportes alfanuméricos
       return true;
     }
 
@@ -33,7 +34,7 @@ export class IsCiPasaporteConstraint implements ValidatorConstraintInterface {  
   }
 
   defaultMessage(): string {
-    return 'Debe ingresar una cédula ecuatoriana válida (10 dígitos) o un pasaporte válido (6-9 caracteres alfanuméricos en mayúsculas)';
+    return 'Debe ingresar una cédula ecuatoriana válida (10 dígitos) o un pasaporte válido (6-15 caracteres alfanuméricos)';
   }
 }
 

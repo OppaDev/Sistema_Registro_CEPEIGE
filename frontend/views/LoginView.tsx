@@ -81,7 +81,7 @@ export default function LoginView() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-blue-100 text-sm">
-            © 2025 CEPEIGE. Todos los derechos reservados.
+            © {new Date().getFullYear()} CEPEIGE. Todos los derechos reservados.
           </p>
         </div>
       </div>

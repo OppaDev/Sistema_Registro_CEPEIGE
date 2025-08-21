@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCourseAdminController } from '@/controllers/login/useCourseAdminController';
 import { AdminLayout } from './components/login/AdminLayout';
 import { CourseTable } from './components/curso_admin/CourseTable';
@@ -11,10 +11,13 @@ import { CreateEditCourseModal } from './components/inscripcion_completa/CreateE
 import { DeleteCourseModal } from './components/curso_admin/DeleteCourseModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, BookOpen, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { RefreshCw, BookOpen, TrendingUp, Calendar, DollarSign, BarChart3 } from 'lucide-react';
 import { CreateCourseData, UpdateCourseData } from '@/models/inscripcion/course';
+import ReportsView from './ReportsView';
 
 export default function CourseAdminView() {
+  const [activeTab, setActiveTab] = useState<'cursos' | 'informes'>('cursos');
+
   const {
     // Estado
     courses,
@@ -94,26 +97,57 @@ export default function CourseAdminView() {
   return (
     <AdminLayout userType="admin" activeModule="cursos">
       <div className="space-y-6">
-        {/* Encabezado */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          <div>
-            <h1 
-               className="text-2xl lg:text-3xl font-bold flex items-center"
-              style={{ 
-                color: '#000000',
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 700
-              }}
+        {/* Pestañas de navegación */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('cursos')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'cursos'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              <BookOpen className="h-6 w-6 lg:h-8 lg:w-8 mr-2 lg:mr-3" style={{ color: '#F3762B' }} />
-              Gestión de Cursos
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm lg:text-base">
-              Administra los cursos disponibles en la plataforma
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-3">
+              <BookOpen className="h-4 w-4" />
+              <span>Gestión de Cursos</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('informes')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'informes'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Informes</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Contenido de pestañas */}
+        {activeTab === 'cursos' && (
+          <>
+            {/* Encabezado */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div>
+                <h1 
+                   className="text-2xl lg:text-3xl font-bold flex items-center"
+                  style={{ 
+                    color: '#000000',
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontWeight: 700
+                  }}
+                >
+                  <BookOpen className="h-6 w-6 lg:h-8 lg:w-8 mr-2 lg:mr-3" style={{ color: '#F3762B' }} />
+                  Gestión de Cursos
+                </h1>
+                <p className="text-gray-600 mt-1 text-sm lg:text-base">
+                  Administra los cursos disponibles en la plataforma
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
@@ -214,21 +248,28 @@ export default function CourseAdminView() {
           onClose={closeViewModal}
         />
 
-        <CreateEditCourseModal
-          isOpen={isCreateModalOpen || isEditModalOpen}
-          course={selectedCourseForEdit}
-           isSubmitting={isCreating || isUpdating}
-           onSubmit={handleCourseSubmit}
-           onClose={selectedCourseForEdit ? closeEditModal : closeCreateModal}
-        />
+            <CreateEditCourseModal
+              isOpen={isCreateModalOpen || isEditModalOpen}
+              course={selectedCourseForEdit}
+               isSubmitting={isCreating || isUpdating}
+               onSubmit={handleCourseSubmit}
+               onClose={selectedCourseForEdit ? closeEditModal : closeCreateModal}
+            />
 
-        <DeleteCourseModal
-          isOpen={isDeleteModalOpen}
-          course={selectedCourseForDelete}
-          isDeleting={isDeleting}
-          onConfirm={deleteCourse}
-          onCancel={closeDeleteModal}
-        />
+            <DeleteCourseModal
+              isOpen={isDeleteModalOpen}
+              course={selectedCourseForDelete}
+              isDeleting={isDeleting}
+              onConfirm={deleteCourse}
+              onCancel={closeDeleteModal}
+            />
+          </>
+        )}
+
+        {/* Pestaña de Informes */}
+        {activeTab === 'informes' && (
+          <ReportsView />
+        )}
       </div>
     </AdminLayout>
   );

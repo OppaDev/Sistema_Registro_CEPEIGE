@@ -40,15 +40,21 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     );
   };
 
-  const handlePaymentValidationSuccess = () => {
+  const handlePaymentValidationSuccess = async () => {
     setValidationMessage({
       type: 'success',
       text: 'Proceso de validación completado exitosamente'
     });
     
+    // Recargar la lista general de inscripciones
     if (onPaymentValidated) {
-      onPaymentValidated();
+      await onPaymentValidated();
     }
+    
+    // Forzar cierre y reapertura del modal para refrescar datos
+    setTimeout(() => {
+      onClose();
+    }, 1000);
   };
 
   // 🆕 MANEJAR DESCARGA DE COMPROBANTE - DIRECTO

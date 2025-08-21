@@ -39,6 +39,7 @@ export type TipoDescuento = 'estudiante' | 'institucion' | 'promocional' | 'otro
 export interface DescuentoFormData {
   numeroEstudiantes?: number;
   cantidadDescuento?: number;
+  porcentajeDescuento?: number;
   tipoDescuento: TipoDescuento;
   descripcion?: string;
 }

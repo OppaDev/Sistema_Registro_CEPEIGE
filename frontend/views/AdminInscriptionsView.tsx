@@ -1,20 +1,23 @@
 // views/AdminInscriptionsView.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useInscriptionController } from '@/controllers/inscripcion_completa/useInscriptionController';
 import { AdminLayout } from './components/login/AdminLayout';
 import { InscriptionTable } from './components/inscripcion_completa/InscriptionTable';
 import { InscriptionDetailModal } from './components/inscripcion_completa/InscriptionDetailModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Users, BarChart3 } from 'lucide-react';
 import { EditInscriptionModal } from './components/inscripcion_completa/EditInscriptionModal';
 import { DeleteInscriptionModal } from './components/inscripcion_completa/DeleteInscriptionModal';
 import { EditInscriptionRequest } from '@/models/inscripcion_completa/inscription';
+import ReportsView from './ReportsView';
 
 
 export default function AdminInscriptionsView() {
+  const [activeTab, setActiveTab] = useState<'inscripciones' | 'informes'>('inscripciones');
+
   const {
     inscriptions,
     loading,
@@ -74,36 +77,67 @@ export default function AdminInscriptionsView() {
   return (
     <AdminLayout userType="admin" activeModule="inscripciones">
       <div className="space-y-6">
-        {/* Encabezado simplificado */}
-       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          <div>
-            <h1 
-              className="text-2xl lg:text-3xl font-bold"
-              style={{ 
-                color: '#000000',
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 700
-              }}
+        {/* Pestañas de navegación */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('inscripciones')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'inscripciones'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              Inscripciones Registradas
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm lg:text-base">
-              Consulta la información registrada por los participantes
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleRefresh}
-              disabled={loading}
-              variant="outline"
-              className="flex items-center space-x-2 w-full lg:w-auto"
+              <Users className="h-4 w-4" />
+              <span>Inscripciones</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('informes')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'informes'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Actualizar</span>
-            </Button>
-          </div>
+              <BarChart3 className="h-4 w-4" />
+              <span>Informes</span>
+            </button>
+          </nav>
         </div>
+
+        {/* Contenido de pestañas */}
+        {activeTab === 'inscripciones' && (
+          <>
+            {/* Encabezado simplificado */}
+           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div>
+                <h1 
+                  className="text-2xl lg:text-3xl font-bold"
+                  style={{ 
+                    color: '#000000',
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontWeight: 700
+                  }}
+                >
+                  Inscripciones Registradas
+                </h1>
+                <p className="text-gray-600 mt-1 text-sm lg:text-base">
+                  Consulta la información registrada por los participantes
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  variant="outline"
+                  className="flex items-center space-x-2 w-full lg:w-auto"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span>Actualizar</span>
+                </Button>
+              </div>
+            </div>
 
         {/* QUITAR: Estadísticas rápidas - Solo mostrar total */}
         <div className="bg-white rounded-lg border p-4 lg:p-6">
@@ -171,14 +205,21 @@ export default function AdminInscriptionsView() {
           userType="admin"
           isUpdating={isUpdating}
         />
-         {/* 🆕 MODAL DE ELIMINACIÓN */}
-        <DeleteInscriptionModal
-          isOpen={isDeleteModalOpen}
-          inscription={selectedInscriptionForDelete}
-          isDeleting={isDeleting}
-          onConfirm={deleteInscription}
-          onCancel={closeDeleteModal}
-        />
+            {/* 🆕 MODAL DE ELIMINACIÓN */}
+            <DeleteInscriptionModal
+              isOpen={isDeleteModalOpen}
+              inscription={selectedInscriptionForDelete}
+              isDeleting={isDeleting}
+              onConfirm={deleteInscription}
+              onCancel={closeDeleteModal}
+            />
+          </>
+        )}
+
+        {/* Pestaña de Informes */}
+        {activeTab === 'informes' && (
+          <ReportsView />
+        )}
       </div>
     </AdminLayout>
   );
