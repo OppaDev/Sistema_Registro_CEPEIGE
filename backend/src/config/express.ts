@@ -51,9 +51,9 @@ export function configureExpress(app: Application): void {
     limit: '10mb' 
   }));
 
-  // Servir archivos estáticos desde /uploads
+  // Servir archivos estáticos desde /uploads con CORS específico
   const uploadsPath = process.env['UPLOAD_PATH'] || './uploads';
-  app.use('/uploads', express.static(uploadsPath));
+  app.use('/uploads', cors(corsConfig), express.static(uploadsPath));
 
   // Logging
   if (process.env['NODE_ENV'] === 'development') {

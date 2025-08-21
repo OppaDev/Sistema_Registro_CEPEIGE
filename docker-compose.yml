@@ -11,7 +11,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - cepeige_network
+      cepeige_network:
+        ipv4_address: 172.23.0.10
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 30s
@@ -61,7 +62,8 @@ services:
       database:
         condition: service_healthy
     networks:
-      - cepeige_network
+      cepeige_network:
+        ipv4_address: 172.23.0.20
 
   # Frontend Next.js Application
   frontend:
@@ -81,7 +83,8 @@ services:
     depends_on:
       - backend
     networks:
-      - cepeige_network
+      cepeige_network:
+        ipv4_address: 172.23.0.30
 
 volumes:
   postgres_data:
@@ -94,3 +97,7 @@ volumes:
 networks:
   cepeige_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+          gateway: 172.23.0.1
