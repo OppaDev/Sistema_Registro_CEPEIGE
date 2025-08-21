@@ -70,16 +70,27 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     try {
       const directUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
 
-      // Crear enlace de descarga directo (sin fetch para evitar CORS)
+      // Fetch del archivo como blob
+      const response = await fetch(directUrl);
+      if (!response.ok) {
+        throw new Error('Error al descargar el archivo');
+      }
+      
+      const blob = await response.blob();
+      
+      // Crear URL object y enlace de descarga
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = directUrl;
+      link.href = url;
       link.download = inscription.comprobante.nombreArchivo;
-      link.target = '_blank';
       
       // Trigger automático de descarga
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Limpiar URL object
+      window.URL.revokeObjectURL(url);
       
       setValidationMessage({
         type: 'success',
