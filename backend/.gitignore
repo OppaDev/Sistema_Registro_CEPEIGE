@@ -10,3 +10,4 @@ moodle-docker\.env
 reportes
 scripts
 docs
+get-session.js

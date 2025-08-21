@@ -51,9 +51,15 @@ export function configureExpress(app: Application): void {
     limit: '10mb' 
   }));
 
-  // Servir archivos estáticos desde /uploads con CORS específico
+  // Servir archivos estáticos desde /uploads con CORS específico para archivos
   const uploadsPath = process.env['UPLOAD_PATH'] || './uploads';
-  app.use('/uploads', cors(corsConfig), express.static(uploadsPath));
+  app.use('/uploads', (req, res, next) => {
+    // CORS específico para archivos estáticos
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  }, express.static(uploadsPath));
 
   // Logging
   if (process.env['NODE_ENV'] === 'development') {
