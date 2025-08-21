@@ -75,7 +75,7 @@ export const useAuthController = () => {
     canAccessRoute,
     
     // Información del usuario
-    userName: auth.user ? `${auth.user.nombres} ${auth.user.apellidos}` : '',
+    userName: auth.user ? `${auth.user.nombres || ''} ${auth.user.apellidos || ''}`.trim() : '',
     userEmail: auth.user?.email || '',
     userRoles: auth.user?.roles || [],
   };

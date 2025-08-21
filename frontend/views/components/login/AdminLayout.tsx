@@ -39,12 +39,15 @@ if (userType === 'admin') {
 }
 
 // 🆕 AGREGAR INFORMES PARA ADMIN Y CONTADOR
+// ✅ COMENTADO TEMPORALMENTE
+/* 
 menuItems.push({
   id: 'informes',
   label: 'Informes',
   icon: <BarChart3 className="h-5 w-5" />,
   href: '/informes'
 });
+*/
   
 
   return (

@@ -104,7 +104,7 @@ export default function AccountantInscriptionsView() {
               }`}
             >
               <BarChart3 className="h-4 w-4" />
-              <span>Informes</span>
+               <span>Informes</span>
             </button>
           </nav>
         </div>
