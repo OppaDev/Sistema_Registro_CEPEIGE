@@ -196,14 +196,14 @@ export const InscriptionTable: React.FC<InscriptionTableProps> = ({
                         {inscription.comprobante ? (
                           <div className="flex items-center space-x-2">
                             <span className="text-green-600 text-sm">✓ Subido</span>
-                            <Button
+                            {/* <Button
                               size="sm"
                               variant="ghost"
                               className="h-6 w-6 p-0"
                               title="Descargar comprobante"
                             >
                               <Download className="h-3 w-3" />
-                            </Button>
+                            </Button> */}
                           </div>
                         ) : (
                           <span className="text-gray-400 text-sm">Sin comprobante</span>
