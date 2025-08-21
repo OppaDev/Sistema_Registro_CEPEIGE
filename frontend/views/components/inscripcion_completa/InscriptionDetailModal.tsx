@@ -68,8 +68,8 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     }
     
     try {
-      const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
-      
+      const directUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+
       // Fetch del archivo como blob
       const response = await fetch(directUrl);
       if (!response.ok) {
@@ -115,7 +115,7 @@ export const InscriptionDetailModal: React.FC<InscriptionDetailModalProps> = ({
     }
     
     // Construir URL directa y abrir inmediatamente
-    const directUrl = `http://localhost:3001/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
+    const directUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/comprobantes/${inscription.comprobante.nombreArchivo}`;
     window.open(directUrl, '_blank');
   };
 
