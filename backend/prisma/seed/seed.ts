@@ -238,10 +238,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash(process.env['SUPERADMIN_PASSWORD'] || 'SuperAdmin123!', 10);
   
   const superAdminUser = await prisma.usuario.upsert({
-    where: { email: 'superadmin@cepeige.com' },
+    where: { email: 'superadmin@cepeige.org' },
     update: {},
     create: {
-      email: 'superadmin@cepeige.com',
+      email: 'superadmin@cepeige.org',
       password: hashedPassword,
       nombres: 'Super',
       apellidos: 'Admin',
@@ -272,10 +272,10 @@ async function main() {
   // Usuario Admin
   const adminPassword = await bcrypt.hash(process.env['ADMIN_PASSWORD'] || 'Admin123!', 10);
   const adminUser = await prisma.usuario.upsert({
-    where: { email: 'admin@cepeige.com' },
+    where: { email: 'admin@cepeige.org' },
     update: {},
     create: {
-      email: 'admin@cepeige.com',
+      email: 'admin@cepeige.org',
       password: adminPassword,
       nombres: 'Admin',
       apellidos: 'CEPEIGE',
@@ -300,10 +300,10 @@ async function main() {
   // Usuario Contador
   const contadorPassword = await bcrypt.hash(process.env['CONTADOR_PASSWORD'] || 'Contador123!', 10);
   const contadorUser = await prisma.usuario.upsert({
-    where: { email: 'contador@cepeige.com' },
+    where: { email: 'contador@cepeige.org' },
     update: {},
     create: {
-      email: 'contador@cepeige.com',
+      email: 'contador@cepeige.org',
       password: contadorPassword,
       nombres: 'Contador',
       apellidos: 'CEPEIGE',
