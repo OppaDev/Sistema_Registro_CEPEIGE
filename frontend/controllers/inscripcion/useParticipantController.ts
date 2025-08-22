@@ -234,24 +234,19 @@ export function useParticipantController() {
         }
       }
       
-      // Enviar datos personales
-      const response = await participantService.register(formData);
+      // ✅ SOLO VALIDAR - NO GUARDAR EN BD
+      console.log('✅ Datos personales válidos, avanzando al siguiente paso...');
       
-      if (response.success) {
-        const responseData = response.data as ParticipantResponseData;
-        setPersonalDataId(responseData.idPersona); // 🆕 NOMBRE CORRECTO
-        setMessage({
-          text: '✅ Datos personales registrados correctamente',
-          type: 'success'
-        });
-        
-        // Avanzar al siguiente paso
-        setTimeout(() => {
-          setCurrentStep('billing');
-        }, 1000);
-      } else {
-        throw new Error(response.message || 'Error en el registro');
-      }
+      setMessage({
+        text: '✅ Datos personales válidos',
+        type: 'success'
+      });
+      
+      // Avanzar al siguiente paso
+      setTimeout(() => {
+        setCurrentStep('billing');
+        setMessage(null);
+      }, 1000);
     } catch (error: unknown) {
       const errorObj = error as { 
         errors?: Array<{ message?: string }>; 
@@ -281,23 +276,19 @@ export function useParticipantController() {
     try {
       billingSchema.parse(billingData);
       
-      const response = await billingService.create(billingData);
+      // ✅ SOLO VALIDAR - NO GUARDAR EN BD
+      console.log('✅ Datos de facturación válidos, avanzando al siguiente paso...');
       
-      if (response.success) {
-        const billingResponseData = response.data as BillingResponseData;
-        setBillingDataId(billingResponseData.idFacturacion); // 🆕 NOMBRE CORRECTO
-        setMessage({
-          text: '✅ Datos de facturación registrados correctamente',
-          type: 'success'
-        });
-        
-        // Avanzar al paso de comprobante
-        setTimeout(() => {
-          setCurrentStep('payment');
-        }, 1000);
-      } else {
-        throw new Error(response.message || 'Error en el registro de facturación');
-      }
+      setMessage({
+        text: '✅ Datos de facturación válidos',
+        type: 'success'
+      });
+      
+      // Avanzar al paso de comprobante
+      setTimeout(() => {
+        setCurrentStep('payment');
+        setMessage(null);
+      }, 1000);
     } catch (error: unknown) {
       const errorObj = error as { 
         errors?: Array<{ message?: string }>; 
@@ -396,7 +387,34 @@ const createCompleteInscriptionDirect = async (
       // Validar archivo
       paymentReceiptSchema.parse({ file: paymentData.file });
 
-      // Subir comprobante
+      console.log('🚀 Guardando todos los datos en secuencia...');
+      
+      // 1️⃣ GUARDAR DATOS PERSONALES
+      console.log('📝 Guardando datos personales...');
+      const participantResponse = await participantService.register(formData);
+      
+      if (!participantResponse.success) {
+        throw new Error(participantResponse.message || 'Error al registrar datos personales');
+      }
+      
+      const participantData = participantResponse.data as ParticipantResponseData;
+      const finalPersonalDataId = participantData.idPersona;
+      setPersonalDataId(finalPersonalDataId);
+      
+      // 2️⃣ GUARDAR DATOS DE FACTURACIÓN
+      console.log('💰 Guardando datos de facturación...');
+      const billingResponse = await billingService.create(billingData);
+      
+      if (!billingResponse.success) {
+        throw new Error(billingResponse.message || 'Error al registrar datos de facturación');
+      }
+      
+      const billingResponseData = billingResponse.data as BillingResponseData;
+      const finalBillingDataId = billingResponseData.idFacturacion;
+      setBillingDataId(finalBillingDataId);
+
+      // 3️⃣ SUBIR COMPROBANTE
+      console.log('📄 Subiendo comprobante...');
       const uploadResponse = await paymentService.uploadReceipt(paymentData.file);
       
       if (uploadResponse.success && uploadResponse.data) {
@@ -412,17 +430,23 @@ const createCompleteInscriptionDirect = async (
 
         setUploadedReceiptId(uploadResponse.data.idComprobante ?? null);
 
-        // Crear inscripción completa
-        //await createCompleteInscription();
+        // 4️⃣ CREAR INSCRIPCIÓN COMPLETA
+        console.log('✅ Creando inscripción completa...');
         await createCompleteInscriptionDirect(
          formData.selectedCourse?.courseId,
-          personalDataId,
-          billingDataId,
+          finalPersonalDataId,
+          finalBillingDataId,
           uploadResponse.data.idComprobante
         );
         
         // Ir al resumen
         setCurrentStep('summary');
+        
+        setMessage({
+          text: '🎉 ¡Inscripción completada exitosamente!',
+          type: 'success'
+        });
+        
       } else {
         throw new Error(uploadResponse.message || 'Error al subir el comprobante');
       }
