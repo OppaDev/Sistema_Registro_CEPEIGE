@@ -144,6 +144,66 @@ export function useParticipantController() {
     }, 1000);
   };
 
+  // 🆕 Función para verificar identificación tributaria duplicada
+  const checkForDuplicateTaxId = async (identificacionTributaria: string): Promise<boolean> => {
+    try {
+      console.log(`🔍 Verificando identificación tributaria duplicada: ${identificacionTributaria}`);
+      
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      
+      // Buscar en datos de facturación existentes
+      const response = await fetch(`${API_BASE_URL}/datos-facturacion?_t=${Date.now()}`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.log('⚠️ No se pudo verificar identificaciones tributarias, continuando...');
+        return false;
+      }
+
+      const data = await response.json();
+      if (!data.success || !data.data) {
+        console.log('✅ No hay datos de facturación, puede proceder');
+        return false;
+      }
+
+      // Buscar identificación duplicada
+      const duplicate = data.data.find((factura: { 
+        identificacionTributaria: string;
+      }) => 
+        factura.identificacionTributaria === identificacionTributaria
+      );
+
+      if (duplicate) {
+        console.log('❌ Identificación tributaria duplicada encontrada:', duplicate);
+        
+        setBillingErrors(prev => ({
+          ...prev,
+          identificacionTributaria: 'Esta identificación tributaria ya está registrada'
+        }));
+        
+        const errorMessage = `La identificación tributaria "${identificacionTributaria}" ya está registrada en el sistema. ` +
+          `Por favor, use una identificación tributaria diferente.`;
+        
+        setMessage({
+          text: errorMessage,
+          type: 'error'
+        });
+        
+        return true; // Duplicada encontrada
+      }
+
+      console.log('✅ No se encontró identificación tributaria duplicada');
+      return false; // No duplicada
+    } catch (error) {
+      console.error('Error verificando identificación tributaria:', error);
+      return false; // En caso de error, permitir continuar
+    }
+  };
+
   // 🆕 Función para verificar inscripción duplicada
   const checkForDuplicateEnrollment = async (ciPasaporte: string, courseId: number, courseName: string): Promise<boolean> => {
     try {
@@ -276,7 +336,16 @@ export function useParticipantController() {
     try {
       billingSchema.parse(billingData);
       
-      // 🆕 SOLO VALIDAR - NO GUARDAR EN BD HASTA "FINALIZAR INSCRIPCIÓN"
+      // 🆕 VALIDAR SI LA IDENTIFICACIÓN TRIBUTARIA YA EXISTE
+      console.log('🔍 Verificando identificación tributaria duplicada:', billingData.identificacionTributaria);
+      
+      const isDuplicateTaxId = await checkForDuplicateTaxId(billingData.identificacionTributaria);
+      
+      if (isDuplicateTaxId) {
+        setIsSubmitting(false);
+        return; // DETENER PROCESO AQUÍ
+      }
+      
       console.log('✅ Datos de facturación validados correctamente (guardado temporal)');
       
       setMessage({
