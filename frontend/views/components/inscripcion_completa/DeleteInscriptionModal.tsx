@@ -118,13 +118,7 @@ export const DeleteInscriptionModal: React.FC<DeleteInscriptionModalProps> = ({
               <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
               <AlertDescription className="text-red-700 text-sm sm:text-base">
                 <strong>⚠️ Advertencia:</strong> Esta acción no se puede deshacer. 
-                Se eliminarán <strong>TODOS</strong> los datos relacionados:
-                <ul className="list-disc list-inside mt-2 space-y-1 text-xs sm:text-sm">
-                  <li>Datos personales del participante</li>
-                  <li>Datos de facturación</li>
-                  <li>Comprobante de pago</li>
-                  <li>Registro de inscripción</li>
-                </ul>
+                Todos los datos relacionados con la inscripción serán eliminados permanentemente.
               </AlertDescription>
             </Alert>
           </div>
