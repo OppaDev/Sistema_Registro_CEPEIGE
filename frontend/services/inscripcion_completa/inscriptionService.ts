@@ -600,32 +600,122 @@ class InscriptionService {
   }
    async deleteInscription(inscriptionId: number): Promise<InscriptionDetailResponse> {
     try {
-      console.log('🗑️ Eliminando inscripción:', inscriptionId);
+      console.log('🗑️ Iniciando eliminación en cascada de inscripción:', inscriptionId);
 
       // Obtener headers de autenticación
       const authHeaders = authService.getAuthHeader();
 
-      const response = await fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
-      });
-
-      const data = await response.json();
-      console.log('📥 Respuesta eliminación:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al eliminar la inscripción');
+      // 1️⃣ PRIMERO: Obtener los IDs relacionados antes de eliminar
+      console.log('📋 Obteniendo datos de la inscripción para eliminación en cascada...');
+      const inscriptionResponse = await this.getInscriptionById(inscriptionId);
+      
+      if (!inscriptionResponse.success) {
+        throw new Error('No se pudo obtener la inscripción para eliminar');
       }
 
-      return data;
+      const inscription = inscriptionResponse.data;
+      const idPersona = inscription.datosPersonales.idPersona;
+      const idFacturacion = inscription.datosFacturacion.idFacturacion;
+      const idComprobante = inscription.comprobante.idComprobante;
+
+      console.log('🎯 IDs a eliminar:', {
+        inscripcion: inscriptionId,
+        persona: idPersona,
+        facturacion: idFacturacion,
+        comprobante: idComprobante
+      });
+
+      // 2️⃣ ELIMINAR EN CASCADA EN EL ORDEN CORRECTO
+      const deletePromises: Promise<Response>[] = [];
+
+      // Eliminar inscripción (relación principal)
+      console.log('🗑️ Eliminando inscripción...');
+      deletePromises.push(
+        fetch(`${API_BASE_URL}/inscripciones/${inscriptionId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+        })
+      );
+
+      // Eliminar comprobante de pago
+      console.log('📄 Eliminando comprobante de pago...');
+      deletePromises.push(
+        fetch(`${API_BASE_URL}/comprobantes/${idComprobante}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+        })
+      );
+
+      // Eliminar datos de facturación
+      console.log('💰 Eliminando datos de facturación...');
+      deletePromises.push(
+        fetch(`${API_BASE_URL}/datos-facturacion/${idFacturacion}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+        })
+      );
+
+      // Eliminar datos personales
+      console.log('👤 Eliminando datos personales...');
+      deletePromises.push(
+        fetch(`${API_BASE_URL}/datos-personales/${idPersona}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+        })
+      );
+
+      // 3️⃣ EJECUTAR TODAS LAS ELIMINACIONES EN PARALELO
+      const responses = await Promise.all(deletePromises);
+
+      // 4️⃣ VERIFICAR QUE TODAS LAS ELIMINACIONES SEAN EXITOSAS
+      let hasErrors = false;
+      const errors: string[] = [];
+
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        if (!response.ok) {
+          hasErrors = true;
+          try {
+            const errorData = await response.json();
+            const entityNames = ['inscripción', 'comprobante', 'facturación', 'datos personales'];
+            errors.push(`Error eliminando ${entityNames[i]}: ${errorData.message || 'Error desconocido'}`);
+          } catch {
+            errors.push(`Error eliminando entidad ${i + 1}: Error de respuesta`);
+          }
+        }
+      }
+
+      if (hasErrors) {
+        console.error('❌ Errores en eliminación en cascada:', errors);
+        throw new Error(`Errores durante la eliminación: ${errors.join(', ')}`);
+      }
+
+      console.log('✅ Eliminación en cascada completada exitosamente');
+
+      // Retornar respuesta de éxito
+      return {
+        success: true,
+        data: inscription, // Datos que fueron eliminados
+        message: 'Inscripción y todos los datos relacionados eliminados exitosamente'
+      };
+
     } catch (error: unknown) {
       const errorObj = error as { message?: string };
-      console.error('❌ Error deleting inscription:', error);
+      console.error('❌ Error deleting inscription with cascade:', error);
       throw new Error(
-        errorObj.message || 'Error al eliminar la inscripción'
+        errorObj.message || 'Error al eliminar la inscripción y datos relacionados'
       );
     }
   }
