@@ -14,8 +14,8 @@ export const billingSchema = z.object({
   razonSocial: z.string()
     .min(1, 'La razón social es requerida')
     .max(100, 'Razón social muy larga')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9]+$/, 
-      'Solo letras, números, espacios y caracteres especiales permitidos (- . &)'),
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.\&0-9\\|]+$/, 
+        'Solo letras, números, espacios y caracteres especiales permitidos (- . & \ |)'),
   identificacionTributaria: z.string()
     .min(1, 'La identificación tributaria es requerida')
     .max(50, 'Identificación tributaria muy larga'),
