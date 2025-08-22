@@ -113,10 +113,20 @@ export default function ReportsView() {
     try {
       setLoading(true);
       
+      const filtrosEspecificos = { ...filtrosActivos };
+      
+      if (tipo === TipoInforme.PENDIENTES) {
+        filtrosEspecificos.verificacionPago = false;
+      } else if (tipo === TipoInforme.PAGADOS) {
+        filtrosEspecificos.verificacionPago = true;
+      } else if (tipo === TipoInforme.MATRICULADOS) {
+        filtrosEspecificos.matricula = true;
+      }
+      
       await informeService.generarInforme({
         tipoInforme: tipo,
         formato: formato,
-        ...filtrosActivos
+        ...filtrosEspecificos
       });
       
     } catch (err) {
