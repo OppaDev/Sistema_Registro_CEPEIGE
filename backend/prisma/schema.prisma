@@ -63,7 +63,7 @@ model DatosFacturacion {
   razonSocial              String        @map("razon_social") @db.VarChar(100)
   identificacionTributaria String        @unique @map("identificacion_tributaria") @db.VarChar(50)
   telefono                 String        @map("telefono") @db.VarChar(20)
-  correoFactura            String        @unique @map("correo_factura") @db.VarChar(100)
+  correoFactura            String        @map("correo_factura") @db.VarChar(100)
   direccion                String        @map("direccion") @db.VarChar(250)
 
   //relaciones

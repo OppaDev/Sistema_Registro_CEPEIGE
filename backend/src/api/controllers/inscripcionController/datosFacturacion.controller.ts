@@ -74,6 +74,27 @@ export class DatosFacturacionController {
     }
   }
 
+  // Obtener datos de facturación por identificación tributaria
+  async getByIdentificacion(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { identificacion } = req.params;
+      if (!identificacion || identificacion.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "La identificación tributaria es requerida",
+        });
+      }
+      const datosFacturacion = await datosFacturacionService.getDatosFacturacionByIdentificacion(identificacion);
+      return res.status(200).json({
+        success: true,
+        data: datosFacturacion,
+        message: "Datos de facturación obtenidos exitosamente",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   // Actualizar datos de facturación
   async update(req: Request, res: Response, next: NextFunction) {
     try {

@@ -36,6 +36,14 @@ router.get(
   datosFacturacionController.getById
 );
 
+// Obtener datos de facturación por identificación tributaria - Super-Admin, Admin, Contador, Public (para seguimiento)
+router.get(
+  "/identificacion/:identificacion",
+  optionalAuthenticate, // Autenticación opcional
+  publicWithOptionalAuthMiddleware, // Permite consultar durante proceso de inscripción
+  datosFacturacionController.getByIdentificacion
+);
+
 // Actualizar datos de facturación - Super-Admin, Admin, Contador (NO público)
 router.put(
   "/:id",

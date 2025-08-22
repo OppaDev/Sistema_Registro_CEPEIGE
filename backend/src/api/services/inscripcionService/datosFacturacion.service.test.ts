@@ -139,28 +139,6 @@ describe('3.1. DatosFacturacionService', () => {
         .rejects.toThrow('La identificación tributaria ya está registrada');
     });
 
-    it('SRV-DFAC-002b: debería lanzar ConflictError cuando el correo de factura ya existe', async () => {
-      // Arrange
-      const createDatosFacturacionDto: CreateDatosFacturacionDto = {
-        razonSocial: 'Empresa Test S.A.',
-        identificacionTributaria: '0402084040',
-        telefono: '+593987654321',
-        correoFactura: 'test@example.com',
-        direccion: 'Av. Principal 123'
-      };
-
-      const prismaError = {
-        code: 'P2002',
-        meta: { target: ['correo_factura'] }
-      };
-      mockCreate.mockRejectedValue(prismaError);
-
-      // Act & Assert
-      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
-        .rejects.toThrow(ConflictError);
-      await expect(datosFacturacionService.createDatosFacturacion(createDatosFacturacionDto))
-        .rejects.toThrow('El correo de facturación ya está registrado');
-    });
 
     it('SRV-DFAC-002c: debería lanzar ConflictError genérico para otros campos únicos', async () => {
       // Arrange

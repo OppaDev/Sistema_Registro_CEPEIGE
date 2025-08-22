@@ -35,8 +35,6 @@ export class DatosFacturacionService {
         const uniqueField = error.meta?.target?.[0];
         if (uniqueField === 'identificacion_tributaria') {
           throw new ConflictError('La identificación tributaria ya está registrada');
-        } else if (uniqueField === 'correo_factura') {
-          throw new ConflictError('El correo de facturación ya está registrado');
         } else {
           throw new ConflictError('Ya existe un registro con estos datos únicos');
         }
@@ -93,6 +91,27 @@ export class DatosFacturacionService {
     }
   }
 
+  // Obtener datos de facturación por identificación tributaria
+  async getDatosFacturacionByIdentificacion(identificacionTributaria: string): Promise<DatosFacturacionResponseDto> {
+    try {
+      const datosFacturacion = await prisma.datosFacturacion.findUnique({
+        where: { identificacionTributaria },
+      });
+      if (!datosFacturacion) {
+        throw new NotFoundError('Datos de facturación');
+      }
+      return toDatosFacturacionResponseDto(datosFacturacion);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error; // Re-lanzar NotFoundError sin modificar
+      }
+      if (error instanceof Error) {
+        throw new Error(`Error al obtener los datos de facturación: ${error.message}`);
+      }
+      throw new Error('Error desconocido al obtener los datos de facturación');
+    }
+  }
+
   // Actualizar datos de facturación
   async updateDatosFacturacion(
     id: number,
@@ -114,8 +133,6 @@ export class DatosFacturacionService {
         const uniqueField = error.meta?.target?.[0];
         if (uniqueField === 'identificacion_tributaria') {
           throw new ConflictError('La identificación tributaria ya está registrada');
-        } else if (uniqueField === 'correo_factura') {
-          throw new ConflictError('El correo de facturación ya está registrado');
         } else {
           throw new ConflictError('Ya existe un registro con estos datos únicos');
         }
