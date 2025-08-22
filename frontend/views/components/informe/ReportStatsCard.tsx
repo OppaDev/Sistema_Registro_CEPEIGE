@@ -106,7 +106,7 @@ export default function ReportStatsCard({ filtros = {}, refreshTrigger = 0 }: Re
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 bg-blue-200 p-3 rounded-lg">
           <BarChart3 className="h-5 w-5" />
           Estadísticas del Sistema
         </CardTitle>

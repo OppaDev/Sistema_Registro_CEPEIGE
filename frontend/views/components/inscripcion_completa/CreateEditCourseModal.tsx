@@ -100,6 +100,19 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // 🆕 EN MODO EDICIÓN, SOLO VALIDAR ENLACE DE PAGO
+    if (isEditing) {
+      if (!formData.enlacePago.trim()) {
+        newErrors.enlacePago = 'El enlace de pago es requerido';
+      } else if (!isValidUrl(formData.enlacePago)) {
+        newErrors.enlacePago = 'El enlace de pago debe ser una URL válida';
+      }
+      
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    }
+
+    // VALIDACIONES COMPLETAS SOLO PARA CREACIÓN DE NUEVOS CURSOS
     if (!formData.nombreCortoCurso.trim()) {
       newErrors.nombreCortoCurso = 'El nombre corto es requerido';
     } else if (formData.nombreCortoCurso.length > 100) {
@@ -255,7 +268,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                     onChange={(e) => handleInputChange('nombreCortoCurso', e.target.value)}
                     placeholder="Ej: REACT-BASIC"
                     maxLength={100}
-                    className={errors.nombreCortoCurso ? 'border-red-500' : ''}
+                    disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                    className={`${errors.nombreCortoCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.nombreCortoCurso && (
                     <p className="text-red-500 text-xs mt-1">{errors.nombreCortoCurso}</p>
@@ -271,7 +285,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                     onChange={(e) => handleInputChange('nombreCurso', e.target.value)}
                     placeholder="Ej: Curso Básico de React y TypeScript"
                     maxLength={100}
-                    className={errors.nombreCurso ? 'border-red-500' : ''}
+                    disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                    className={`${errors.nombreCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.nombreCurso && (
                     <p className="text-red-500 text-xs mt-1">{errors.nombreCurso}</p>
@@ -287,7 +302,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                     onChange={(e) => handleInputChange('descripcionCurso', e.target.value)}
                     placeholder="Describe el contenido y objetivos del curso..."
                     rows={4}
-                    className={errors.descripcionCurso ? 'border-red-500' : ''}
+                    disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                    className={`${errors.descripcionCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.descripcionCurso && (
                     <p className="text-red-500 text-xs mt-1">{errors.descripcionCurso}</p>
@@ -309,8 +325,9 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                   <Select
                     value={formData.modalidadCurso}
                     onValueChange={(value) => handleInputChange('modalidadCurso', value)}
+                    disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
                   >
-                    <SelectTrigger className={errors.modalidadCurso ? 'border-red-500' : ''}>
+                    <SelectTrigger className={`${errors.modalidadCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}>
                       <SelectValue placeholder="Seleccione la modalidad" />
                     </SelectTrigger>
                     <SelectContent>
@@ -337,7 +354,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                     value={formData.valorCurso}
                     onChange={(e) => handleInputChange('valorCurso', parseFloat(e.target.value) || 1)}
                     placeholder="1.00"
-                    className={errors.valorCurso ? 'border-red-500' : ''}
+                    disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                    className={`${errors.valorCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.valorCurso && (
                     <p className="text-red-500 text-xs mt-1">{errors.valorCurso}</p>
@@ -346,20 +364,23 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Enlace de Pago *
+                    Enlace de Pago * {isEditing && <span className="text-green-600 font-medium">( Campo editable)</span>}
                   </label>
                   <Input
                     type="url"
                     value={formData.enlacePago}
                     onChange={(e) => handleInputChange('enlacePago', e.target.value)}
                     placeholder="https://ejemplo.com/pago"
-                    className={errors.enlacePago ? 'border-red-500' : ''}
+                    className={`${errors.enlacePago ? 'border-red-500' : ''} ${isEditing ? 'border-green-300 focus:border-green-500 focus:ring-green-500' : ''}`}
                   />
                   {errors.enlacePago && (
                     <p className="text-red-500 text-xs mt-1">{errors.enlacePago}</p>
                   )}
-                  <p className="text-gray-500 text-xs mt-1">
-                    URL donde los participantes realizarán el pago del curso
+                  <p className={`text-xs mt-1 ${isEditing ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                    {isEditing 
+                      ? ' Este es el único campo que puedes editar en un curso existente'
+                      : 'URL donde los participantes realizarán el pago del curso'
+                    }
                   </p>
                 </div>
               </CardContent>
@@ -380,7 +401,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                       type="date"
                       value={formData.fechaInicioCurso}
                       onChange={(e) => handleInputChange('fechaInicioCurso', e.target.value)}
-                      className={errors.fechaInicioCurso ? 'border-red-500' : ''}
+                      disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                      className={`${errors.fechaInicioCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     />
                     {errors.fechaInicioCurso && (
                       <p className="text-red-500 text-xs mt-1">{errors.fechaInicioCurso}</p>
@@ -395,7 +417,8 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                       type="date"
                       value={formData.fechaFinCurso}
                       onChange={(e) => handleInputChange('fechaFinCurso', e.target.value)}
-                      className={errors.fechaFinCurso ? 'border-red-500' : ''}
+                      disabled={isEditing} // 🆕 DESHABILITADO EN EDICIÓN
+                      className={`${errors.fechaFinCurso ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     />
                     {errors.fechaFinCurso && (
                       <p className="text-red-500 text-xs mt-1">{errors.fechaFinCurso}</p>
@@ -406,12 +429,13 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
             </Card>
           </div>
 
-          {/* Mensaje de advertencia para edición */}
+          {/* Mensaje de información para edición */}
           {isEditing && (
-            <Alert className="mt-6 border-amber-200 bg-amber-50">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
-                <strong>Advertencia:</strong> Los cambios en las fechas pueden afectar a las inscripciones existentes.
+            <Alert className="mt-6 border-blue-200 bg-blue-50">
+              <AlertTriangle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Modo Edición:</strong> Por seguridad, solo se puede modificar el <strong>Enlace de Pago</strong>. 
+                Los demás campos están protegidos para evitar afectar inscripciones existentes.
               </AlertDescription>
             </Alert>
           )}

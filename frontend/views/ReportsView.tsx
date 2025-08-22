@@ -247,7 +247,7 @@ export default function ReportsView() {
       {/* Panel de Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 bg-blue-200 p-3 rounded-lg">
             <Filter className="h-5 w-5" />
             Filtros y Búsqueda
           </CardTitle>
@@ -357,7 +357,7 @@ export default function ReportsView() {
       {/* Acciones Rápidas */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 bg-blue-200 p-3 rounded-lg">
             <Download className="h-5 w-5" />
             Informes Rápidos
           </CardTitle>

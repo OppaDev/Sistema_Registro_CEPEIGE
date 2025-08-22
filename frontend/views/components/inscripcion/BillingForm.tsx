@@ -13,6 +13,7 @@ interface BillingFormProps {
   onBillingChange: (name: string, value: string) => void;
   onBillingBlur: (name: string, value: string) => void;
   onSubmit: () => void;
+  onAutocomplete?: () => void; // 🆕 NUEVA PROP PARA AUTOCOMPLETADO
 }
 
 export const BillingForm: React.FC<BillingFormProps> = ({
@@ -21,7 +22,8 @@ export const BillingForm: React.FC<BillingFormProps> = ({
   isSubmitting,
   onBillingChange,
   onBillingBlur,
-  onSubmit
+  onSubmit,
+  onAutocomplete
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +45,39 @@ export const BillingForm: React.FC<BillingFormProps> = ({
       </CardHeader>
 
       <CardContent className="p-6 bg-purple-50">
+        {/* 🆕 BOTÓN DE AUTOCOMPLETADO */}
+        {onAutocomplete && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <div className="flex-1">
+                <h4 className="font-semibold text-blue-800 mb-2">
+                  🔄 Autocompletar con datos personales
+                </h4>
+                <p className="text-sm text-blue-700 mb-3">
+                  Puedes autocompletar los siguientes campos usando los datos personales que ya ingresaste:
+                </p>
+                <ul className="text-xs text-blue-600 space-y-1 list-disc pl-4">
+                  <li><strong>Razón Social:</strong> Se llenará con tu nombre completo</li>
+                  <li><strong>Teléfono:</strong> Se copiará de tus datos personales</li>
+                  <li><strong>Correo:</strong> Se copiará de tus datos personales</li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Button
+                type="button"
+                onClick={onAutocomplete}
+                variant="outline"
+                size="sm"
+                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                disabled={isSubmitting}
+              >
+                🔄 Autocompletar Datos
+              </Button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="sm:col-span-2">

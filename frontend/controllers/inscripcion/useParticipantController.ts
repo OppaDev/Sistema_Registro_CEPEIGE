@@ -619,6 +619,46 @@ const createCompleteInscriptionDirect = async (
     }
   };
 
+  // 🆕 FUNCIÓN PARA AUTOCOMPLETAR DATOS DE FACTURACIÓN CON DATOS PERSONALES
+  const autocompleteBillingData = (): void => {
+    console.log('🔄 Autocompletando datos de facturación con datos personales...');
+    
+    if (!formData.nombres || !formData.apellidos) {
+      setMessage({
+        text: 'Debe completar nombres y apellidos en datos personales para autocompletar facturación',
+        type: 'error'
+      });
+      return;
+    }
+
+    // Autocompletar campos de facturación
+    setBillingData(prev => ({
+      ...prev,
+      razonSocial: `${formData.nombres.trim()} ${formData.apellidos.trim()}`,
+      telefono: formData.numTelefono || prev.telefono,
+      correoFactura: formData.correo || prev.correoFactura
+    }));
+
+    // Limpiar errores de los campos autocompletados
+    setBillingErrors(prev => ({
+      ...prev,
+      razonSocial: '',
+      telefono: '',
+      correoFactura: ''
+    }));
+
+    setMessage({
+      text: '✅ Datos de facturación autocompletados desde datos personales',
+      type: 'success'
+    });
+
+    console.log('✅ Datos de facturación autocompletados:', {
+      razonSocial: `${formData.nombres} ${formData.apellidos}`,
+      telefono: formData.numTelefono,
+      correoFactura: formData.correo
+    });
+  };
+
   // 🆕 Función para autocompletado con consentimiento
   const handleAutocomplete = async (hasConsent: boolean): Promise<void> => {
     if (!formData.ciPasaporte.trim()) {
@@ -720,6 +760,7 @@ const createCompleteInscriptionDirect = async (
     resetForm,
     goToStep,
     handleAutocomplete, // 🆕 Nueva función exportada
-    finalizarInscripcion // 🆕 NUEVA FUNCIÓN PARA FINALIZAR INSCRIPCIÓN
+    finalizarInscripcion, // 🆕 NUEVA FUNCIÓN PARA FINALIZAR INSCRIPCIÓN
+    autocompleteBillingData // 🆕 NUEVA FUNCIÓN PARA AUTOCOMPLETAR FACTURACIÓN
   };
 }

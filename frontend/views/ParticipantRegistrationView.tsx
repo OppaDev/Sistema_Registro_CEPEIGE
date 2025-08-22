@@ -33,7 +33,8 @@ export default function ParticipantRegistrationView() {
     submitPaymentReceipt,
     goToStep,
     resetForm,
-    handleAutocomplete
+    handleAutocomplete,
+    autocompleteBillingData
   } = useParticipantController();
 
   const handlePersonalSubmit = async (e: React.FormEvent) => {
@@ -429,6 +430,7 @@ export default function ParticipantRegistrationView() {
               onBillingChange={handleBillingChangeWrapper}
               onBillingBlur={handleBillingBlur}
               onSubmit={submitBillingData}
+              onAutocomplete={autocompleteBillingData}
             />
           </div>
         )}
