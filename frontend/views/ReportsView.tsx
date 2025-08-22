@@ -115,21 +115,41 @@ export default function ReportsView() {
       
       const filtrosEspecificos = { ...filtrosActivos };
       
-      if (tipo === TipoInforme.PENDIENTES) {
-        filtrosEspecificos.verificacionPago = false;
-      } else if (tipo === TipoInforme.PAGADOS) {
-        filtrosEspecificos.verificacionPago = true;
-      } else if (tipo === TipoInforme.MATRICULADOS) {
-        filtrosEspecificos.matricula = true;
-      }
+      console.log('🔍 Debug generarInformeRapido:', {
+        tipo,
+        formato,
+        filtrosActivos,
+        filtrosEspecificos
+      });
       
-      await informeService.generarInforme({
+      // 🆕 Configurar filtros específicos por tipo de informe
+      if (tipo === TipoInforme.PENDIENTES) {
+        // Para pagos pendientes, explícitamente buscar verificacionPago = false
+        filtrosEspecificos.verificacionPago = false;
+        console.log('📋 Configurando filtro para PENDIENTES:', { verificacionPago: false });
+      } else if (tipo === TipoInforme.PAGADOS) {
+        // Para pagos verificados, explícitamente buscar verificacionPago = true
+        filtrosEspecificos.verificacionPago = true;
+        console.log('📋 Configurando filtro para PAGADOS:', { verificacionPago: true });
+      } else if (tipo === TipoInforme.MATRICULADOS) {
+        // Para matriculados, buscar matricula = true
+        filtrosEspecificos.matricula = true;
+        console.log('📋 Configurando filtro para MATRICULADOS:', { matricula: true });
+      }
+      // Para INSCRIPCIONES no agregamos filtros adicionales
+      
+      const requestData = {
         tipoInforme: tipo,
         formato: formato,
         ...filtrosEspecificos
-      });
+      };
+      
+      console.log('🚀 Enviando request para informe:', requestData);
+      
+      await informeService.generarInforme(requestData);
       
     } catch (err) {
+      console.error('❌ Error generando informe rápido:', err);
       setError(err instanceof Error ? err.message : 'Error al generar el informe');
     } finally {
       setLoading(false);
@@ -454,7 +474,8 @@ export default function ReportsView() {
               </div>
             </div>
 
-            {/* Pagos Pendientes */}
+            {/* Pagos Pendientes - COMENTADO TEMPORALMENTE: Problema con filtro verificacionPago=false */}
+            {/* 
             <div className="p-4 border rounded-lg space-y-3">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-orange-600" />
@@ -483,6 +504,7 @@ export default function ReportsView() {
                 </Button>
               </div>
             </div>
+            */}
           </div>
         </CardContent>
       </Card>

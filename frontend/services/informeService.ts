@@ -36,9 +36,16 @@ class InformeService {
     const queryParams = new URLSearchParams();
     
     Object.entries(filtros).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      // 🆕 CORREGIR: Permitir valores booleanos false
+      if (value !== undefined && value !== null && (value !== '' || typeof value === 'boolean')) {
         queryParams.append(key, value.toString());
       }
+    });
+
+    console.log('🔍 obtenerDatosInforme - Query params construidos:', {
+      filtros,
+      queryString: queryParams.toString(),
+      entries: Array.from(queryParams.entries())
     });
 
     const response = await this.makeRequest<InformeCompleto>(
@@ -60,9 +67,16 @@ class InformeService {
     const queryParams = new URLSearchParams();
     
     Object.entries(filtros).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      // 🆕 CORREGIR: Permitir valores booleanos false
+      if (value !== undefined && value !== null && (value !== '' || typeof value === 'boolean')) {
         queryParams.append(key, value.toString());
       }
+    });
+
+    console.log('🔍 obtenerEstadisticas - Query params construidos:', {
+      filtros,
+      queryString: queryParams.toString(),
+      entries: Array.from(queryParams.entries())
     });
 
     const response = await this.makeRequest<{
@@ -80,8 +94,24 @@ class InformeService {
    */
   async generarInforme(data: GenerarInformeData): Promise<void> {
     try {
+      console.log('🎯 generarInforme - Datos enviados al backend:', {
+        data,
+        tipoInforme: data.tipoInforme,
+        verificacionPago: data.verificacionPago,
+        matricula: data.matricula,
+        formato: data.formato
+      });
+      
       const response = await api.post('/informes/generar', data, {
         responseType: 'blob'
+      });
+      
+      console.log('📊 generarInforme - Respuesta del backend:', {
+        status: response.status,
+        headers: response.headers,
+        dataType: typeof response.data,
+        dataSize: response.data?.size || response.data?.length,
+        contentType: response.headers['content-type']
       });
 
       // Obtener información del archivo desde headers
