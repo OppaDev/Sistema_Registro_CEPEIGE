@@ -34,11 +34,22 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
     descripcionCurso: '',
     modalidadCurso: '',
     valorCurso: 1,
+    enlacePago: '',
     fechaInicioCurso: '',
     fechaFinCurso: ''
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Función para validar URL
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   // Cargar datos del curso si estamos editando
   useEffect(() => {
@@ -49,6 +60,7 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
         descripcionCurso: course.descripcionCurso,
         modalidadCurso: course.modalidadCurso,
         valorCurso: course.valorCurso,
+        enlacePago: course.enlacePago,
         fechaInicioCurso: formatDateToInputValue(course.fechaInicioCurso),
         fechaFinCurso: formatDateToInputValue(course.fechaFinCurso)
       });
@@ -60,6 +72,7 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
         descripcionCurso: '',
         modalidadCurso: '',
         valorCurso: 1,
+        enlacePago: '',
         fechaInicioCurso: '',
         fechaFinCurso: ''
       });
@@ -105,6 +118,12 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
 
     if (!formData.valorCurso || formData.valorCurso < 1) {
       newErrors.valorCurso = 'El precio debe ser mayor o igual a 1';
+    }
+
+    if (!formData.enlacePago.trim()) {
+      newErrors.enlacePago = 'El enlace de pago es requerido';
+    } else if (!isValidUrl(formData.enlacePago)) {
+      newErrors.enlacePago = 'El enlace de pago debe ser una URL válida';
     }
 
     if (!formData.fechaInicioCurso) {
@@ -323,6 +342,25 @@ export const CreateEditCourseModal: React.FC<CreateEditCourseModalProps> = ({
                   {errors.valorCurso && (
                     <p className="text-red-500 text-xs mt-1">{errors.valorCurso}</p>
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Enlace de Pago *
+                  </label>
+                  <Input
+                    type="url"
+                    value={formData.enlacePago}
+                    onChange={(e) => handleInputChange('enlacePago', e.target.value)}
+                    placeholder="https://ejemplo.com/pago"
+                    className={errors.enlacePago ? 'border-red-500' : ''}
+                  />
+                  {errors.enlacePago && (
+                    <p className="text-red-500 text-xs mt-1">{errors.enlacePago}</p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    URL donde los participantes realizarán el pago del curso
+                  </p>
                 </div>
               </CardContent>
             </Card>

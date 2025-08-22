@@ -123,7 +123,8 @@ export function useParticipantController() {
       selectedCourse: {
         courseId: course.idCurso,
         courseName: course.nombreCurso,
-        coursePrice: course.valorCurso
+        coursePrice: course.valorCurso,
+        enlacePago: course.enlacePago
       }
     }));
     

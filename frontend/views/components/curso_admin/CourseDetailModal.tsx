@@ -6,7 +6,7 @@ import { courseService } from '@/services/inscripcion/courseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, BookOpen, Calendar, DollarSign, Clock, Info } from 'lucide-react';
+import { X, BookOpen, Calendar, DollarSign, Clock, Info, ExternalLink } from 'lucide-react';
 
 interface CourseDetailModalProps {
   course: Course | null;
@@ -156,12 +156,33 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <label className="text-sm font-medium text-gray-600">Precio del Curso</label>
                     <p className="text-3xl font-bold mt-2" style={{ color: '#F3762B' }}>
                       {courseService.formatPrice(course.valorCurso)}
                     </p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <label className="text-sm font-medium text-gray-600">Enlace de Pago</label>
+                    <div className="mt-2">
+                      <a 
+                        href={course.enlacePago} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Ir al pago
+                      </a>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {course.enlacePago.length > 30 
+                          ? course.enlacePago.substring(0, 30) + '...' 
+                          : course.enlacePago
+                        }
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="text-center">

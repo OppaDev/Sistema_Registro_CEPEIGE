@@ -40,7 +40,8 @@ export function CourseSelector({ selectedCourse, onCourseSelect, error }: Course
     const selection: CourseSelection = {
       courseId: course.idCurso,
       courseName: course.nombreCurso,
-      coursePrice: course.valorCurso
+      coursePrice: course.valorCurso,
+      enlacePago: course.enlacePago || ''
     };
     onCourseSelect(selection);
   };

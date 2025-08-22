@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PaymentReceipt, PaymentFieldErrors } from '@/models/inscripcion/payment';
+import { CourseSelection } from '@/models/inscripcion/course';
 import { paymentService } from '@/services/inscripcion/paymentService';
 import { Upload, FileText, Image as ImageIcon, X, CheckCircle } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface PaymentReceiptUploadProps {
   paymentData: PaymentReceipt;
   paymentErrors: PaymentFieldErrors;
   isSubmitting: boolean;
+  selectedCourse?: CourseSelection;
   onFileChange: (file: File | null) => void;
   onSubmit: () => void;
 }
@@ -20,6 +22,7 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
   paymentData,
   paymentErrors,
   isSubmitting,
+  selectedCourse,
   onFileChange,
   onSubmit
 }) => {
@@ -117,8 +120,8 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
                   <Image 
                     src="/img_pago.jpg" 
                     alt="Información de cuenta bancaria para transferencias" 
-                    width={400}
-                    height={300}
+                    width={650}
+                    height={400}
                     className="rounded-lg border shadow-md max-w-full h-auto"
                   />
                 </div>
@@ -126,11 +129,23 @@ export const PaymentReceiptUpload: React.FC<PaymentReceiptUploadProps> = ({
               <div>
                 <span className="font-medium text-blue-800 text-sm sm:text-base">Pago con tarjeta de Crédito:</span>
                 <ul className="text-xs sm:text-sm text-blue-700 space-y-1 list-disc pl-4 mt-1">
-                  <li>Si deseas pagar con tarjeta de crédito, solicita el enlace de pago <a href="https://api.whatsapp.com/send/?phone=593984896665&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold underline cursor-pointer hover:text-blue-800">AQUÍ</a>.</li>
-                  <li>Espera la respuesta del Jefe Académico, ya que se te enviará un enlace de pago seguro.</li>
+                  <li>Si deseas pagar con tarjeta de crédito, este es el enlace de pago a este curso: {selectedCourse?.enlacePago ? (
+                    <a 
+                      href={selectedCourse.enlacePago} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 font-semibold underline cursor-pointer hover:text-blue-800 ml-1"
+                    >
+                      {selectedCourse.enlacePago}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 ml-1">(No disponible)</span>
+                  )}</li>
+
                   <li>Realiza el Pago.</li>
                   <li>Guarda el comprobante digital o la captura de la pantalla que indique que el pago se ha realizado correctamente.</li>
                   <li>Adjunta el Comprobante en el Formulario de Inscripción.</li>
+                  <li>Si tiene alguna inquietud, contáctanos <a href="https://api.whatsapp.com/send/?phone=593984896665&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold underline cursor-pointer hover:text-blue-800">AQUÍ</a>.</li>
                 </ul>
               </div>
             </div>

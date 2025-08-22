@@ -178,6 +178,7 @@ class CourseService {
           modalidadCurso: course.modalidadCurso ?? '',
           nombreCurso: course.nombreCurso ?? '',
           valorCurso: Number(course.valorCurso),
+          enlacePago: course.enlacePago ?? '',
           fechaInicioCurso: this.parseLocalDate(course.fechaInicioCurso),
           fechaFinCurso: this.parseLocalDate(course.fechaFinCurso),
           descripcionCurso: course.descripcionCurso ?? ''

@@ -6,6 +6,7 @@ export interface Course {
   descripcionCurso: string;
   modalidadCurso: string;
   valorCurso: number;         // ✅ Según backend
+  enlacePago: string;           // ✅ Nuevo campo según backend
   fechaInicioCurso: Date;       // ✅ Según backend
   fechaFinCurso: Date;          // ✅ Según backend
 }
@@ -18,6 +19,7 @@ export interface CourseAvailable {
   descripcionCurso: string;
   modalidadCurso: string;
   valorCurso: number;
+  enlacePago: string;           // ✅ Nuevo campo según backend
   fechaInicioCurso: Date;
   fechaFinCurso: Date;
 }
@@ -26,6 +28,7 @@ export interface CourseSelection {
   courseId: number;
   courseName: string;
   coursePrice: number;
+  enlacePago: string;
 }
 export interface CreateCourseData {
   nombreCortoCurso: string;
@@ -33,6 +36,7 @@ export interface CreateCourseData {
   descripcionCurso: string;
   modalidadCurso: string;
   valorCurso: number;
+  enlacePago: string;       // ✅ Nuevo campo según backend
   fechaInicioCurso: string; // ISO string para API
   fechaFinCurso: string;    // ISO string para API
 }

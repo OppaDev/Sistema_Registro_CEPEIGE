@@ -1,12 +1,8 @@
 // models/participant.ts (actualizado)
-
+import { CourseSelection } from './course';
 
 export interface Participant {
-  selectedCourse?: {
-    courseId: number;
-    courseName: string;
-    coursePrice: number;
-  };
+  selectedCourse?: CourseSelection;
   ciPasaporte: string;        // ✅ Cambio: ciOrPassport → ciPasaporte
   nombres: string;            // ✅ Cambio: fullName → nombres  
   apellidos: string;          // ✅ Cambio: lastName → apellidos

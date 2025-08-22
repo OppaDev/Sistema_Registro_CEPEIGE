@@ -445,6 +445,7 @@ export default function ParticipantRegistrationView() {
               paymentData={paymentData}
               paymentErrors={paymentErrors}
               isSubmitting={isSubmitting}
+              selectedCourse={formData.selectedCourse}
               onFileChange={handlePaymentFileChange}
               onSubmit={submitPaymentReceipt}
             />
