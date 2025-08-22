@@ -93,7 +93,7 @@ export class MatriculaMoodleService {
     formData.append('enrolments[0][roleid]', this.DEFAULT_ROLE_ID.toString());
     formData.append('enrolments[0][userid]', moodleUserId.toString());
     formData.append('enrolments[0][courseid]', moodleCourseId.toString());
-    formData.append('enrolments[0][suspend]', '0');
+    formData.append('enrolments[0][suspend]', '1');
     if (startDate) {
       const timestart = Math.floor(startDate.getTime() / 1000);
       formData.append('enrolments[0][timestart]', timestart.toString());
