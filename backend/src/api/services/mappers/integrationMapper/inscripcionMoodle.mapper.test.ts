@@ -46,6 +46,7 @@ describe('InscripcionMoodle Mapper', () => {
     modalidadCurso: 'Virtual',
     descripcionCurso: 'Curso de JavaScript desde cero',
     valorCurso: new Decimal(299.99),
+    enlacePago: 'https://payment.example.com/test-course',
     fechaInicioCurso: new Date('2025-01-15T00:00:00Z'),
     fechaFinCurso: new Date('2025-03-15T00:00:00Z'),
   };

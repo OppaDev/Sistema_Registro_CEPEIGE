@@ -14,6 +14,7 @@ model Curso {
   modalidadCurso   String        @map("modalidad_curso") @db.VarChar(50)
   descripcionCurso String        @map("descripcion_curso")
   valorCurso       Decimal       @map("valor_curso") @db.Decimal(10, 2)
+  enlacePago       String        @map("enlace_pago") @db.VarChar(255)
   fechaInicioCurso DateTime      @map("fecha_inicio_curso") @db.Date
   fechaFinCurso    DateTime      @map("fecha_fin_curso") @db.Date
 

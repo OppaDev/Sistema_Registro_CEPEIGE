@@ -18,6 +18,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Curso básico de JavaScript para principiantes',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/js101',
         fechaInicioCurso: fechaInicio,
         fechaFinCurso: fechaFin
       };
@@ -53,6 +54,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Híbrida',
         descripcionCurso: descripcionLarga,
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/js102',
         fechaInicioCurso: fechaInicio,
         fechaFinCurso: fechaFin
       };
@@ -86,6 +88,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Presencial',
         descripcionCurso: 'Curso de marketing presencial',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-07-15T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-08-15T00:00:00.000Z')
       };
@@ -105,6 +108,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Curso de diseño completamente online',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-07-20T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-08-20T00:00:00.000Z')
       };
@@ -124,6 +128,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Híbrida',
         descripcionCurso: 'Curso que combina clases presenciales y virtuales',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-09-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-12-01T00:00:00.000Z')
       };
@@ -145,6 +150,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Descripción mínima',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-01-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-01-02T00:00:00.000Z')
       };
@@ -165,6 +171,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Presencial',
         descripcionCurso: 'Curso de alta gama',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-06-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-12-31T23:59:59.999Z')
       };
@@ -184,6 +191,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Curso de introducción completamente gratuito',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-07-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-07-07T00:00:00.000Z')
       };
@@ -207,6 +215,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Presencial',
         descripcionCurso: 'Workshop de un día completo',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: fecha,
         fechaFinCurso: fecha
       };
@@ -230,6 +239,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Híbrida',
         descripcionCurso: 'Programa de formación de un año completo',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/js102',
         fechaInicioCurso: fechaInicio,
         fechaFinCurso: fechaFin
       };
@@ -255,6 +265,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Curso para probar referencias',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/js102',
         fechaInicioCurso: fechaInicio,
         fechaFinCurso: fechaFin
       };
@@ -277,6 +288,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Híbrida',
         descripcionCurso: 'Curso con todos los campos',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-09-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-09-30T00:00:00.000Z')
       };
@@ -312,6 +324,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: descripcionEspecial,
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date(2025, 9, 1), // Octubre 2025
         fechaFinCurso: new Date(2025, 10, 30) // Noviembre 2025
       };
@@ -337,6 +350,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Presencial',
         descripcionCurso: descripcionConAcentos,
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date(2025, 10, 1), // Noviembre 2025
         fechaFinCurso: new Date(2025, 11, 15) // Diciembre 2025
       };
@@ -364,6 +378,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Virtual',
         descripcionCurso: 'Curso para probar precisión decimal',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-08-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-08-31T00:00:00.000Z')
       };
@@ -384,6 +399,7 @@ describe('B. Mapper toCursoResponseDto', () => {
         modalidadCurso: 'Híbrida',
         descripcionCurso: 'Curso con valor de alta precisión',
         valorCurso: valorCurso,
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date('2025-09-01T00:00:00.000Z'),
         fechaFinCurso: new Date('2025-09-30T00:00:00.000Z')
       };

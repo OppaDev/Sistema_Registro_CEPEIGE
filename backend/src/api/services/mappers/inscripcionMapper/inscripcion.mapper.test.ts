@@ -21,6 +21,7 @@ describe('F. Mappers de Inscripción', () => {
     nombreCurso: 'Curso de TypeScript',
     modalidadCurso: 'Virtual',
     valorCurso: new Decimal(150.00),
+    enlacePago: 'https://payment.example.com/test-course',
     fechaInicioCurso: new Date('2025-07-01'),
     fechaFinCurso: new Date('2025-07-31'),
     descripcionCurso: 'Curso completo de TypeScript'

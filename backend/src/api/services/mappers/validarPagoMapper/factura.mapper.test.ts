@@ -85,6 +85,7 @@ describe('F. Mapper toFacturaResponseDto', () => {
         modalidadCurso: "Virtual",
         descripcionCurso: "Curso introductorio de JavaScript",
         valorCurso: new Decimal(180.00),
+        enlacePago: 'https://payment.example.com/test-course',
         fechaInicioCurso: new Date("2025-08-01"),
         fechaFinCurso: new Date("2025-10-01"),
       };

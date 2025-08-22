@@ -47,6 +47,7 @@ describe('CursoMoodleTrigger', () => {
     nombreCurso: 'Curso de JavaScript',
     modalidadCurso: 'Virtual',
     valorCurso: new Decimal(150.00),
+    enlacePago: 'https://payment.example.com/test-course',
     fechaInicioCurso: new Date('2025-02-01'),
     fechaFinCurso: new Date('2025-02-28'),
     descripcionCurso: 'Curso completo de JavaScript'

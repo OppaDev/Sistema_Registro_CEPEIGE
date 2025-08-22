@@ -24,6 +24,11 @@ export class CreateCursoDto {
   @IsNotEmpty({ message: 'El valor del curso es requerido' })
   @Type(() => Decimal)
   valorCurso!: Decimal;
+
+  @IsString({ message: 'El enlace de pago debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El enlace de pago es requerido' })
+  enlacePago!: string;
+
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsNotEmpty({ message: 'La fecha de inicio es requerida' })
   @IsDateFromToday({ message: 'La fecha de inicio debe ser mayor o igual a la fecha actual' })
@@ -57,6 +62,11 @@ export class UpdateCursoDto {
   @IsOptional()
   @Type(() => Decimal)
   valorCurso?: Decimal;
+
+  @IsString({ message: 'El enlace de pago debe ser una cadena de texto' })
+  @IsOptional()
+  enlacePago?: string;
+
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida en formato YYYY-MM-DD' })
   @IsOptional()
   @IsDateFromToday({ message: 'La fecha de inicio debe ser mayor o igual a la fecha actual' })
@@ -76,6 +86,7 @@ export class CursoResponseDto {
   modalidadCurso!: string;
   descripcionCurso!: string;
   valorCurso!: Decimal;
+  enlacePago!: string;
   fechaInicioCurso!: Date;
   fechaFinCurso!: Date;
 }
@@ -85,6 +96,7 @@ export class CursosDisponiblesDto {
   nombreCurso!: string;
   modalidadCurso!: string;
   valorCurso!: Decimal;
+  enlacePago!: string;
   fechaInicioCurso!: Date;
   fechaFinCurso!: Date;
 }

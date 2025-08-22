@@ -68,6 +68,7 @@ describe('CursoService', () => {
       modalidadCurso: curso.modalidadCurso,
       descripcionCurso: curso.descripcionCurso,
       valorCurso: curso.valorCurso,
+      enlacePago: curso.enlacePago,
       fechaInicioCurso: curso.fechaInicioCurso,
       fechaFinCurso: curso.fechaFinCurso,
     }));
@@ -94,6 +95,7 @@ describe('CursoService', () => {
       modalidadCurso: 'virtual',
       descripcionCurso: 'Curso completo de JavaScript moderno',
       valorCurso: new Decimal(250.00),
+      enlacePago: 'https://payment.example.com/js-course',
       fechaInicioCurso: tomorrow.toISOString().split('T')[0],
       fechaFinCurso: nextWeek.toISOString().split('T')[0],
     };
@@ -108,6 +110,7 @@ describe('CursoService', () => {
         modalidadCurso: createCursoDto.modalidadCurso,
         descripcionCurso: createCursoDto.descripcionCurso,
         valorCurso: createCursoDto.valorCurso,
+        enlacePago: createCursoDto.enlacePago,
         fechaInicioCurso: new Date(createCursoDto.fechaInicioCurso),
         fechaFinCurso: new Date(createCursoDto.fechaFinCurso),
       };
@@ -118,6 +121,7 @@ describe('CursoService', () => {
         modalidadCurso: createCursoDto.modalidadCurso,
         descripcionCurso: createCursoDto.descripcionCurso,
         valorCurso: createCursoDto.valorCurso,
+        enlacePago: createCursoDto.enlacePago,
         fechaInicioCurso: createCursoDto.fechaInicioCurso,
         fechaFinCurso: createCursoDto.fechaFinCurso,
       };
@@ -136,6 +140,7 @@ describe('CursoService', () => {
           modalidadCurso: createCursoDto.modalidadCurso,
           descripcionCurso: createCursoDto.descripcionCurso,
           valorCurso: createCursoDto.valorCurso,
+          enlacePago: createCursoDto.enlacePago,
           fechaInicioCurso: expect.any(Date),
           fechaFinCurso: expect.any(Date),
         },
@@ -193,6 +198,7 @@ describe('CursoService', () => {
         modalidadCurso: validCursoDto.modalidadCurso,
         descripcionCurso: validCursoDto.descripcionCurso,
         valorCurso: validCursoDto.valorCurso,
+        enlacePago: validCursoDto.enlacePago,
         fechaInicioCurso: today,
         fechaFinCurso: new Date(validCursoDto.fechaFinCurso),
       };
@@ -223,6 +229,7 @@ describe('CursoService', () => {
       modalidadCurso: 'presencial',
       descripcionCurso: 'Curso básico de Python',
       valorCurso: new Decimal(200.00),
+      enlacePago: 'https://payment.example.com/python-course',
       fechaInicioCurso: tomorrow.toISOString().split('T')[0],
       fechaFinCurso: nextWeek.toISOString().split('T')[0],
     };
@@ -327,6 +334,7 @@ describe('CursoService', () => {
         modalidadCurso: 'virtual',
         descripcionCurso: 'Curso de JavaScript',
         valorCurso: new Decimal(250.00),
+        enlacePago: 'https://payment.example.com/js-course',
         fechaInicioCurso: new Date('2024-01-15'),
         fechaFinCurso: new Date('2024-02-15'),
       },
@@ -337,6 +345,7 @@ describe('CursoService', () => {
         modalidadCurso: 'presencial',
         descripcionCurso: 'Curso de Python',
         valorCurso: new Decimal(300.00),
+        enlacePago: 'https://payment.example.com/python-course',
         fechaInicioCurso: new Date('2024-02-01'),
         fechaFinCurso: new Date('2024-03-01'),
       },
@@ -403,6 +412,7 @@ describe('CursoService', () => {
       modalidadCurso: 'virtual',
       descripcionCurso: 'Curso de JavaScript',
       valorCurso: new Decimal(250.00),
+      enlacePago: 'https://payment.example.com/js-course',
       fechaInicioCurso: new Date('2024-01-15'),
       fechaFinCurso: new Date('2024-02-15'),
     };
@@ -443,6 +453,7 @@ describe('CursoService', () => {
       modalidadCurso: 'virtual',
       descripcionCurso: 'Curso de JavaScript',
       valorCurso: new Decimal(250.00),
+      enlacePago: 'https://payment.example.com/js-course',
       fechaInicioCurso: new Date('2024-01-15'),
       fechaFinCurso: new Date('2024-02-15'),
     };
@@ -490,6 +501,7 @@ describe('CursoService', () => {
         modalidadCurso: 'virtual',
         descripcionCurso: 'Curso de JavaScript',
         valorCurso: new Decimal(250.00),
+        enlacePago: 'https://payment.example.com/js-course',
         fechaInicioCurso: new Date('2024-01-15'),
         fechaFinCurso: new Date('2024-02-15'),
       },
@@ -505,6 +517,7 @@ describe('CursoService', () => {
         nombreCurso: curso.nombreCurso,
         modalidadCurso: curso.modalidadCurso,
         valorCurso: curso.valorCurso,
+        enlacePago: curso.enlacePago,
         fechaInicioCurso: curso.fechaInicioCurso,
         fechaFinCurso: curso.fechaFinCurso,
       }));
@@ -524,6 +537,7 @@ describe('CursoService', () => {
           nombreCurso: true,
           modalidadCurso: true,
           valorCurso: true,
+          enlacePago: true,
           fechaInicioCurso: true,
           fechaFinCurso: true,
         },
