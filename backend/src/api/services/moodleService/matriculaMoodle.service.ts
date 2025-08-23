@@ -40,7 +40,7 @@ export class MatriculaMoodleService {
       logger.info(`Iniciando matrícula en Moodle: Usuario ${moodleUserId} en Curso ${moodleCourseId}`);
 
   // Preparar datos y logs
-  const formData = this.construirFormDataMatricula(moodleUserId, moodleCourseId, startDate, endDate);
+  const formData = this.construirFormDataMatricula(moodleUserId, moodleCourseId, endDate);
   this.logDatosMatricula(moodleUserId, moodleCourseId, startDate, endDate, formData);
 
       // Llamar a la API de Moodle
@@ -85,7 +85,6 @@ export class MatriculaMoodleService {
   private construirFormDataMatricula(
     moodleUserId: number,
     moodleCourseId: number,
-    startDate?: Date,
     endDate?: Date
   ): URLSearchParams {
     const formData = new URLSearchParams();
