@@ -93,11 +93,10 @@ export class MatriculaMoodleService {
     formData.append('enrolments[0][roleid]', this.DEFAULT_ROLE_ID.toString());
     formData.append('enrolments[0][userid]', moodleUserId.toString());
     formData.append('enrolments[0][courseid]', moodleCourseId.toString());
-    formData.append('enrolments[0][suspend]', '1');
-    if (startDate) {
-      const timestart = Math.floor(startDate.getTime() / 1000);
-      formData.append('enrolments[0][timestart]', timestart.toString());
-    }
+    formData.append('enrolments[0][suspend]', '0');
+    // Usar fecha actual para que esté activo inmediatamente al matricularse
+    const timestart = Math.floor(Date.now() / 1000);
+    formData.append('enrolments[0][timestart]', timestart.toString());
     if (endDate) {
       const timeend = Math.floor(endDate.getTime() / 1000);
       formData.append('enrolments[0][timeend]', timeend.toString());
